@@ -12,15 +12,23 @@ THTK-Studio 是一个东方 Project 脚本/资产 modding 的桌面 IDE。本工
 - SHT 是**纯二进制配置文件**(逐版本差异大),不是脚本语言。
 - **字节布局**已基本清楚(见 `../docs/sht-webedit-and-shmupcc-analysis.md`,在父仓库)。
 - **运行时语义**——`func_on_init/tick/draw/hit`(行为函数索引)、`flags` 段、`unknown_*` 字段
-  ——**社区至今无人公开破解**,需要反汇编 TH18/TH19 的 exe 才能解。**这是当前主攻方向。**
-- 偏好**新作(TH18/TH19)**。
+  ——社区至今无人公开破解。**TH16(天空璋)这块已基本攻下**:func_* 索引→行为表 + 四张跳转表全反、
+  shooterset 组织(火力×聚焦)、自机弹伤害管线、`flags`=运行时不读(见 findings 03/05/07/08)。
+  THA1 归档/加密/LZSS(游戏全格式通用,非 SHT 专属)→ `shared/th16-archive-thai-lzss.md`。
+- **下一步主攻**:① TH18/TH19(偏好新作)——验 func_* 编号是否与 TH16 共用 + flags 是否到新作才启用,**需用户放样本**;
+  或 ② 在 TH16 上深挖**有名却语义空白**的玩法系统(Bomb 各角色 / Spellcard 等)。
 
 ## 先读这些
 
 1. `README.md`(本目录)— 总索引/续作指南。
 2. `sht/disasm/README.md` — ★ 环境 + 用法 + **逆向策略**(动手前必读)。
-3. `sht/findings/01-runtime-semantics.md` — 已知结论 + 开放问题(带可信度分级)。
-4. `shared/touhou-modding-sources.md` — 社区工具/人物/权威来源,哪里查最准。
+3. `sht/findings/` — 结论库(带可信度分级):`01` 总览/开放问题、`03` func_* 索引→行为表 + 四张跳转表、
+   `05` shooter/header 字段图 + flags"运行时不读"、`07` shooterset(火力×聚焦)+ 主弹/子机弹、
+   `08` 自机弹伤害管线;`00-METHOD` = 逆向记录纪律(必读)。
+   (跨子系统/通用知识在 `shared/`:`th16-archive-thai-lzss.md` 归档格式、`th16-engine-math.md` 引擎数学、
+   `ghidra-mcp-tools.md` MCP 工具目录、`touhou-modding-sources.md` 社区来源。)
+4. `sht/test-laser/` — 档1 实验:thcrap code-cave 重指 tick 槽加新行为(追踪激光);含 cave 源码 + patch + 对抗审计 NOTES。
+5. `shared/touhou-modding-sources.md` — 社区工具/人物/权威来源,哪里查最准。
 
 ## 环境(已搭好并验证,无 sudo;以下为绝对路径)
 

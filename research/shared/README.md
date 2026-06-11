@@ -18,6 +18,10 @@
 - `th16-engine-math.md` — **TH16 引擎数学/CRT 模块**逆向语义表(角度/向量几何、CRT 浮点 atan2/fmod/floor/sin/cos/sqrt、
   ZUN 16 位 PRNG 算法+周期、数学常量实测)。是首个跨主题(非 SHT)引擎子系统结论。配套脚本:
   `../sht/disasm/scripts/apply_th16_math_names.py`(命名落盘)、`th16_prng_model.py`(PRNG 参考模型)。
+- `th16-archive-thai-lzss.md` — **THA1 归档格式**(`.dat`:zun 加密 + LZSS;SHT/ANM/MSG/STD/ECL 全在 .dat 里,**游戏全格式通用**):
+  读取链/条目布局/逐文件 key 选择/LZSS 参数/open+头解析,与 thtk thdat 逐字节吻合。(从 `sht/findings` 搬来,因其非 SHT 专属。)
+- `ghidra-mcp-tools.md` — **ghidra-re MCP 工具目录**(pinned vs hidden,~90 个 + 隐藏工具怎么够到)+ 我们自维护 fork 说明。
+  所有逆向(ECL/ANM/弹幕…)通用,不只 SHT。(从 `sht/disasm` 搬来。)
 
 ## 待积累(随逆向推进新建)
 
