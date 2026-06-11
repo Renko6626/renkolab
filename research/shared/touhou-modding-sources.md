@@ -14,6 +14,22 @@
 ✅ **关键事实:thtk 和 ExpHp 的 truth 都不解析 SHT**(thtk 只能用 thdat 从 .dat 里解出 `.sht`
 blob,不解析内部)。**不存在 `thsht` 这种官方工具**。网上"thsht 存符卡名"是错的(符卡名属 MSG)。
 
+## ★★ 逆向符号金矿:ExpHP `th-re-data`(逆向时第一个去翻的)
+
+✅ **`exphp-share/th-re-data`** —— ExpHP 从 binja 导出的**逐游戏符号数据库**,是**当前最硬的 TH16(及他作)
+一手运行时源**。逆向 exe 时**先翻它**,能省掉大量从零命名。
+- **内容**(`data/th16.v1.00a/` 等逐版本目录):`funcs.json`(TH16 约 932/1930 函数命名)、`statics.json`
+  (全局/静态符号 + 类型)、`type-structs-*.json`(结构体布局,如 `zEclVm`/`zEclRunContext`/`AnmManager`…)。
+  覆盖重 **ANM / laser / ECL / bullet**;**SHT 几乎为零**(SHT 运行时语义是我们的原创产出)。
+- **粒度**:**只给"叫什么 / 字段在哪",不给"干什么"**(`comment` 0 条)。**当命名层用,语义层自己做。**
+- **位置**:本地克隆 `research/ecl/vendor/th-re-data`(**gitignored**,可重克隆);上游 `exphp-share/th-re-data`;
+  我们的 fork `Renko6626/th-re-data`(已提 **PR #7** = 15 个 MainMenu funcs、**issue #8** = 导入脚本,ExpHP 已邀 PR)。
+- **怎么用**:**`research/funcs/import_th_re_data.py`** —— 把 funcs/statics 名 + 注释一键套进 Ghidra
+  (safe 默认不覆盖已有名;`--overwrite` / `--dry-run`)。建新工程或重建时跑它白得命名上下文。
+  (当前 `th16` Ghidra 工程**已套用并落盘**,重开即见。)
+- 配套权威:Priw8 `eclmap`(ECL 指令名)、`thtk`(格式权威)。⚠️ 上游不太活跃;我们的 ghidra-re MCP 也已 fork 自用
+  (见 `ghidra-mcp-tools.md`)。
+
 ## SHT 的事实标准:Priw8
 
 ✅ **Priw8**(thpatch 成员、thtk 贡献者)是 SHT 工具的主要作者,也是新作 SHT 的事实权威。
