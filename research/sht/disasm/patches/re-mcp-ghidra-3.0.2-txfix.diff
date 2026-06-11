@@ -1,0 +1,93 @@
+--- session.py.bak-precommit-txfix	2026-06-08 21:28:19.466567294 +0800
++++ session.py	2026-06-08 21:35:45.783784236 +0800
+@@ -33,6 +33,7 @@
+         self._project_location = None
+         self._current_path: str | None = None
+         self._flat_api = None
++        self._consumer = None  # java consumer for the re-opened (tx-clean) program
+         self.capabilities: dict[str, bool] = {}
+ 
+     def is_open(self) -> bool:
+@@ -160,6 +161,14 @@
+                 GhidraProgramUtilities.setAnalyzedFlag(program, False)
+                 GhidraProject.analyze(program)
+ 
++            # importProgram()/openProgram() leave a long-lived "Batch Processing"
++            # transaction open on the returned program; it holds the program lock
++            # for the whole session, so every later DomainFile.save() fails with
++            # "Unable to lock due to active transaction" and only the first saveAs
++            # (which bypasses the lock) ever persists. Round-trip the program
++            # through disk to drop that transaction. See _reopen_clean.
++            program = self._reopen_clean(project, program)
++
+         except GhidraError:
+             raise
+         except Exception as exc:
+@@ -181,6 +190,44 @@
+             "decompiler": True,
+         }
+ 
++    def _reopen_clean(self, project, program):
++        """Drop the import/open 'Batch Processing' transaction.
++
++        ``GhidraProject.importProgram()`` / ``openProgram()`` return a program
++        with a long-lived batch transaction still open (``getCurrentTransactionInfo()``
++        is non-None, status NOT_DONE). That transaction keeps the program lock,
++        so ``DomainFile.save()`` raises ``IOException: Unable to lock due to active
++        transaction``. Persist once, release the loaded handle (which ends the
++        batch transaction), then reopen the DomainFile writable; the fresh handle
++        has no lingering transaction so later saves succeed.
++        """
++        from ghidra.util.task import TaskMonitor  # noqa: PLC0415
++
++        if program.getCurrentTransactionInfo() is None:
++            return program  # already clean
++
++        name = program.getName()
++        df = program.getDomainFile()
++        if df is None or not df.canSave():
++            # Imported (not yet on disk) -> write it into the project.
++            project.saveAs(program, "/", name, True)
++
++        # Release the loaded handle; this ends the open batch transaction.
++        project.close(program)
++
++        # Reopen the DomainFile writable (okToUpgrade=False, okToRecover=False).
++        # Consume with a dedicated java.lang.Object so close() can release exactly
++        # this handle and free the project lock. (A Python object fails JPype
++        # overload matching; the GhidraProject as consumer stays outstanding after
++        # GhidraProject.close() and blocks the next openProject -> LockException.)
++        from java.lang import Object as _JObject  # noqa: PLC0415
++
++        project_data = project.getProject().getProjectData()
++        df = project_data.getRootFolder().getFile(name)
++        consumer = _JObject()
++        self._consumer = consumer
++        return df.getDomainObject(consumer, False, False, TaskMonitor.DUMMY)
++
+     def _end_open_transactions(self) -> None:
+         """End any active transactions so save/undo can proceed.
+ 
+@@ -237,6 +284,14 @@
+         try:
+             if save and self._program is not None and self._project is not None:
+                 self.save()
++            if self._program is not None and self._consumer is not None:
++                # Release our consumer on the (re-opened) program so the project
++                # lock is freed; otherwise the next openProject() raises
++                # LockException.
++                import contextlib  # noqa: PLC0415
++
++                with contextlib.suppress(Exception):
++                    self._program.release(self._consumer)
+             if self._project is not None:
+                 self._project.close()
+         except Exception as exc:
+@@ -248,6 +303,7 @@
+             self._project_location = None
+             self._current_path = None
+             self._flat_api = None
++            self._consumer = None
+ 
+         log.info("Closed database: %s (saved=%s)", path, save)
+         return {"status": "closed", "path": path, "saved": save}

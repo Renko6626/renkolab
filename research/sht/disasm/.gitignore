@@ -1,0 +1,10 @@
+# 游戏本体 exe:ZUN 版权商业软件,仅本地分析,绝不入库
+samples/
+# Ghidra 工程产物(大、二进制、可重建)
+ghidra_projects/
+# 反汇编/反编译导出的原始大文件
+exports/
+*.zip
+# Python 缓存
+__pycache__/
+*.pyc

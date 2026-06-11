@@ -1,0 +1,91 @@
+# 东方 modding 社区:工具 / 人物 / 权威来源速查
+
+新会话需要查某个东方格式或运行时行为时,先看这里"哪里查最准"。结论来自我们两轮 deep research
+(都做了多源对抗验证)+ 源码核对。可信度:✅确证 / 🟡单源或推断 / ❓社区未解。
+
+## 工具链全景:谁覆盖哪些格式
+
+| 格式 | 官方/主流工具 | SHT 支持? |
+| --- | --- | --- |
+| ECL / ANM / MSG / STD / DAT | **thtk**(thpatch):thecl/thanm/thmsg/thstd/thdat | — |
+| STD / ANM / MSG(现代重写) | **truth**(ExpHp):trustd/truanm/trumsg | — |
+| **SHT** | **没有官方工具** | 见下 |
+
+✅ **关键事实:thtk 和 ExpHp 的 truth 都不解析 SHT**(thtk 只能用 thdat 从 .dat 里解出 `.sht`
+blob,不解析内部)。**不存在 `thsht` 这种官方工具**。网上"thsht 存符卡名"是错的(符卡名属 MSG)。
+
+## SHT 的事实标准:Priw8
+
+✅ **Priw8**(thpatch 成员、thtk 贡献者)是 SHT 工具的主要作者,也是新作 SHT 的事实权威。
+
+- **sht-webedit** <https://github.com/Priw8/sht-webedit>(部署站 <https://priw8.github.io/sht-webedit/>)
+  - 浏览器内编辑 .sht;**逐版本二进制 schema** 在 `js/struct/struct_NN.js`,通用 reader/writer 在
+    `js/import.js`/`js/export.js`。是目前最完整的逆向文档。
+  - ✅ 部署站版本选择器覆盖 **TH07–TH19(獣王園/UDoALG)**;GitHub README 过时(只到 TH18)——
+    **以部署站和源码为准**。
+  - 本地克隆见 `research/sht/vendor/sht-webedit`(@98b8cca)。
+- **shmupcc-sht** <https://github.com/Priw8/shmupcc-sht>
+  - quickjs CLI 编译器:`-c` JSON→二进制、`-d` 二进制→JSON(类似 ECL 的 .decl↔.ecl)。
+  - 架构干净(声明式 `Struct` + 校验 + JSON 互转 + 版本注册表),值得借鉴。
+  - 🟡 但当前只注册了 `"shmupcc"` 一个**归一化格式**(✅ 已本地核对:**大端 + float64**),**不含
+    真实东方逐版本 reader**;真实 schema 仍取自 sht-webedit。本地克隆 `vendor/shmupcc-sht`(@dcf1f91)。
+- ⚠️ 两个仓库**都无 LICENSE 文件**;用户确认可研究/移植(社区公开、作者允许),正式发布前建议注明出处。
+
+## 其他权威来源
+
+- **pytouhou** <https://pytouhou.linkmauve.fr/doc/> + 源码
+  - 东方引擎的 Python 重写;有 **Gen-1(TH06/07/08)** 的 SHT 结构文档和发弹逻辑实现。
+  - 🟡 仅适用旧引擎,**不能外推到 TH15-19** 的 func_*/shooterset 模型。但发弹判定
+    `(fire_time + delay) % interval == 0`、type 选择器(3=激光/2=加速/1=寻的)等可参考思路。
+- **Mddass 东方文件格式规范**(touhouwiki User 命名空间)
+  <https://en.touhouwiki.net/wiki/User:Mddass/Touhou_File_Format_Specification/SHT>
+  - 🟡 二手草稿,**只覆盖 TH07/TH12/TH13**,无 TH14-19。自动抓取常被 Cloudflare 418 挡。
+  - ❌ 其"PCB 0x28 枚举是 func_* 前身"的说法被对抗验证否决(0-3),PCB 枚举只是 PCB 专有。
+- **thpatch / thcrap** — 翻译补丁生态,东方逆向社区主阵地(论坛、贡献者网络)。
+
+## 运行时关键结论(✅ 已确证,sht-webedit README)
+
+- 发弹计时器逐版本:PCB=60 帧;IN–DDC(除 MoF)=15 帧;MoF=16 帧。
+- **LoLK 起**:新增 `fire_rate2`/`start_delay2` 走 **120 帧**计时器,设置后覆盖原字段;该计时器
+  "有著名偶发 bug 导致停止发射"——❓ 代码级根因社区未给出。
+
+## func_* 调用点语义(✅ ExpHP,th07–17,已并入 PR #8;非「索引→行为」表)
+
+社区**没有**索引→行为表(见下「未解」),但**调用点已知**,是反汇编的下手锚点:
+`func_on_init`=对象创建时;`func_on_tick`=每帧 `Player::on_tick`;`_old_on_draw`=`Player::on_draw`
+(MoF/TH16 起废弃不调);`func_on_hit`=命中敌人时(音效 / UFO 早苗B 溅射)。`rate2/delay2`= 上面
+120 帧计时器,**TH16 副季节 sub-shot 的计时即走此**(非特殊 func/flag)。
+🟡 flags 段疑为 **load-time 替换成 thiscall 函数指针的派发槽**(RUEEE 单源,TH15 枚举基数 5/4/2/6;
+与 sht-webedit `flags_len` 字节数对不上,**以反汇编为准**)。详见 `sht/findings/02-*.md`。
+
+## ❓ 社区公开未解(= 我们反汇编的目标)
+
+- `func_on_init/tick/draw/hit`(TH19 变 4× `func_?`)逐游戏的"索引→行为"映射:**社区无任何已发布表**,
+  作者自述 "documentation is yet to be made"。需对各 exe 反汇编。
+  - ✅ **TH16 已由我们破解(首次)**:加载时四张硬编码函数指针表把索引换成函数地址。解析器
+    `sht_parse_resolve_funcptrs`@0x443790;表址 init=0x4919c0/tick=0x4919a0/draw=0x4a6f04(全 null,
+    TH16 不用)/hit=0x491980。**TH16=季节系统**,tick 索引经解包全部 pl0X.sht + wiki 互证:
+    **idx0=直线(夏/琪露诺,散射靠几何)、idx1=追踪(春/灵梦)、idx2=激光(冬/魔理沙)、idx5=匀加速(秋/文)**。
+    关键变量(✅一手):**slot+0x64=移动角、slot+0x60=速度**(易标反)、+0x90 目标句柄、+0xa0 激光长度、
+    find_nearest_enemy@0x425240、atan2@0x487aaa(已坐实)。idx3/5 = `speed+0x60 += 常量`(匀加速,非曲率;
+    游戏内实测 Aya 加速)。详见 `sht/findings/03-*.md`。**仅 TH16,勿外推。**
+- `flags` 段(TH14-18 = 0x20 字节,TH19 = 0x3c)位含义:作者自述 "who knows"(repo Issue #6)。
+- main 头部 `unknown_2..unknown_10`、shooter 的 `unknown_sht_float/byte`:无文档。
+
+> 解开以上任意一项后,把"结论 + 游戏/地址/函数 + 可信度"提炼到 `shared/sht-field-semantics.md`。
+
+## 自机判定点 / 擦弹半径:逐版本 + 「TH16 起全角色统一写死」(✅ wiki + 我们 RE 互证)
+
+- **历史**(Touhou Wiki *Hitbox*,🟡 搜索引擎摘录,直连被反爬挡):TH13 神灵庙起判定由方→圆;
+  **TH13 神灵庙 → TH15 绀珠传:灵梦判定半径 2.0px、其余角色 3.0px**(灵梦更小=传统优势)。
+  擦弹范围自 UFO(TH12)起**与判定点大小挂钩**(灵梦小则擦弹小、魔理沙大则擦弹大)。
+- ✅ **TH16 天空璋 = 统一起点**:wiki 注明 TH16 起有一组判定尺寸(2.0/2.4/2.7px)**"完全未使用"**。
+  **我们逐字节反汇编证实**:TH16 `player_shot_init@0x440fb0` 把 .sht 的判定字段用 exe 内**按角色表**
+  (`DAT_00492c98/0c78/0c88[char]`)覆写,实测 4 角色**值完全相同**:
+  - **hitbox = 3.0**(真判定半径,0x4439e0 碰撞用);grazebox 字段 = 5.0(实被挪作释放弹速度);
+    itembox = 60.0(收集半径,半宽30);另有 exe 常量 `DAT_00492c68`=100.0(道具吸附半径,半宽50)。
+  - 擦弹半径 = hitbox(3.0) + 弹尺寸余量,无角色差异。
+  → **结论:灵梦"判定点更小"保留到 TH15,TH16 取消、全角色统一 3.0**;判定/擦弹半径**不可经 .sht 编辑**
+    (硬编码于 exe)。可信度:统一值=✅一手;TH13–15 逐作数值=🟡(wiki 单源,绝对确认需各作反汇编)。
+  - 出处:Touhou Wiki [Hitbox](https://en.touhouwiki.net/wiki/Hitbox) / [Graze](https://en.touhouwiki.net/wiki/Graze);
+    一手见 `sht/findings/05-*.md` §2b/§4b。
