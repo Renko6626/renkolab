@@ -46,7 +46,7 @@ research/
 │   └── vendor/th-re-data (gitignored)  # ★★ ExpHP TH16 符号金矿(逐版本 funcs/statics/structs);用 funcs/import_th_re_data.py 套进 Ghidra
 ├── bullets/                   # 弹幕引擎:01-core-engine · 02-bullet-vm-model(弹运动 VM) · 03-lasers
 ├── anm/                       # ANM(精灵动画)VM —— 占位/待系统开工
-├── msg/                       # ★ MSG(对话/文本)系统 —— 占位/待系统开工(IDE 目标格式,空间大;入口 GuiMsgVm)
+├── msg/                       # ★ MSG(对话/文本)系统 —— 已告一段落:stage 对话(GuiMsgVm,ECL 518/519 握手)+ 结局/staff(Ending,第二指令集)两套 opcode 全反;01 架构·02 stage表·03 生命周期·04 结局表+解析器
 ├── funcs/                     # 函数级工作:mainmenu/(MainMenu 反汇编) · unexplored.md(待挖图) · th-re-data 导入/dump 脚本
 └── files/ (gitignored)        # TH16 th16.exe + .sht 资产 + Ghidra 工程(版权,用户本地提供)
 ```
