@@ -15,7 +15,8 @@ THTK-Studio 要给东方的 SHT 文件做 IDE 支持。SHT 不是脚本语言,�
 `flags`=运行时不读、shooterset 组织、自机弹伤害管线——社区此前无人公开破解,见 `sht/findings/` + `shared/`)。
 **下一步**:TH18/TH19(偏好新作,需用户放样本)或深挖 TH16 有名却语义空白的玩法系统(Bomb/Spellcard)。
 
-> 注:本工作区已**不止 SHT**——`ecl/`(ECL 敌机/弹幕脚本 VM,核心已基本反完)、`bullets/`(弹幕引擎)、
+> 注:本工作区已**不止 SHT**——`player/`(自机运行时:火力/生命/季节释放,已反三大子系统)、
+> `ecl/`(ECL 敌机/弹幕脚本 VM,核心已基本反完)、`bullets/`(弹幕引擎)、
 > `funcs/`(MainMenu/函数级)、`anm/`(待开)都是子工作区;跨子系统的通用知识统一沉到 `shared/`。见目录地图。
 
 ## 目录地图
@@ -41,6 +42,14 @@ research/
 │   │   └── 99-QUIRK(判定半径哑弹)〔09-archive 已移到 shared/th16-archive-thai-lzss.md〕
 │   ├── test-laser/           # 档1 实验:thcrap code-cave 重指 tick 槽注入追踪激光(cave 源码+patch+对抗审计)
 │   └── disasm/               # Ghidra 工作区:README(★环境/策略)+ scripts/(run.sh) + samples//ghidra_projects//exports/ (gitignored)
+├── th18/                      # ★ TH18(虹龍洞)逆向工作区(独立于 th16,避免混淆):README + 00-port-plan
+│   #   (复用 th16 方法论/工具/认知地图 + 把 th16 结论当"待验假设";地址/偏移按 th18 重取;卡牌/能力=特有新反)
+├── player/                    # ★ 自机运行时对象(承接 sht/ + funcs/)= TH16:
+│   ├── 01 中弹/生命(5 态状态机·决死 8 帧·无敌帧·扣命/miss·复活·GameOver·三判定形状·擦弹)
+│   ├── 02 ★季节释放(按 C)+ 双炸弹(主炸 CHARACTER/库存 · 季节释放 SUBSEASON/季节槽,夏&土用可连放;逐帧清弹+清激光+伤害)
+│   ├── 03 开火门控/输入/移动/聚焦(聚焦=+0x165c8=INPUT bit3,订正 sht/07)
+│   ├── 04 ★option/子机(本体子机=火力档 · 季节子机=季节档;option_pos 拆聚焦/非聚焦)
+│   └── 05 ★字段总账(player 对象 + Bomb 0x108 全字段图 + 伤害源交叉验 sht/08 + 季节阈值常量)
 ├── ecl/                       # ★ ECL(敌机/弹幕脚本)VM —— VM 核心已基本反完;先读 07-vm-architecture(capstone)
 │   ├── 00 格式 · 01 变量/上下文 · 02 运行时结构 · 03 vs ExpHP · 04 解释循环 · 05 开火接缝 · 06 自定义指令 · 07 总览 · ECL-info
 │   └── vendor/th-re-data (gitignored)  # ★★ ExpHP TH16 符号金矿(逐版本 funcs/statics/structs);用 funcs/import_th_re_data.py 套进 Ghidra

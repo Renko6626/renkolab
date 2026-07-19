@@ -28,6 +28,9 @@ Window::do_frame__normal_version (0x45a8a0)              ← 顶层帧驱动(另
     ├ EnemyManager::on_tick_1a     (0x41b4f0 / body 0x41b3d0, prio 0x1a) ✅一手
     │    └ 遍历敌人链表 mgr+0x180;每敌机 Enemy::on_tick (0x41d1e0)
     │         └ Enemy::ecl_run (0x473bc0) → EclRunContext::ecl_run (0x472030)   【ECL VM,见 ../ecl/04】
+    ├ LaserManager::on_tick_1b     (0x4316b0 / body 0x431510, prio 0x1b) ✅一手(2026-06-13 补)
+    │    └ 遍历激光活动链 mgr+0x14(g_laser_mgr=0x4a6ee0);按节点 flags 路由 vtable[4]/[6]/[13]
+    │         └ vtable[4] = LaserLine/Inf/Curve/Beam_frame_tick(各类一份)  【激光 vtable,见 ../bullets/03 §2/§7】
     ├ BulletManager::on_tick_1c    (0x412c50 / body 0x412860, prio 0x1c) ✅一手
     │    └ 遍历弹池活动链 mgr+0x70;每弹 Bullet::on_tick (0x411e70)
     │         └ Bullet::run_ex (0x413860)   【弹运动 VM,见 ../bullets/01 §3】

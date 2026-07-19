@@ -33,6 +33,13 @@ python3 funcs/build_worklist.py                                          # -> fu
 ```
 
 ## 文件
+- **`import_th_re_data_structs.py`** ← ★ 导 ExpHP **类型定义**(structs/unions/enums/typedefs)。导名脚本**不导这些**。
+  - **布局永远精确**:每成员要么具名字段,要么退化 `char NAME[size]` 仍保留字段名;结构体按"值内嵌"拓扑排序(指针→`void*`,不产生顺序约束);`own` 覆盖 `ext`。
+  - 用法 A(纯 python 生成 C,喂 MCP `parse_type_declaration` 或 Ghidra CParser):`python funcs/import_th_re_data_structs.py <DATA_DIR> --emit-c`;`--check` 自检 size(实测 **288/288 通过**)。
+  - 用法 B(PyGhidra driver headless 全量,**先 `MCP close_database` 释放锁**,env 同下"重新生成"):`... <DATA_DIR> --project-dir files/ghidra_projects --project th16.exe --program /th16.exe [--apply-statics] [--all-types]`。**默认只导 z* 游戏结构(158 个);`--all-types` 连 Windows/d3d 也导。**
+  - ⚠️ **坑(已踩)**:Ghidra 的 `CParser.parse(header)` **不可靠落盘**(parse 不报错但类型没真进 program dtm)。本脚本用法 B 改成**程序化构建** `StructureDataType` + `dtm.addDataType(REPLACE_HANDLER)`(标准持久 API)→ 可靠。
+  - **现状(2026-06-12):✅ 全部 158 个 z* 结构体已用法 B 导入并落盘**(types=158 fail=0,zEnemyData/zEnemy/zBullet/zItem/zGui/zLaser*/zStage/zSupervisor/zMainMenu/zEclVm… 全在,category `/`)。player/bomb/SHT 的应用(`PLAYER_PTR→zPlayer*`、`*_BOMB_PTR→zBomb*` + 函数签名)经 REPLACE 原地更新仍生效。见 `../player/05` §0.5。
+- `import_th_re_data.py` / `apply_th16_thredata_bulk_names.py` — 导 ExpHP funcs/statics **名字**(已跑过 614 个)。
 - `dump_funcs.py` — GhidraProject driver,dump 全函数(addr/name/size/xrefs/thunk)→ `th16-funcs.json`。
 - `build_worklist.py` — 交叉 `th16-funcs.json` × ExpHP funcs.json,分类产出 `unexplored.md`(纯标准库)。
 - `th16-funcs.json` — 工程函数快照(随研究推进会变;gitignore 与否随仓库策略,内容仅地址/名/大小,无版权字节)。
