@@ -4,14 +4,15 @@
 > TH16 的成果只作**方法论 + 认知地图 + 待验假设**来源,**地址/偏移一律按 th18.exe 重取**(见 `00-port-plan.md`)。
 > 新会话先读本 README,再读 `00-port-plan.md`。纪律:`../sht/findings/00-METHOD-逆向记录纪律.md`。
 
-## 当前状态:✅ 基础建设已完成(2026-06-13),可直接开始主分析
+## 当前状态:✅ 基础建设与卡牌主线已完成(2026-06-14)，可开展定点验证/改造
 
-> 新会话**无需重做导入**,`open_database`(`file_path=th18/th18-files/th18.exe`,`database_id=th18`)即用。
+> 新会话**无需重做导入**,`open_database`(`file_path=th18/th18-files/th18.exe`,`database_id=th18`)即用。若目标是协作制作运行时卡牌改造，先读 [COLLABORATION.md](COLLABORATION.md)：现有结论可指导 TH18 v1.00a 的定点实验，但尚无已实跑的 TH18 注入补丁。
 - ✅ **th18.exe 已全量分析**(Ghidra headless,函数 **2447** 个)并落盘。
 - ✅ **ExpHP th18 名字已套**(`import_th_re_data.py`:applied=715 / skipped=97 / missing=63)——含**完整卡牌/能力系统**
   (`AbilityManager__*`/`AbilityMenu__*`/`AbilityShop__*`,卡牌 `CardLife/CardBomb/CardLifeFragment/CardBombFragment/CardMokou/CardNarumi/...`,共 ~295 函数)。
 - ✅ **157 个结构体已建**(`import_th_re_data_structs.py`,failed=0;`zPlayer/zPlayerInner/zAbilityManager/zCardBaseClass/zEnemyData/...`)。
-- ⏳ **未做(留给主分析会话)**:把 `zPlayer*/zEnemyData*` 套到全局(按需 set_type)、任何**机制逆向**(本次只做基建,未碰语义)。
+- ✅ **卡牌主线已一手反出**:核心架构/调用接缝、资源经济、58 项注册表、商店规则与卡牌目录见 `findings/cards-01` 至 `cards-06`。
+- ⏳ **仍未做**:已实跑的 TH18 thcrap/DLL 改造样例；装备卡 shooter 数据存储与少数标 🟡 的字段/参数仍待验证。
 - 工程位置见下表 / `th18-files/README.md`。
 
 ## 这是什么 / 目标
@@ -103,7 +104,7 @@ ExpHP 对 TH18 积累与 TH16 同量级,引擎结构体填得很满,**卡牌系�
 th18/
 ├── README.md          # ← 你在这
 ├── 00-port-plan.md    # ★ TH16 结论→TH18 待验假设 + 锚点 + "会变"警示(复用内容的核心)
-├── findings/          # TH18 一手验证后的结论(空起步;验完一个子系统就建 player/ sht/ 等)
+├── findings/          # TH18 一手验证结论(已含 cards-01~06；后续可建 player/ sht/ 等)
 └── th18-files/        # ★ th18.exe + 它自己的 Ghidra 工程(独立于 th16;内容 gitignore,仅 README 入库)
     └── README.md      #    位置对照表(th16 vs th18 工程位置)+ 开工命令
 ```
