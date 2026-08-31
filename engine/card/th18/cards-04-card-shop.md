@@ -1,4 +1,6 @@
 # TH18 卡片商店 AbilityShop — 获得卡的手段(一手反)
+> **版本**：TH18 v1.00a（`th18.exe`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+>
 
 > 适用:TH18 v1.00a,`th18.exe`(`th18`)。前置:`cards-01-system-architecture.md`(架构)、
 > `cards-02-...resource-economy.md`(库存)。证据链纪律见 `../METHOD.md`。

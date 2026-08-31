@@ -1,4 +1,6 @@
 # player 逆向 01:TH16 中弹 / 生命 / 死亡 / 复活系统
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 方法:Ghidra(ghidra-re MCP)一手反编译 th16.exe(用户自有,ExpHP th-re-data 符号已套)。
 > 日期 2026-06-12。分级 ✅高 / 🟡中 / ❓未解。**仅 TH16 v1.00a**。
@@ -11,7 +13,7 @@
 重置炸弹库存=3),进 **状态 2** 播死亡/复活动画,约 30 帧后**复活**(回状态 0,约 280 帧无敌),
 命 < 0 则进 **Game Over**(续关菜单)。中弹与否的闸门是 **无敌帧 `+0x1663c`**(>0 免疫)。
 
-## 1. 状态机:`player_update_perframe` @0x442560(switch on `+0x165a8`)✅
+## 1. 状态机:`player_update_perframe` `0x442560`(switch on `+0x165a8`)✅
 
 每帧由 player 任务入口 `0x443720` 调用。`+0x165a8` 五个状态:
 
@@ -42,7 +44,7 @@
         ret 2 → player_graze(擦弹,见 engine/sht/th16/05 §4b:计数 +音效0x2a)+ 弹置"已擦"位(bit2)防重复
 ```
 
-**`player_collide_circle` @0x4439e0(一手,补 `../sht/05` §4b)**:
+**`player_collide_circle` `0x4439e0`(一手,补 `../sht/05` §4b)**:
 - 距离² = (player `+0x610/+0x614` − 弹坐标)²;判定半径 `r = *(player+0x2c788 + 4)` = 主 .sht header `+0x04`
   **hitbox**(init 被按角色硬表覆写为 3.0,见 `../sht/05`);弹半径经 XMM2(=弹 `+0xc40`)。
 - **聚焦缩放**:`if (player+0x1664c & 0x10) r *= player+0x2c7c8 × 3.6`(🟡 见 §7 注:`0x1664c&0x10` 语义待定,
@@ -59,15 +61,15 @@
 
 | 函数 | 形状 | 判定几何(一手) |
 | --- | --- | --- |
-| `player_collide_circle` @0x4439e0 | 点/圆 | 距离² vs (hitbox+弹半径)²;聚焦缩放 hitbox(`../sht/05`,§2 上) |
-| `player_collide_rect` @0x4438c0 | 矩形 | 弹 AABB(中心 `+0xc20` ± `+0xc40`×0.5)vs 自机矩形 `PLAYER+0x2c730..0x2c740`;擦弹环 = 自机矩形外扩 **24** |
-| `player_collide_laser_obb` @0x443af0 | 激光(旋转 OBB)| 把(自机−激光起点)用 `crt_sinf/crt_cosf(−激光角)` **旋进激光本地系**,测盒 `[0,半长]×[−宽,+宽]`,再按自机 hitbox(`+0x2c748/+0x2c74c`×16)膨胀;擦弹=膨胀环 |
+| `player_collide_circle` `0x4439e0` | 点/圆 | 距离² vs (hitbox+弹半径)²;聚焦缩放 hitbox(`../sht/05`,§2 上) |
+| `player_collide_rect` `0x4438c0` | 矩形 | 弹 AABB(中心 `+0xc20` ± `+0xc40`×0.5)vs 自机矩形 `PLAYER+0x2c730..0x2c740`;擦弹环 = 自机矩形外扩 **24** |
+| `player_collide_laser_obb` `0x443af0` | 激光(旋转 OBB)| 把(自机−激光起点)用 `crt_sinf/crt_cosf(−激光角)` **旋进激光本地系**,测盒 `[0,半长]×[−宽,+宽]`,再按自机 hitbox(`+0x2c748/+0x2c74c`×16)膨胀;擦弹=膨胀环 |
 
 > `player_collide_rect/laser_obb` 与 circle **完全同构的致死逻辑**(状态/无敌闸门一致)——交叉印证 §2 的判定模型。
 > 自机判定矩形角点 `PLAYER+0x2c730..` 每帧由半径 `+0x2c748..` 在 `player_update_perframe` 末尾重算(`engine/player/th16/01` §1)。
 > (laser_obb 在 2026-06-09 `engine/bullet/th16/` 工作中已反并加注释,本篇仅纳入生命系统视角,结论一致。)
 
-### 2c. 擦弹 `player_graze` @0x444cf0(本会话亲验,补 `../sht/05`)✅
+### 2c. 擦弹 `player_graze` `0x444cf0`(本会话亲验,补 `../sht/05`)✅
 
 `bullet_vs_player_collide` 判 ret 2 且弹未擦过(`+0x20 & 4`==0)→ `player_graze(弹坐标)` + 置弹"已擦"位
 (`+0x20 |= 4`,防同弹重复计)。`player_graze`:
@@ -84,7 +86,7 @@
 
 | 设值处 | 值(帧) | 场景 |
 | --- | --- | --- |
-| `player_on_death` 0x443f10 | **6** | 刚中弹进决死窗口(短暂) |
+| `player_on_death` `0x443f10` | **6** | 刚中弹进决死窗口(短暂) |
 | `FUN_00443cd0`(commit 死亡)| **0xb4=180** | 死亡黑屏/复活等待期 |
 | 复活(状态2→0)| **0x118=280** | 复活后约 280 帧无敌 |
 | `BombSub*::begin`(季节释放)| **10** | 释放瞬间短无敌(见 `02`)|
@@ -166,9 +168,9 @@ player+0x628 = 0;  +0x624 = -1;                // 状态帧计数复位
 
 ## 9. 可信度 / 复核
 
-- ✅ 一手:`player_update_perframe`(0x442560)、`player_on_death`(0x443f10)、`FUN_00443cd0`(0x443cd0)、
-  `player_set_alive_after_bomb`(0x444070)、`bullet_vs_player_collide`(0x4124b0)、`player_collide_circle`
-  (0x4439e0)、`FUN_0043f350`(0x43f350)全部本会话反编译。
+- ✅ 一手:`player_update_perframe`(`0x442560`)、`player_on_death`(`0x443f10`)、`FUN_00443cd0`(`0x443cd0`)、
+  `player_set_alive_after_bomb`(`0x444070`)、`bullet_vs_player_collide`(`0x4124b0`)、`player_collide_circle`
+  (`0x4439e0`)、`FUN_0043f350`(`0x43f350`)全部本会话反编译。
 - 🟡 `+0x1664c` 各位语义、符卡交互细节、状态 3 用途未深挖。
 - 复核入口:Ghidra DB `th16`,地址见上。
 - ❗ 纪律:本篇是 player 运行时一手结论;数值(8 帧 / 180 / 280)来自 init 立即数,**未动态实测**——

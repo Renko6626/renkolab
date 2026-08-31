@@ -1,4 +1,6 @@
-# 04 — ★ ECL 解释器循环 `EclRunContext::ecl_run`(0x472030)一手反编译
+# 04 — ★ ECL 解释器循环 `EclRunContext::ecl_run`(`0x472030`)一手反编译
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > **对象**:TH16 `th16.exe` `0x472030`(ExpHP=`EclRunContext::ecl_run`)。日期 2026-06-09。
 > **方法**:主控一手反编译整函数 → 三方交叉验证:**thecl 指令号(`00-*`)+ ExpHP 结构体(`02-*`)+ expr.c 表达式表**。
@@ -87,14 +89,14 @@ return 0;
 | 12 | **GOTO** | `ctx.time = param[5]`;`ctx.offset += param[4]`;跳转(format `ot`:o=param[4],t=param[5]) |
 | 13 | **UNLESS** | 弹栈,==0 则同 GOTO |
 | 14 | **IF** | 弹栈,!=0 则同 GOTO |
-| 15 | **CALL_ASYNC** | `ecl_spawn_async(vm,-1,0)`(0x474430)新建异步上下文挂 async_list |
+| 15 | **CALL_ASYNC** | `ecl_spawn_async(vm,-1,0)`(`0x474430`)新建异步上下文挂 async_list |
 | 16 | **CALL_ASYNC_ID** | 取 id → `ecl_spawn_async(vm,id,1)` |
-| 17 | (kill async id) | `lookup_async(vm,id)`(0x4744e0)→ 置其 +8=-1(杀) |
+| 17 | (kill async id) | `lookup_async(vm,id)`(`0x4744e0`)→ 置其 +8=-1(杀) |
 | 18 / 19 | (set/clr flag) | `lookup_async`→ 目标 `+0x11e4 |=1 / &=~1`(`__set_by_ins_18_19`) |
 | 20 | (set field) | `lookup_async`→ 目标 `+0x101c = arg1`(`__set_by_ins_20`) |
 | 21 | (kill all async) | 遍历 `vm+0x1200` async_list,全杀 |
 | 23 / 24 | (rel wait) | `ctx.time -= int_arg / float_arg` |
-| 40 | **STACK_ALLOC** | `ecl_stack_alloc(stack, n)`(0x474810)开栈帧 |
+| 40 | **STACK_ALLOC** | `ecl_stack_alloc(stack, n)`(`0x474810`)开栈帧 |
 | 41 | (return-ish) | `ecl_return` |
 | 42 | **LOADI/push i** | 压入 int(标 'i') |
 | 43 | **SETI** | 弹栈 → int 变量(`get_int_arg0_ptr`) |
@@ -107,7 +109,7 @@ return 0;
 | 0x4b/0x4c/0x4d (75/76/77) | **XOR/B_OR/B_AND** | 位运算 |
 | 0x4e (78) | **DEC** | 变量自减,压旧值(times 循环计数) |
 | 0x4f/0x50 (79/80) | **SIN/COS** | |
-| 0x51 (81) | (rotate) | normalize_angle + `cartesian_from_polar`(0x474510)→ 2 输出 |
+| 0x51 (81) | (rotate) | normalize_angle + `cartesian_from_polar`(`0x474510`)→ 2 输出 |
 | 0x52 (82) | (wrap angle) | `math_normalize_angle` |
 | 0x53 (83) | **NEGI** | 整数取负 |
 | 0x54 (84) | **NEGF** | `^ 0x80000000`(浮点取负) |
@@ -127,7 +129,7 @@ return 0;
 ## 4. 变量/栈模型(✅,补 `01-*`/`02-*`)
 
 - **表达式/局部栈** = `zEclStack`(ctx+0xc),`stack_offset`(ctx+0x100c)为栈顶字节偏移;**8 字节/元素**:类型标记('i'/'f')+ 4 字节值。push:写标记→ +4 →写值→ +4;pop:-4(值)、-4(标记),按标记决定 int/float。
-- **局部变量/参数访问** 走 `ecl_get_int/float_arg`(0x473c90/473d40)+ `get_*_arg_ptr`。**三分支解析**(2026-06-10 套结构体后读清):指令 `variable_mask`(instr+8)的对应位 = 0 → **字面量**(`instr+0x10+idx*4`);= 1 → **引用**,引用值 ≥0 → **栈局部**(`stack.data + stack.base_offset + 值`)、为特定负值 → **栈相对**(`stack_offset + 值*8`,带 'i'/'f' 标记)、其余负 id → **全局/特殊变量**(经 `vm->vtable` = get_*_global)。这正对上 thecl `param_mask`(`00-*` §1.3)的"位 i=引用 vs 字面"。
+- **局部变量/参数访问** 走 `ecl_get_int/float_arg`(`0x473c90`/473d40)+ `get_*_arg_ptr`。**三分支解析**(2026-06-10 套结构体后读清):指令 `variable_mask`(instr+8)的对应位 = 0 → **字面量**(`instr+0x10+idx*4`);= 1 → **引用**,引用值 ≥0 → **栈局部**(`stack.data + stack.base_offset + 值`)、为特定负值 → **栈相对**(`stack_offset + 值*8`,带 'i'/'f' 标记)、其余负 id → **全局/特殊变量**(经 `vm->vtable` = get_*_global)。这正对上 thecl `param_mask`(`00-*` §1.3)的"位 i=引用 vs 字面"。
 - **特殊/全局变量**(负 id:I0-3/F0-3/RNG/位置…)走 `Enemy::ecl_get_*_global`(`01-*`),存敌机字段。两套命名空间并存(见 `02-*` §5)。
 - **调用栈**:CALL(11)由 `ecl_call_sub` 压 (time,offset,sub,stack_offset) 返回帧;RET(10)由 `ecl_return` 弹回;栈空 → 上下文结束(敌机 main sub 结束即敌机消失,印证 Priw8)。
 
@@ -141,13 +143,13 @@ return 0;
 
 ## 6. 与外部源交叉验证小结(★ 四源独立印证)
 - **thecl**:opcode 0–93 = `th10_fmts` 指令号;ADD/SUB/.../SQRT、CALL=11/CALL_ASYNC=15/16/STACK_ALLOC=40/SETI=43/SETF=45/RET=1,10 **全对上**(`00-*`)。
-- **ExpHP th-re-data**:`zEclRunContext`/`zEclRawInstructionHeader`/`zEclFileManager`/`zEclSubroutinePtrs` 字段偏移**全对上**(`02-*`);helper `lookup_async`(0x4744e0)、`cartesian_from_polar`(0x474510)同名。
+- **ExpHP th-re-data**:`zEclRunContext`/`zEclRawInstructionHeader`/`zEclFileManager`/`zEclSubroutinePtrs` 字段偏移**全对上**(`02-*`);helper `lookup_async`(`0x4744e0`)、`cartesian_from_polar`(`0x474510`)同名。
 - **★ Priw8 th16.eclmap**(`vendor/th16.eclmap`,298 条):opcode→名 **逐条印证我的语义**——`10 return`/`11 call`/`12 jmp`/`13 jmpEq`/`14 jmpNeq`/`15 callAsync`/`16 callAsyncId`/`40 stackAlloc`/`42 push`/`43 set`/`44 pushf`/`45 setf`/`50 add`/`51 addf`/`58 mod`/`78 dec`/`79 Math_sin`/`88 Math_sqrt`… **全中**。这是第 4 个独立源。
 - **一处精化 ExpHP**:ctx+0x1018(ExpHP="enemy")在本函数当 **zEclVm 回指**用(vtable[0]/file_manager/async_list)——与 zEclVm 内嵌敌机+0 自洽。
-- **我们独有(行为层)**:`ecl_spawn_async`(0x474430)、`ecl_stack_alloc`(0x474810)无人命名;**全部 opcode 的运行时行为** thecl/ExpHP/Priw8 **均只给名/签名,无行为描述**(Priw8 `ins.js` 零条 desc)——exe 实证的行为是本仓库增量。
+- **我们独有(行为层)**:`ecl_spawn_async`(`0x474430`)、`ecl_stack_alloc`(`0x474810`)无人命名;**全部 opcode 的运行时行为** thecl/ExpHP/Priw8 **均只给名/签名,无行为描述**(Priw8 `ins.js` 零条 desc)——exe 实证的行为是本仓库增量。
 
 ## 7. 开放(及优先级调整)
-- ⚠️ **游戏 opcode 的"名+签名"已被 Priw8 eclmap 全覆盖**(298 条:300=Enm_create / 400=Move_pos / 545=resetBoss / 600=Et_create…),**行为**多在 `ECL-info.md`(et*/move/enm,已交叉验证)。故全反 `ecl_run_over_300`(0x41dcb0)**边际价值有限**——大多是复述已知名/行为。
+- ⚠️ **游戏 opcode 的"名+签名"已被 Priw8 eclmap 全覆盖**(298 条:300=Enm_create / 400=Move_pos / 545=resetBoss / 600=Et_create…),**行为**多在 `ECL-info.md`(et*/move/enm,已交叉验证)。故全反 `ecl_run_over_300`(`0x41dcb0`)**边际价值有限**——大多是复述已知名/行为。
 - ✅ **已完成**:ECL 开火 opcode(Et_* 600 区)→ fire 描述符字段映射 + enmCreate → **`05-fire-interface.md`**(et* 写入侧逐字段确认,接缝钉死)。
 - ins 81/85/86/87/89/90/93 的精确参数布局(用 `ecl_get_*_arg` 索引)可按需细化。
 

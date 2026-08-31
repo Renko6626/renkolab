@@ -1,4 +1,6 @@
 # 02 — ECL 运行时 VM 架构(社区知识 + TH16 结构/地址 + 本仓库 exe 确认)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > **这是什么**:现代东方(TH10+「新引擎/ECL V2」,直接覆盖 TH16)ECL **运行时解释器**的架构参考。补 `00-thecl-format-reference.md`(格式侧)、`01-ecl-context-and-variables.md`(变量/上下文一手反编译)之缺,聚焦**VM 怎么跑**。
 > **来源**:deep research(2026-06-09,5 角度→17 源→25 claim 3 票对抗验证,24 confirmed/1 killed)。最强 TH16 一手证据 = **ExpHP `exphp-share/th-re-data`**(`data/th16.v1.00a/`,版本钉死 = HSiFS),含结构体布局 + **命名的 VM 函数地址表**;运行模型来自 **Priw8** 教程;变量模型 thecl/truth/Mddass。
@@ -105,7 +107,7 @@
 ## 4. 帧/时间门控 + opcode 派发(机制,🟡 借 pytouhou 概念)
 
 每条指令带目标帧(`time`);运行循环:**指令帧 > 当前帧 → break;指令帧 ≤ 当前帧 → 推进 PC;== 当前帧 → 派发执行;帧计数 +1**。难度过滤:按 `rank_mask` / 上下文 `difficulty_mask` 跳过不匹配难度的指令。
-> ⚠️ 此循环的**确切代码** = pytouhou(`eclrunner.py`)的**老引擎(TH06)**实现,**概念**与 TH16 的 `zEclRunContext.time`/`cur_location` 一致,但 **opcode 号、栈 vs 寄存器、派发表机制都不同**——TH16 的真实循环须反 `ecl_run`(0x472030)自证。pytouhou 老引擎 CALL=ins 35(**不是** TH16 的 11/15/16),绝不可混。
+> ⚠️ 此循环的**确切代码** = pytouhou(`eclrunner.py`)的**老引擎(TH06)**实现,**概念**与 TH16 的 `zEclRunContext.time`/`cur_location` 一致,但 **opcode 号、栈 vs 寄存器、派发表机制都不同**——TH16 的真实循环须反 `ecl_run`(`0x472030`)自证。pytouhou 老引擎 CALL=ins 35(**不是** TH16 的 11/15/16),绝不可混。
 
 ---
 
@@ -141,9 +143,9 @@
 
 ## 8. 开放问题 → 下一步 exe(顺 ExpHP 地址直插)
 
-1. **反 `EclRunContext::ecl_run`(0x472030)** = 真实 per-frame 派发循环:确认 opcode switch/表形态、读 `cur_location`、time 门控推进 PC。← 最高优先,解决"派发器形态"。
-2. **反 `call_sub`(0x471db0)** + RET(0x474860):CALL(11) 往 zEclStack 压什么(stack_offset/base_offset 互动);**CALL_ASYNC(15)** 如何 new + 链入 `async_list_head`;`async_id` 与 CALL_ASYNC_ID(16) 的 kill-by-id。
-3. **反 `ecl_run_over_300`(0x41dcb0)**:≥300 游戏 opcode 的 switch → 逐个对 `00-*` 的格式 id + `ECL-info` 名;尤其 **fire/enmCreate(`ecl_enm_create` 0x423050)→ 弹幕引擎 handoff**(接 `engine/bullet/th16/01` §6 fire 描述符 / README §A 三开火点 0x41dcb0/0x431fe0/0x438cb0)。
+1. **反 `EclRunContext::ecl_run`(`0x472030`)** = 真实 per-frame 派发循环:确认 opcode switch/表形态、读 `cur_location`、time 门控推进 PC。← 最高优先,解决"派发器形态"。
+2. **反 `call_sub`(`0x471db0`)** + RET(`0x474860`):CALL(11) 往 zEclStack 压什么(stack_offset/base_offset 互动);**CALL_ASYNC(15)** 如何 new + 链入 `async_list_head`;`async_id` 与 CALL_ASYNC_ID(16) 的 kill-by-id。
+3. **反 `ecl_run_over_300`(`0x41dcb0`)**:≥300 游戏 opcode 的 switch → 逐个对 `00-*` 的格式 id + `ECL-info` 名;尤其 **fire/enmCreate(`ecl_enm_create` `0x423050`)→ 弹幕引擎 handoff**(接 `engine/bullet/th16/01` §6 fire 描述符 / README §A 三开火点 `0x41dcb0`/0x431fe0/0x438cb0)。
 4. 难度过滤实现:`difficulty_mask`@0x1020 在循环里怎么用,vs 全局 rank 寄存器。
 
 ---

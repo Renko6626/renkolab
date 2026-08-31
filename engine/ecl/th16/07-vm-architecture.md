@@ -1,8 +1,10 @@
 # 07 — ECL 虚拟机整体机制(宏观总览 + 核心机制确定)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > **定位**:这是 ECL VM 的**capstone 总览**——把 `00`–`06` + `engine/_shared/frame-loop.md` 的细节收束成一张宏观图,并把**核心机制逐条标注确定性**。要细节查对应专题文档;要全局看这篇。
-> **对象**:TH16 `th16.exe`,imagebase 0x400000。日期 2026-06-10。
-> **可信度**:本文骨架机制均 ✅**一手反编译**(`ecl_run` 0x472030 / `Enemy::ecl_run` 0x473bc0 / `call_sub` 0x471db0 / `ecl_run_over_300` 0x41dcb0 / `run_all_on_tick` 0x401460),并与 thecl 指令号、ExpHP 结构体、Priw8 eclmap **四源交叉印证**。仅 TH16。
+> **对象**:TH16 `th16.exe`,imagebase `0x400000`。日期 2026-06-10。
+> **可信度**:本文骨架机制均 ✅**一手反编译**(`ecl_run` `0x472030` / `Enemy::ecl_run` `0x473bc0` / `call_sub` `0x471db0` / `ecl_run_over_300` `0x41dcb0` / `run_all_on_tick` `0x401460`),并与 thecl 指令号、ExpHP 结构体、Priw8 eclmap **四源交叉印证**。仅 TH16。
 
 ---
 
@@ -36,14 +38,14 @@
 ## 2. 执行模型:每敌机一解释器,多条并发调用栈 ✅
 
 - **没有全局 VM**:每个敌机自带 ECL 解释状态;无敌机=无 ECL 运行(Priw8 + 本仓库一手)。
-- **一个敌机 = 一条 main 调用栈 + 任意条 async 侧栈**。`Enemy::ecl_run`(0x473bc0,✅一手)每帧**遍历该敌机的运行上下文链表**,逐个调 `EclRunContext::ecl_run` 推进:
+- **一个敌机 = 一条 main 调用栈 + 任意条 async 侧栈**。`Enemy::ecl_run`(`0x473bc0`,✅一手)每帧**遍历该敌机的运行上下文链表**,逐个调 `EclRunContext::ecl_run` 推进:
   - **首个 = main 栈**:其 `ecl_run` 返回非 0(= 整条栈跑完)→ `Enemy::ecl_run` 返回 -1 → **宿主据此删除该敌机**(= "main sub 结束,敌机消失")。
   - **其余 = async 栈**(由 `CALL_ASYNC` ins15/16 创建):跑完(返回非0)就**从链表解链 + 释放**(`FUN_004749df`),其余正常推进。
 - 每条栈本身是一台 `EclRunContext`(§5)。**这就是 ECL 的"协程"模型**:async sub = 同一敌机上的并发协程。
 
 ---
 
-## 3. 取指-解码-执行循环 `EclRunContext::ecl_run`(0x472030)✅(详见 `04`)
+## 3. 取指-解码-执行循环 `EclRunContext::ecl_run`(`0x472030`)✅(详见 `04`)
 
 一条调用栈推进一帧:
 1. **取指**:PC = `cur_location`(sub 索引 + 字节偏移)→ `vm->file_manager->subroutines[idx].bytecode + 0x10(ECLH) + offset`。
@@ -61,7 +63,7 @@
 | --- | --- | --- |
 | **本质** | **通用脚本 VM 核心**(语言基础设施) | **宿主 syscall**(对引擎子系统的副作用) |
 | **内容** | ret/call/jmp/if、push/set/load、算术/比较/逻辑、sin/cos/sqrt/atan2、wait | enmCreate/move*/et*开火/anm*/playSound/spell/lifeSet… |
-| **在哪处理** | **内联在 `ecl_run`** 的大 switch | `ecl_run` default → **`vm->vtable[0]` 虚派发** → `ecl_run_over_300`(字节跳转表 0x422c44) |
+| **在哪处理** | **内联在 `ecl_run`** 的大 switch | `ecl_run` default → **`vm->vtable[0]` 虚派发** → `ecl_run_over_300`(字节跳转表 `0x422c44`) |
 | **对世界** | 纯计算 + 控制;**只能经变量"读"世界** | **"写"世界**(spawn/move/fire/改状态) |
 | **可扩展性** | 固定 | vtable 虚派发 = 宿主专属/可 hook(自定义指令钩这里,`06`) |
 | 94–299 | — | 空(留白,落 default no-op) |
@@ -74,7 +76,7 @@
 
 - **`zEclRunContext`**(一条调用栈的全部状态):`time`(+0)、`cur_location`=PC(sub+offset,+4)、`stack`(+0xc)、`difficulty_mask`(+0x1020)、`vm` 回指(+0x1018)、8 路浮点插值器(+0x1024)。
 - **`zEclStack`**(操作数栈 + 局部变量):**8 字节/槽 = 类型标记('i'/'f')+ 值**;`stack_offset`(栈顶)、`base_offset`(当前帧基址)。
-- **调用/返回 `call_sub`(0x471db0)✅一手**:CALL(ins 11)① 把实参拷进新栈帧;② **压返回帧 =(time, PC.offset, PC.sub)**;③ `find_sub_by_name(instr+0x14)` **按名解析被调 sub**(动态链接);④ 跳到新 sub(offset 0)。RET(ins 10,case 10)弹回这三者;栈空 → 本栈结束(§2)。async 调用(ins15/16)则新建一条独立 `EclRunContext` 挂上敌机的上下文链表。
+- **调用/返回 `call_sub`(`0x471db0`)✅一手**:CALL(ins 11)① 把实参拷进新栈帧;② **压返回帧 =(time, PC.offset, PC.sub)**;③ `find_sub_by_name(instr+0x14)` **按名解析被调 sub**(动态链接);④ 跳到新 sub(offset 0)。RET(ins 10,case 10)弹回这三者;栈空 → 本栈结束(§2)。async 调用(ins15/16)则新建一条独立 `EclRunContext` 挂上敌机的上下文链表。
 - **变量三命名空间**(取参函数按指令 `variable_mask` 位决定):**字面量** / **栈局部**(`base_offset`+偏移)/ **全局·特殊变量**(负 id,经 `vm->vtable`→`ecl_get_*_global`,如 RNG/玩家位/I0-3/F0-3/难度,见 `01`)。
 
 ---
@@ -83,22 +85,22 @@
 
 | 机制 | 状态 | 证据 |
 | --- | --- | --- |
-| 每敌机一解释器 / main+async 多栈调度 | ✅一手 | `Enemy::ecl_run` 0x473bc0(§2) |
-| 取指 + time 门控 + rank 过滤 + 进 PC + 平栈 | ✅一手 | `ecl_run` 0x472030(§3,`04`) |
+| 每敌机一解释器 / main+async 多栈调度 | ✅一手 | `Enemy::ecl_run` `0x473bc0`(§2) |
+| 取指 + time 门控 + rank 过滤 + 进 PC + 平栈 | ✅一手 | `ecl_run` `0x472030`(§3,`04`) |
 | <300 系统 opcode 全表行为 | ✅一手 + thecl/Priw8 对名 | `04` §3 |
-| ≥300 经 vtable 虚派发 / 字节跳转表 | ✅一手 | `ecl_run_over_300` 0x41dcb0(`05`) |
-| CALL 压帧(time/PC/sub)+ 按名解析 sub | ✅一手 | `call_sub` 0x471db0(§5) |
-| 变量三分支(字面/栈/全局) | ✅一手 | `ecl_get_int_arg` 0x473c90(`04` §4) |
-| 主循环 → 敌机 → ecl 驱动链 | ✅一手 | `run_all_on_tick` 0x401460 + 敌机 body(`engine/_shared/th16-main-loop`) |
+| ≥300 经 vtable 虚派发 / 字节跳转表 | ✅一手 | `ecl_run_over_300` `0x41dcb0`(`05`) |
+| CALL 压帧(time/PC/sub)+ 按名解析 sub | ✅一手 | `call_sub` `0x471db0`(§5) |
+| 变量三分支(字面/栈/全局) | ✅一手 | `ecl_get_int_arg` `0x473c90`(`04` §4) |
+| 主循环 → 敌机 → ecl 驱动链 | ✅一手 | `run_all_on_tick` `0x401460` + 敌机 body(`engine/_shared/th16-main-loop`) |
 | 开火接缝(et*→描述符→弹池) | ✅一手(写/读双向) | `05` §3 |
 | RNG / 数学原语(确定性回放) | ✅一手 | `engine/_shared/th16-engine-math` |
 
 ---
 
 ## 7. 开放(宏观层面已闭环,余为细节/边角)
-- `Enemy::on_tick`(0x41d1e0)内部 → `ecl_run` 的确切调用点未逐行(已知它驱动 ECL)。
+- `Enemy::on_tick`(`0x41d1e0`)内部 → `ecl_run` 的确切调用点未逐行(已知它驱动 ECL)。
 - `Window::do_frame` 内部(WinMain 泵 / 帧率节流)未一手。
-- ✅ **async 已闭环**:创建(`ecl_spawn_async` 0x474430)、调度(`Enemy::ecl_run`)、按 id 管理(`lookup_async`)全反清。**ins18/19/20 写的控制标志(`+0x11e4`/`+0x101c`)= TH16 里只写不读**(全 .text disp32 扫描 + 函数归位:无任何读取点;唯一命中均为写入/初始化或弹对象同偏移假阳性)→ **TH16 无可观测效果,疑跨版本遗留**(故 eclmap 不收、ExpHP 只按"谁写"命名字段)。🟡 属"未发现读取点",非标准寻址读取若现可推翻。
+- ✅ **async 已闭环**:创建(`ecl_spawn_async` `0x474430`)、调度(`Enemy::ecl_run`)、按 id 管理(`lookup_async`)全反清。**ins18/19/20 写的控制标志(`+0x11e4`/`+0x101c`)= TH16 里只写不读**(全 .text disp32 扫描 + 函数归位:无任何读取点;唯一命中均为写入/初始化或弹对象同偏移假阳性)→ **TH16 无可观测效果,疑跨版本遗留**(故 eclmap 不收、ExpHP 只按"谁写"命名字段)。🟡 属"未发现读取点",非标准寻址读取若现可推翻。
 - 未公开系统码 41(0x29)用途(疑栈帧清理)。
 - ≥300 各 handler 行为多数未逐条反(Priw8 eclmap 命名 + ECL-info 行为已覆盖,故意取舍,`05` §2)。
 

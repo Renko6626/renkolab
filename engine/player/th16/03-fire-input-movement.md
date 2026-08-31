@@ -1,4 +1,6 @@
 # player 逆向 03:开火门控 / 输入 / 移动 / 聚焦
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 方法:Ghidra(ghidra-re MCP)一手反编译 th16.exe(用户自有,ExpHP th-re-data 符号已套)。
 > 日期 2026-06-12。分级 ✅高 / 🟡中。**仅 TH16 v1.00a**。
@@ -13,15 +15,15 @@
 
 ## 1. 输入全局 ✅
 
-`Supervisor__read_keyboard_input` @0x401d50 把 DInput/键盘读成一个动作位掩码,经
+`Supervisor__read_keyboard_input` `0x401d50` 把 DInput/键盘读成一个动作位掩码,经
 `InputManager__detect_holds_and_repeats` 生成四个全局:
 
 | 全局 | 地址 | 含义 |
 | --- | --- | --- |
-| `INPUT` | 0x4a52c8 | 本帧**按住**位 |
-| `INPUT_PREV` | 0x4a52cc | 上帧按住位 |
-| `INPUT_RISING_EDGE` | 0x4a52d4 | 本帧**新按下**(上升沿)|
-| `INPUT_FALLING_EDGE` | 0x4a52d8 | 本帧松开 |
+| `INPUT` | `0x4a52c8` | 本帧**按住**位 |
+| `INPUT_PREV` | `0x4a52cc` | 上帧按住位 |
+| `INPUT_RISING_EDGE` | `0x4a52d4` | 本帧**新按下**(上升沿)|
+| `INPUT_FALLING_EDGE` | `0x4a52d8` | 本帧松开 |
 
 **动作位**(由本篇各消费点反推,✅值/🟡键名):
 
@@ -33,9 +35,9 @@
 | 0x10/0x20/0x40/0x80 | 上/下/左/右 | `player_input_move` 9 向(§3)|
 | 0x800 | **季节释放**(Season Release)| `player_update_perframe` `INPUT_RISING_EDGE & 0x800`(见 `02`)|
 
-> DInput 重映射的逐键→位映射在 0x401d50 内(位运算混淆,未逐键解);上表位值由**消费侧**坐实,够用。
+> DInput 重映射的逐键→位映射在 `0x401d50` 内(位运算混淆,未逐键解);上表位值由**消费侧**坐实,够用。
 
-## 2. 开火门控:`Player__tick_shooting_state` @0x4455d0 ✅
+## 2. 开火门控:`Player__tick_shooting_state` `0x4455d0` ✅
 
 **前置大门**(在 `player_update_perframe` 末尾,全满足才调):
 ```
@@ -61,13 +63,13 @@ if (player+0x165d0 != player+0x165cc)                 // 计时跨过节拍
 - `+0x165cc/d0` = **短射击计时**(prev/cur);`+0x165e0/e4` = **长按计时**。两者一起决定**开火节拍 cadence** 与
   连射状态,然后把"当前计时值"传给 `Player__do_shooting` 当帧相位(对应 `engine/sht/th16/07` 里
   `frame_main % fire_rate == start_delay` 的 `frame`)。
-- **`Player__set_shoot_key_short_timer` @0x440d50**:把短计时初始化为给定值(`+0x165d0=v`、`+0x165cc=v-1`、
+- **`Player__set_shoot_key_short_timer` `0x440d50`**:把短计时初始化为给定值(`+0x165d0=v`、`+0x165cc=v-1`、
   `+0x165d4=(float)v`)——按下射击键瞬间归零起拍。
 
 > 衔接:`do_shooting` 之后的"选 shooterset(火力×聚焦)→ 遍历 shooter → `shoot_one_bullet` → spawn 灌字段
 > → 建伤害源"全在 `engine/sht/th16/07`(组织)+ `08`(伤害)+ `03/04`(func_* 行为),本篇不再展开。
 
-## 3. 移动 + 聚焦:`player_input_move` @0x441cf0 ✅
+## 3. 移动 + 聚焦:`player_input_move` `0x441cf0` ✅
 
 每帧(存活态,由 `player_update_perframe` 状态 1 调)。
 
@@ -125,9 +127,9 @@ player 任务 0x443720
 
 ## 5. 可信度 / 复核
 
-- ✅ 一手:`Player__tick_shooting_state`(0x4455d0)、`Player__set_shoot_key_short_timer`(0x440d50)、
-  `player_input_move`(0x441cf0)、`Supervisor__read_keyboard_input`(0x401d50)本会话反编译;开火大门来自
-  `player_update_perframe`(0x442560)调用点。
+- ✅ 一手:`Player__tick_shooting_state`(`0x4455d0`)、`Player__set_shoot_key_short_timer`(`0x440d50`)、
+  `player_input_move`(`0x441cf0`)、`Supervisor__read_keyboard_input`(`0x401d50`)本会话反编译;开火大门来自
+  `player_update_perframe`(`0x442560`)调用点。
 - ✅ **聚焦 = `+0x165c8` = INPUT bit3** 一手坐实 → 把 `engine/sht/th16/07` §4 的 🟡 升 ✅。
 - 🟡 DInput 逐键→位映射未解(位值由消费侧坐实);`+0x650/+0x63c` 计数的精确语义只取了"门控阈值"。
 - 复核入口:Ghidra DB `th16`,地址见上。开火下半段交叉 `engine/sht/th16/07,08`。

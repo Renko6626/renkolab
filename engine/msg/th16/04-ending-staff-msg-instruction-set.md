@@ -1,9 +1,11 @@
 # 04 · TH16 结局/Staff-roll MSG 指令集(第二套,社区未公开 · 一手反编译)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 适用:**TH16 `th16.exe` v1.00a**。本表覆盖**结局 `eXX.msg` + staff-roll `staffN.msg`**(二者**共用**一套指令集,
 > 与关卡内 stage-MSG 的 `GuiMsgVm`(见 `02`)**完全不同**)。
 >
-> ✅ **可信度声明(已升级)**:本表现已**三方交叉**——① 一手反编译 `Ending::on_tick_23__main`(0x4199F0);
+> ✅ **可信度声明(已升级)**:本表现已**三方交叉**——① 一手反编译 `Ending::on_tick_23__main`(`0x4199F0`);
 > ② 真实 `e01.msg` 字节实测(§1.5);③ **thmsg `th10_msg_ed_fmts` 表交叉对名(§2.5,gate 4 此前以为缺失,实则存在!)**。
 > thmsg 的 ending 表与本表**逐 opcode 实参签名吻合**,且**本表比 thmsg 更全**(多出 op4/op13 + 行为语义 + 结构字段)。
 > ExpHP thpages 的 "ending MSG to be documented" 指的是**行为语义**未文档化;**格式/签名 thmsg 早有**(只是没人写成行为表)。
@@ -87,7 +89,7 @@ e02=灵梦败北结局(`Ending No.02 突然の敗北`),e08=魔理沙败北结局
 
 ## 2. opcode → 行为表(结局/staff,TH16)
 
-> 名字为**我们自创**(🟡);行为为**一手**(✅,case @0x4199F0)。签名记法同 `02`(S=int32, str=掩码字符串)。
+> 名字为**我们自创**(🟡);行为为**一手**(✅,case `0x4199F0`)。签名记法同 `02`(S=int32, str=掩码字符串)。
 > 缺失的 opcode 1、2 无 case → 落 default(仅推进指针),**疑为 nop/未用**(🟡)。
 
 | op | 我们的提案名 | 参数(读点) | 行为 | 验证 |
@@ -164,7 +166,7 @@ Normal/Hard/Lunatic 专属图;case 0xc 的 staff 选择:Easy/Extra→staff1、No
 ## 2.7 未现身 opcode(op4 / 0xd / 0xf-0x11)的可信度来源与加固
 
 7 个真实文件都没用到这 5 条,故无法靠数据验证。它们的判断**全部来自一手反编译 `Ending::on_tick_23__main`
-(0x4199F0)的 switch case 体**(+ 独立盲验证 agent 复核,但属同类证据)。下面把"加固后"的依据写清,避免空口:
+(`0x4199F0`)的 switch case 体**(+ 独立盲验证 agent 复核,但属同类证据)。下面把"加固后"的依据写清,避免空口:
 
 - **0xf / 0x10 / 0x11 —— 近乎确定(≈op8)**:反编译里这三条**直接 `goto LAB_00419d42`,即跳进 `op8` 的函数体本身**,
   外面只多包一层 `if (DIFFICULTY == 1/2/3)`。证据(一手):
@@ -187,10 +189,10 @@ Normal/Hard/Lunatic 专属图;case 0xc 的 staff 选择:Easy/Extra→staff1、No
   → 清空 op3 填的全部文本行 = text_clear。语义直接可读,无歧义。
 
 - **op0xd —— 已加固到"同类效果,方向靠对称"**:case 0xd/0xe **都内联构造同一个 `ScreenEffect`**(operator_new 0x40 + 注册
-  on_tick/on_draw),经 `ScreenEffect::initialize`(0x45D1A0)的 mode→回调表比对:**op0xd=mode 0**(on_tick `0x45c630`+on_draw `____b`)、
+  on_tick/on_draw),经 `ScreenEffect::initialize`(`0x45D1A0`)的 mode→回调表比对:**op0xd=mode 0**(on_tick `0x45c630`+on_draw `____b`)、
   **op0xe=mode 5**(on_tick `0x45c900`+on_draw `____b`),二者**仅差 alpha 推进的 on_tick 回调**。op0xe 已实测为场景末
   淡出(e01/staff 结尾 dur=60),故 op0xd(其孪生 mode 0)=**淡入**——**效果类已确定**,只有"淡入 vs 淡出"方向是**按对称
-  推断**(未反编译 0x45c630/0x45c900 的 alpha 斜率,二者为 Ghidra 未定义的裸 label)。标 🟡(仅方向)。
+  推断**(未反编译 `0x45c630`/0x45c900 的 alpha 斜率,二者为 Ghidra 未定义的裸 label)。标 🟡(仅方向)。
 
 **可信度天花板(诚实)**:0xf-0x11 与 op4 可视为 ✅(代码语义无歧义);op0xd 效果✅、方向🟡。
 要把 op0xd 方向也钉死,需反汇编裸 label `0x45c630`/`0x45c900` 比较 alpha 斜率(未做,边际价值低)。
@@ -207,20 +209,20 @@ Normal/Hard/Lunatic 专属图;case 0xc 的 staff 选择:Easy/Extra→staff1、No
 ## 4. 下一步 / 验证缺口
 
 - ✅ **已闭环**:结局主链路指令(0/3/5/6/7/8/9/10/11/12/14)+ 文本编解码已用真实 `e01.msg` 验证(§1.5)。
-  `wait` 超时实参恒为 **6,000,000**(= 0x5b8d80,"等输入"哨兵值)。复现:`python3 msg/tools/parse_th16_msg.py files/e01.msg`。
+  `wait` 超时实参恒为 **6,000,000**(= `0x5b8d80`,"等输入"哨兵值)。复现:`python3 msg/tools/parse_th16_msg.py files/e01.msg`。
 - 🟡 **仍缺样本**:`0xd screen_effect_d`、`0xf/0x10/0x11 难度专属图` 在 e01 未出现 → 需别的结局(有难度分支 CG 的)或更多样本。
 - ✅ **op12 vs 代码已确认**(独立盲验证):case 0xc **确实不读指令实参**,按 `DIFFICULTY` 硬选 `staffN.msg`(1→staff2/2→staff3/3→staff4/else staff1)。
   故文件里的 `"staff.msg"` 串是**占位/被引擎忽略**(可能是 thmsg 反编译的规范名)。非我们漏读。
-- ✅ **整表已独立盲验证**(2026-06-11 子 agent 不喂标签盲读 0x4199F0):时间门控、0/3/4/5/6/7/8/9/0xa/0xb/0xc/0xd/0xe/0xf/0x10/0x11 行为与本表一致;
+- ✅ **整表已独立盲验证**(2026-06-11 子 agent 不喂标签盲读 `0x4199F0`):时间门控、0/3/4/5/6/7/8/9/0xa/0xb/0xc/0xd/0xe/0xf/0x10/0x11 行为与本表一致;
   1/2 无 case(nop);并解出 `DAT_00492158="bgm/th16_14"`、0xd=淡入 / 0xe=淡出。
 - **细看**:case 7 线程(`LAB_0041a310`)是否=滚动演出;`0xa` 的 `DAT_00492158` 比较串含义。
 - **回填**:本表 = IDE 对结局/staff `.msg` 的结构化编辑依据(与 stage-MSG `02` 分两套 opcode 表);文本编解码器见 `msg/tools/parse_th16_msg.py`。
 
 ## 证据指针
 
-th16.exe v1.00a:`Ending::on_tick_23__main` 0x4199F0(switch on `*(child+0x54)+2`,case 0/3/4/5/6/7/8/9/0xa/0xb/0xc/0xd/0xe/0xf/0x10/0x11);
-`Ending::initialize` 0x4191F0(eXX.msg 表 @0x491780、THA1 读 0x402440、`EndingChildF0__constructor` 0x4197C0);
-`FUN_00419170` 0x419170(staffN.msg 换载;staff 名表 @0x4917A0);文本转 anm `FUN_0046D990`、取串 `FUN_0042BBE0`。
+th16.exe v1.00a:`Ending::on_tick_23__main` `0x4199F0`(switch on `*(child+0x54)+2`,case 0/3/4/5/6/7/8/9/0xa/0xb/0xc/0xd/0xe/0xf/0x10/0x11);
+`Ending::initialize` `0x4191F0`(eXX.msg 表 `0x491780`、THA1 读 `0x402440`、`EndingChildF0__constructor` `0x4197C0`);
+`FUN_00419170` `0x419170`(staffN.msg 换载;staff 名表 `0x4917A0`);文本转 anm `FUN_0046D990`、取串 `FUN_0042BBE0`。
 th-re-data:`zEnding`(0x24)、`zEndingChildF0`(0xf0,anm_ids[5]@0x40)。
 社区/工具:**thmsg `thmsg/thmsg06.c`** 的 `th10_msg_ed_fmts`(ending 签名表,`-e` 选用;`th06_find_format`)+ `util_xor(...,0x77,7,16)`
 文本解密——逐 opcode 签名与本表吻合(§2.5),是本表的外部佐证(gate 4)。ExpHP thpages 仅把 ending **行为语义**列为 "to be documented"。

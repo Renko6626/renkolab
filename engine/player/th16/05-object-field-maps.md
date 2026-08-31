@@ -1,4 +1,6 @@
 # player 逆向 05:对象字段图(player 对象 / Bomb 对象 / 伤害源)汇总
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 方法:Ghidra(ghidra-re MCP)一手反编译 th16.exe(用户自有,ExpHP 符号已套)。日期 2026-06-12。
 > 分级 ✅一手读写点 / 🟡观测但写点或全语义未追 / ❓未解。**仅 TH16 v1.00a**。
@@ -9,8 +11,8 @@
 
 | 基址 | 对象 | 大小 | 来源 |
 | --- | --- | --- | --- |
-| `PLAYER_PTR=DAT_004a6ef8` | **player 对象** | `operator_new(0x2c828)` | `player_ctor` 0x441c60 |
-| `MAIN_BOMB_PTR` / `SUBSEASON_BOMB_PTR` | **Bomb 对象** ×2 | `operator_new(0x108)` | `Bomb__operator_new` 0x40d890 |
+| `PLAYER_PTR=DAT_004a6ef8` | **player 对象** | `operator_new(0x2c828)` | `player_ctor` `0x441c60` |
+| `MAIN_BOMB_PTR` / `SUBSEASON_BOMB_PTR` | **Bomb 对象** ×2 | `operator_new(0x108)` | `Bomb__operator_new` `0x40d890` |
 | `PLAYER+0xd114`(+link×0x94,×256)| **伤害源池** | 0x94/项 | 见 `../sht/08` + §3 |
 
 ---
@@ -113,12 +115,12 @@
 
 | 位 | 含义 | 置位 / 清位(地址)| 可信 |
 | --- | --- | --- | --- |
-| 0x01 | (未知;`Player__destroy` 随 0x8 一起清)| set 未找到;clear `Player__destroy` 0x441912 | ❓ |
-| 0x02 | **过场/对话转场进行中**(置位时 `+0x16684` 每帧自增)| set `FUN_0042ca80` 0x42ca92;clear `FUN_00440dc0` 0x440dca(同时中断全部 12 个 option anm 树 + `+0x16684=0`)| ✅ |
-| 0x04 | **主炸进行中**(禁止开火)| set `BombMainMarisa__begin` 0x40faf2(`OR [PLAYER+0x1664c],4`,实证;同时给 120 帧无敌);clear 主炸结束(`on_tick` 帧 300)/ `shot_init` 0x4416ef / `Player__destroy` | ✅(Marisa;余角色主炸同 idiom 🟡)|
+| 0x01 | (未知;`Player__destroy` 随 0x8 一起清)| set 未找到;clear `Player__destroy` `0x441912` | ❓ |
+| 0x02 | **过场/对话转场进行中**(置位时 `+0x16684` 每帧自增)| set `FUN_0042ca80` `0x42ca92`;clear `FUN_00440dc0` `0x440dca`(同时中断全部 12 个 option anm 树 + `+0x16684=0`)| ✅ |
+| 0x04 | **主炸进行中**(禁止开火)| set `BombMainMarisa__begin` `0x40faf2`(`OR [PLAYER+0x1664c],4`,实证;同时给 120 帧无敌);clear 主炸结束(`on_tick` 帧 300)/ `shot_init` `0x4416ef` / `Player__destroy` | ✅(Marisa;余角色主炸同 idiom 🟡)|
 | 0x08 | **死亡音效抑制**(`player_on_death` 据此跳过 sound 2)| set 未找到(疑整字写);clear `Player__destroy` | 🟡 |
 | 0x10 | 置位时**禁止开火** + 判定盒 `+0x2c7c8×3.6` 特殊缩放 + 特殊渲染 →**疑"剧情/无操控"态**(非普通聚焦)| **set 点未找到**(全 .text 无 `OR ...,0x10`,疑整字赋值/别名写);clear 未找到 | ❓ set 点 |
-| 0x20 | **速度缩放态**(`+0x2c7cc>1.01` 时置,否则清)| set/clear `EnemyManager__on_tick_1a__body` 0x41b456/0x41b45f(按 `+0x2c7cc`);**冬季节释放每帧写 `+0x2c7cc=1.5` → 触发**(跨 agent 互证 `02` §5e)| ✅机制 / 🟡玩法义 |
+| 0x20 | **速度缩放态**(`+0x2c7cc>1.01` 时置,否则清)| set/clear `EnemyManager__on_tick_1a__body` `0x41b456`/0x41b45f(按 `+0x2c7cc`);**冬季节释放每帧写 `+0x2c7cc=1.5` → 触发**(跨 agent 互证 `02` §5e)| ✅机制 / 🟡玩法义 |
 
 > ⚠️ 纪律:bit0x10 的**写入点全程序未找到 `OR ...,0x10`**(只剩整字写/别名写可能),保持 ❓;**绝不要**当聚焦
 > ——聚焦是 `+0x165c8`(bit0x10 与禁射并存,而聚焦时可射)。bit0x4/0x2/0x20 已落到具体置/清位指令(✅)。
@@ -131,7 +133,7 @@
 | `+0x165e0/e4/e8`(init flag `+0x165f0`)| **长按射击计时**(封顶 0x76/0x77)| `tick_shooting_state` | ✅ |
 | `+0x165ac` / `+0x165b0` | 聚焦判定点指示 anm(0x1a)/ 聚焦光环 anm(0x1b)句柄 | `player_input_move` | ✅ |
 | `+0x660`(×4)/ `+0x9f0`(×8),stride 0xe4 | 主弹/本体子机槽 · 季节子机槽(字段见 `../sht/04`;option 位置由 `04` 写)| `playershot_tick_dispatch` | ✅基址 |
-| `+0x6c0 + i*0xe4`(i=0..11)| 12 个 option 槽的某字段,init=0xffff3800 | shot_init | 🟡 |
+| `+0x6c0 + i*0xe4`(i=0..11)| 12 个 option 槽的某字段,init=`0xffff3800` | shot_init | 🟡 |
 | `+0x1114 + i*0xc0`(i=0..0xff)| 256 项子弹/效果池(各项 `+0` init=序号)| shot_init,`Player__tick_bullets` | ✅ |
 | `+0xd080`(stride 0x94,×256)| 子弹/伤害源池(见 §3 + `../sht/08`)| | ✅ |
 
@@ -139,8 +141,8 @@
 
 ## 2. Bomb 对象字段图(0x108 字节)✅
 
-> 由 `Bomb__constructor`(0x40d580)、`Bomb__initialize`(0x40d600)、`Bomb__can_bomb`(0x40dda0)、
-> `Bomb__activate_bomb`(0x40db20)、`Bomb__on_tick`(0x40dd00)、`Bomb__on_draw`(0x40de30)、
+> 由 `Bomb__constructor`(`0x40d580`)、`Bomb__initialize`(`0x40d600`)、`Bomb__can_bomb`(`0x40dda0`)、
+> `Bomb__activate_bomb`(`0x40db20`)、`Bomb__on_tick`(`0x40dd00`)、`Bomb__on_draw`(`0x40de30`)、
 > `BombSub*::begin` 合并。**`param[N]`(反编译 dword 下标)= 字节 `4N`**。
 
 | 字节偏移 | dword | 含义 | 读写点 | 可信 |
@@ -176,7 +178,7 @@
 
 ## 3. 伤害源创建:`Player__create_damage_source_4449b0` ✅(交叉验 `../sht/08`)
 
-`Player__create_damage_source_4449b0(this, pos, lifetime, dmg)`(0x4449b0)在 `PLAYER+0xd114` 池(stride 0x94,
+`Player__create_damage_source_4449b0(this, pos, lifetime, dmg)`(`0x4449b0`)在 `PLAYER+0xd114` 池(stride 0x94,
 ×256,游标 `+0xd110`)找空槽,写入并返回 1-based 下标:
 
 | 写入(相对 flag 基址 `+0xd114`)| 值 | = `../sht/08` 字段 |
@@ -207,9 +209,9 @@
 
 ## 5. 可信度 / 复核
 
-- ✅ 一手(本会话):`Bomb__constructor`(0x40d580)、`Bomb__on_draw`(0x40de30)、
-  `Player__create_damage_source_4449b0`(0x4449b0)、`anm_40e490_compute_final_pos`(0x40e490)、
-  `player_shot_init`(0x440fb0);其余偏移来自 01–04 已反函数。
+- ✅ 一手(本会话):`Bomb__constructor`(`0x40d580`)、`Bomb__on_draw`(`0x40de30`)、
+  `Player__create_damage_source_4449b0`(`0x4449b0`)、`anm_40e490_compute_final_pos`(`0x40e490`)、
+  `player_shot_init`(`0x440fb0`);其余偏移来自 01–04 已反函数。
 - ✅ 季节 DELTAS seed `{0,100,130,160,200,250,300,0}`、box 表地址、伤害源参数 = 静态/反编译实证。
 - 🟡 见 §4。复核入口:Ghidra DB `th16`,地址见各表。
 - 交叉:`engine/sht/th16/04`(运行时槽)、`05`(shooter/header/box 覆写)、`08`(伤害源);`engine/player/th16/01–04`。

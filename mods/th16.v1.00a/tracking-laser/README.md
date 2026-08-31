@@ -1,4 +1,6 @@
 # tracking-laser — 重指 SHT tick 槽注入追踪激光
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > **状态：静态审计通过，但尚未在游戏里跑过。** 它是**经过审计的流程参考**，
 > 不是可照搬到别作的生产模板。
@@ -6,7 +8,7 @@
 ## 这是什么
 
 TH16 的自机 shooter 通过 `func_on_tick` **索引**派发到 `.rdata` 里的一张函数指针表。
-解析器 `sht_parse_resolve_funcptrs` @0x443790 把索引解成指针时**没有边界检查**。
+解析器 `sht_parse_resolve_funcptrs` `0x443790` 把索引解成指针时**没有边界检查**。
 本 mod 用 thcrap 把 tick 表的 **idx4** 槽重指到一个 codecave，让选中该索引的 shooter
 执行我们自己的行为——一发会追踪最近敌人的爆发激光。
 

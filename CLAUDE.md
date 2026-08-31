@@ -1,7 +1,8 @@
 # CLAUDE.md — renkolab
 
 东方 Project 引擎逆向工作台。**先读 [`README.md`](README.md)**（结构与导航），
-**动手前必读 [`METHOD.md`](METHOD.md)**（逆向记录纪律）。本文件只讲环境和跨层规矩。
+**动手前必读 [`METHOD.md`](METHOD.md)**（逆向记录纪律）与 [`DOCSTYLE.md`](DOCSTYLE.md)（文档规范）。
+本文件只讲环境和跨层规矩。
 
 ## 层次归属：动手前先判断这一改属于哪层
 
@@ -55,5 +56,7 @@
 - 一手反汇编 > 推断 > 社区单源，且必过「领域常识」关。
 - **「超过社区」的宣称要过额外闸门**：一手到底 / 对抗证伪 / 量纲常识 / 交叉对名。复核前一律 🟡。
 - 结论回流：`engine/<子系统>/<版本>/`（一手过程）→ `engine/<子系统>/OVERVIEW.md`（跨版本断言，附链接）。
+- **地址写 `` `0x4919a0` ``（反引号、无 `@`）；文档开头声明默认版本**，跨版本文档里每个地址
+  都要带前缀 `th16:`。写完跑 `python tooling/check-docs.py`。细则见 [`DOCSTYLE.md`](DOCSTYLE.md)。
 - 涉及**手写机器码 / ABI** 的产出（cave、hook），必须上对抗审计——
   见 [`mods/_template/AUDIT-checklist.md`](mods/_template/AUDIT-checklist.md)。

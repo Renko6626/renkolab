@@ -1,4 +1,6 @@
 # 东方 modding 社区:工具 / 人物 / 权威来源速查
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+
 
 新会话需要查某个东方格式或运行时行为时,先看这里"哪里查最准"。结论来自我们两轮 deep research
 (都做了多源对抗验证)+ 源码核对。可信度:✅确证 / 🟡单源或推断 / ❓社区未解。
@@ -79,11 +81,11 @@ blob,不解析内部)。**不存在 `thsht` 这种官方工具**。网上"thsht 
 - `func_on_init/tick/draw/hit`(TH19 变 4× `func_?`)逐游戏的"索引→行为"映射:**社区无任何已发布表**,
   作者自述 "documentation is yet to be made"。需对各 exe 反汇编。
   - ✅ **TH16 已由我们破解(首次)**:加载时四张硬编码函数指针表把索引换成函数地址。解析器
-    `sht_parse_resolve_funcptrs`@0x443790;表址 init=0x4919c0/tick=0x4919a0/draw=0x4a6f04(全 null,
-    TH16 不用)/hit=0x491980。**TH16=季节系统**,tick 索引经解包全部 pl0X.sht + wiki 互证:
+    `sht_parse_resolve_funcptrs` `0x443790`;表址 init=`0x4919c0`/tick=`0x4919a0`/draw=`0x4a6f04`(全 null,
+    TH16 不用)/hit=`0x491980`。**TH16=季节系统**,tick 索引经解包全部 pl0X.sht + wiki 互证:
     **idx0=直线(夏/琪露诺,散射靠几何)、idx1=追踪(春/灵梦)、idx2=激光(冬/魔理沙)、idx5=匀加速(秋/文)**。
     关键变量(✅一手):**slot+0x64=移动角、slot+0x60=速度**(易标反)、+0x90 目标句柄、+0xa0 激光长度、
-    find_nearest_enemy@0x425240、atan2@0x487aaa(已坐实)。idx3/5 = `speed+0x60 += 常量`(匀加速,非曲率;
+    find_nearest_enemy`0x425240`、atan2`0x487aaa`(已坐实)。idx3/5 = `speed+0x60 += 常量`(匀加速,非曲率;
     游戏内实测 Aya 加速)。详见 `engine/sht/th16/03-*.md`。**仅 TH16,勿外推。**
 - `flags` 段(TH14-18 = 0x20 字节,TH19 = 0x3c)位含义:作者自述 "who knows"(repo Issue #6)。
 - main 头部 `unknown_2..unknown_10`、shooter 的 `unknown_sht_float/byte`:无文档。
@@ -98,7 +100,7 @@ blob,不解析内部)。**不存在 `thsht` 这种官方工具**。网上"thsht 
 - ✅ **TH16 天空璋 = 统一起点**:wiki 注明 TH16 起有一组判定尺寸(2.0/2.4/2.7px)**"完全未使用"**。
   **我们逐字节反汇编证实**:TH16 `player_shot_init@0x440fb0` 把 .sht 的判定字段用 exe 内**按角色表**
   (`DAT_00492c98/0c78/0c88[char]`)覆写,实测 4 角色**值完全相同**:
-  - **hitbox = 3.0**(真判定半径,0x4439e0 碰撞用);grazebox 字段 = 5.0(实被挪作释放弹速度);
+  - **hitbox = 3.0**(真判定半径,`0x4439e0` 碰撞用);grazebox 字段 = 5.0(实被挪作释放弹速度);
     itembox = 60.0(收集半径,半宽30);另有 exe 常量 `DAT_00492c68`=100.0(道具吸附半径,半宽50)。
   - 擦弹半径 = hitbox(3.0) + 弹尺寸余量,无角色差异。
   → **结论:灵梦"判定点更小"保留到 TH15,TH16 取消、全角色统一 3.0**;判定/擦弹半径**不可经 .sht 编辑**

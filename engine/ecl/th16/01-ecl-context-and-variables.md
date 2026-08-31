@@ -1,4 +1,6 @@
 # 01 — ECL 执行上下文结构 + 特殊变量(读取器)— TH16 一手 + Priw8 双证
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > **对象**:TH16《鬼形兽》`th16.exe`,imagebase `0x400000`。日期 2026-06-09。
 > **方法**:主控一手反编译 `FUN_00424110`(变量读取器)→ 与 **Priw8 ECL 变量表**(`VAR_10` 新引擎基础)逐项交叉验证,**~30/30 吻合**。
@@ -19,7 +21,7 @@
 | **`FUN_00424110`** | `0x4921b4` | **按 id 读变量(返回 float10)**——本文主证据,switch on 负 id |
 | `FUN_00424c10` | `0x4921b8` | 同族变体(疑写/另一类) |
 
-> ✅ **已定位(更新)**:ECL 主解释循环 = `EclRunContext::ecl_run`(0x472030,见 `04-ecl-vm-interpreter.md`);此变量访问器表经 `ecl_get_int_arg` 的负 id 分支(`vm->vtable` global 路径)调到。本表非 opcode 派发表。
+> ✅ **已定位(更新)**:ECL 主解释循环 = `EclRunContext::ecl_run`(`0x472030`,见 `04-ecl-vm-interpreter.md`);此变量访问器表经 `ecl_get_int_arg` 的负 id 分支(`vm->vtable` global 路径)调到。本表非 opcode 派发表。
 
 ---
 

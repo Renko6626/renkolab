@@ -1,4 +1,6 @@
 # 03 · TH16 对话生命周期 + ECL↔MSG 协程握手(逐指令锁定)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 适用:**TH16 `th16.exe` v1.00a**,关卡内对话(stage MSG / `GuiMsgVm`)。
 > 本篇把 `01`/`02` 里标 🟡 的**握手机制**逐指令对死,升 ✅。可信度:全程一手反编译 + th-re-data 字段名印证。
@@ -32,9 +34,9 @@
 三个一手读写点:
 | 角色 | 位置 | 代码 | 作用 |
 | --- | --- | --- | --- |
-| **每帧清** | `GuiMsgVm::run` 顶部 0x42A1D0 | `if (0 < vm[0x18c]) vm[0x18c] -= 1;` | 标志是**一帧脉冲**,跑完即自清 |
+| **每帧清** | `GuiMsgVm::run` 顶部 `0x42A1D0` | `if (0 < vm[0x18c]) vm[0x18c] -= 1;` | 标志是**一帧脉冲**,跑完即自清 |
 | **置位(MSG 侧)** | `run` case 0xc(**ins 12 ecl-resume**) | `vm[0x18c] = 1;` | 对话脚本主动"放行 ECL" |
-| **读取(ECL 侧)** | `ecl_run_over_300` case 0x40(**ins 519 dialogWait**)@0x4216e0 | 见下 | ECL 据此决定阻塞/放行 |
+| **读取(ECL 侧)** | `ecl_run_over_300` case 0x40(**ins 519 dialogWait**)`0x4216e0` | 见下 | ECL 据此决定阻塞/放行 |
 
 `ins 519 dialogWait` 实现(一手):
 ```c
@@ -82,8 +84,8 @@ MSG:  …更多台词… 0 end     ; 对话结束,拆 VM
 
 ## 证据指针
 
-th16.exe v1.00a:`GuiMsgVm::run` 0x42A1D0(顶部 +0x18c 递减、case 0xc 置 1)、`ecl_run_over_300`
-case 0x40 = ins 519 dialogWait @0x4216e0(读 `Gui+0x1c8 -> +0x18c`)、case 0x3f = ins 518 dialogRead @0x4216b3、
-`Gui::start_dialogue` 0x429FF0、`Gui::on_tick_20` 0x427CF0。
+th16.exe v1.00a:`GuiMsgVm::run` `0x42A1D0`(顶部 +0x18c 递减、case 0xc 置 1)、`ecl_run_over_300`
+case 0x40 = ins 519 dialogWait `0x4216e0`(读 `Gui+0x1c8 -> +0x18c`)、case 0x3f = ins 518 dialogRead `0x4216b3`、
+`Gui::start_dialogue` `0x429FF0`、`Gui::on_tick_20` `0x427CF0`。
 th-re-data:`zGuiMsgVm` 字段 0x18c `__dword_incremented_by_enemyAppear`、0x1c8 size。
 名/签名:ExpHP truth `core_mapfiles/msg.rs`、thpages `reference/msg.ts`(见 `02`)。

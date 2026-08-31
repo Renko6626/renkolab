@@ -1,4 +1,6 @@
 # 01 — TH16 敌弹(弹幕)引擎:核心结构(逆向报告)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > **对象**:TH16《鬼形兽》`th16.exe`,imagebase `0x400000`。日期 2026-06-09。
 > 方法:主控 inline 反编译钉锚点 → Workflow 扇出(10 handler + opcode 解码 + provenance + 身份对抗证伪,15 agent)→ **主控一手复核关键结论**。
@@ -88,15 +90,15 @@
 | `0x40000` | **置速度/角**:角→`+0xc3c`、速→`+0xc38`,`FUN_00417510` 写速度向量 `+0xc2c/30/34` | — | ✅ |
 | `0x80000` | 启用(状态块 `+0x1228`,向量 `+0x1250`)→ `0x4161f0` | 0x80000 | ✅ |
 | `0x100000` | **EX_BRIGHT**:置混合模式 `+0x558`(`[4]`=1→blend1 / 2→blend2 / 否→0) | — | ✅✅ |
-| `0x200000` | 启用速度斜坡(N 帧内 `(目标−当前)/N`,状态 `+0x1270`)→ `0x4151e0` | 0x200000 | ✅ |
-| `0x400000` | 启用(状态 `+0x13ec`),置渲染位 `+0x20|0x40` | 0x400000 | ✅ |
+| `0x200000` | 启用速度斜坡(N 帧内 `(目标−当前)/N`,状态 `+0x1270`)→ `0x4151e0` | `0x200000` | ✅ |
+| `0x400000` | 启用(状态 `+0x13ec`),置渲染位 `+0x20|0x40` | `0x400000` | ✅ |
 | `0x800000` | **快照运动态**:坐标→`+0x131c..`、角→`+0x1318`、速→`+0x1314`(供 opcode 0x10 子模式 2 回读) | — | ✅ |
 | `0x1000000` | **spawn 进另一管理器** `FUN_0041aa70(DAT_004a6dc0, [10], &frame)`(`[10]`=子脚本/图案 id) | — | ✅ |
 | `0x2000000` | 置 `+0xc84`(覆盖渲染桶) | — | ✅ |
-| `0x4000000` | `[4]>=1`→启用计数行为(`+0x1348`) | 0x4000000 | ✅ |
+| `0x4000000` | `[4]>=1`→启用计数行为(`+0x1348`) | `0x4000000` | ✅ |
 | `0x8000000` | **EX_LASER**(社区证):`operator_new(0x1b20)/FUN_00431130`=`[4]`==0 线激光 / `0x1548/FUN_00431860`=`[4]`==1 无限激光(`flags=(instr[7]&0xfd)\|2` 与社区逐位吻合)进 `DAT_004a6ee0` 环;PC+2。激光详查→`engine/ecl/th16/` | — | ✅✅ |
 | `0x20000000` | **置碰撞半径**:`[0]`(<0 取类型表默认)→`+0xc40` 与 `+0xc44` | — | ✅ |
-| `0x80000000` | `[4]>=1`→启用计数行为(`+0x1108`) | 0x80000000 | ✅ |
+| `0x80000000` | `[4]>=1`→启用计数行为(`+0x1108`) | `0x80000000` | ✅ |
 
 ---
 
@@ -115,7 +117,7 @@
 | 0x1000 | `bullet_beh_wrap` `0x415d80` (EX_WRAP) | 屏幕环绕:越 4 边(walls `+0x118c` 位 0-3)把坐标移到对侧;count `+0x1188` toggle 0x1000(参数与社区 EX_WRAP a/b 吻合) | ✅✅ |
 | 0x20000 | `bullet_beh_move_to_point` `0x415f90` | 3D 趋点插值(`+0x1394` 块):每帧位移→XY 速度,atan2 重算角;末尾 snap 到目标 `+0x1208`,自清 0x20000 | ✅ |
 | 0x80000 | `bullet_beh_add_displacement` `0x4161f0` | 每帧固定位移 `+0x1250/54/58`·dt 加到位置;`+0x125c` 限。**★纠错**:完成时清 `c68` 的 **`0x1|0x8`**(禁掉 speed_boost/turn_accel),**非自身 0x80000**(其余 8 个 handler 都自清);自身 0x80000 何时清=TODO | ✅机制/🟡终止 |
-| 0x200000 | `bullet_beh_speed_ramp` `0x4151e0` | 速度线性插值步进 + atan2 重算角(无 sqrt 改速);`+0x12a4` 自清 0x200000 | ✅ |
+| `0x200000` | `bullet_beh_speed_ramp` `0x4151e0` | 速度线性插值步进 + atan2 重算角(无 sqrt 改速);`+0x12a4` 自清 `0x200000` | ✅ |
 
 ---
 
@@ -141,7 +143,7 @@
 | `+0xc88..0x1474` | **VM 程序**(0x5ec 字节,stride 0x2c)+ 各行为状态块(`+0xfa0`/`+0x1000`/`+0x1228`/`+0x1270`/`+0x1348`…) | ✅ |
 | `+0x1474` | **精灵/类型 idx**(索引 `DAT_0049f3e4` stride 0x114) | ✅ |
 | `+0x141c` | 半径缩放(成长) | 🟡 |
-| `+0x558` | 混合/渲染模式位场(opcode 0x100000) | 🟡 |
+| `+0x558` | 混合/渲染模式位场(opcode `0x100000`) | 🟡 |
 
 ### 弹管理器(`DAT_004a6dac`,`operator_new(0x1403b28)`)
 | 偏移 | 字段 | 可信 |
@@ -154,14 +156,14 @@
 | `+0x9c`、`+0x9ffe94` | 两段池数组(各 2001 槽 stride 0x1478) | ✅(agent) |
 
 ### 相关全局
-`DAT_004a6dc0`=敌人管理器(opcode 0x1000000 spawn 进它) · `DAT_004a6ee0`=子对象环(opcode 0x8000000) · `DAT_004c0f48`=图形/特效管理器(裁剪视野/命中特效,见 `engine/anm/th16/`) · `DAT_0049f3e4`=弹类型表(stride 0x114:半径/桶/anim 类/渲染 ptr) · `DAT_0049f2e0`=渲染注册描述 · `DAT_004a6ef8`=自机(判定半径/矩形) · `DAT_004a5788`=dt=1.0 · `DAT_004a6d88`=PRNG。
+`DAT_004a6dc0`=敌人管理器(opcode `0x1000000` spawn 进它) · `DAT_004a6ee0`=子对象环(opcode `0x8000000`) · `DAT_004c0f48`=图形/特效管理器(裁剪视野/命中特效,见 `engine/anm/th16/`) · `DAT_0049f3e4`=弹类型表(stride 0x114:半径/桶/anim 类/渲染 ptr) · `DAT_0049f2e0`=渲染注册描述 · `DAT_004a6ef8`=自机(判定半径/矩形) · `DAT_004a5788`=dt=1.0 · `DAT_004a6d88`=PRNG。
 
 ---
 
 ## 6. provenance(对象从哪来)— agent 产出,双源互证
 
-- **管理器全局** `DAT_004a6dac` ✅:`FUN_00411880` ctor 内 `DAT_004a6dac=param_1`(@0x41191c),`FUN_00411dd0` 处 `operator_new(0x1403b28)`。
-- **每帧入口**:不是手写主循环调用,而是**优先级更新表回调**——`0x412c50`(=`BulletManager::on_tick_1c`)由 `FUN_00401730`(`UpdateFunc::operator new`)创建、`FUN_00401300`(`register__on_tick`)以**优先级 0x1c** 注册,先查暂停标志 `DAT_004a6dd4` 再 tail-JMP 到 `FUN_00412860`(body)。✅ **顶层 runner 已反**:`UpdateFuncRegistry::run_all_on_tick`(0x401460)← `Window::do_frame`(0x45a8a0)。完整主循环见 **`engine/_shared/frame-loop.md`**。
+- **管理器全局** `DAT_004a6dac` ✅:`FUN_00411880` ctor 内 `DAT_004a6dac=param_1`(`0x41191c`),`FUN_00411dd0` 处 `operator_new(0x1403b28)`。
+- **每帧入口**:不是手写主循环调用,而是**优先级更新表回调**——`0x412c50`(=`BulletManager::on_tick_1c`)由 `FUN_00401730`(`UpdateFunc::operator new`)创建、`FUN_00401300`(`register__on_tick`)以**优先级 0x1c** 注册,先查暂停标志 `DAT_004a6dd4` 再 tail-JMP 到 `FUN_00412860`(body)。✅ **顶层 runner 已反**:`UpdateFuncRegistry::run_all_on_tick`(`0x401460`)← `Window::do_frame`(`0x45a8a0`)。完整主循环见 **`engine/_shared/frame-loop.md`**。
 - **spawn** `bullet_pool_spawn` `0x412cb0` ✅(主控一手):从 `mgr+0x60` 空闲链 pop;**字节码**从描述符 `param_1+0x28` 复制 0xc6 dword(0x318B)进 `obj+0xc88`,初始 PC 从 `param_1[0xde]`;prepend 进 `mgr+0x70` 活动链;**spawn 取消**(弹生在自机判定圈内则 free)。
   - **★ fire 描述符布局**(✅ 一手,= ECL 发射器结构体 `emitter+0x166`,**ECL 写入侧已确认**见 `engine/ecl/th16/05-fire-interface.md` §3):`[0]`=类型、`[1]`=子类型、`[2..4]`=坐标、`[5]`=基准角、`[6]`=散布步进、`[7]`=速度、`[8]`=速度2、`[9]`=径向偏移、`[0xd9]`=数量(**低16=路数 / 高16=波数**,`desc+0x366`)、`[0xda]`=散布模式(0..0xc:等分/环/随机/sin 调制…)、`[0xdb]`=初始 `c68`(**bit 0x20=播音标志**)、`[0xdc]`=**SFX id**(订正:原误记 [0xdd];etSound 写 [0xdc],播音 `if([0xdb]&0x20) FUN_0045e1f0([0xdc])`)、`[0xde]`=初始 PC、`[10..]`=0xc6 dword 字节码。散布几何用 `prng_randf_signed/unit`。
 - **★ 上游 = ECL et* 指令**(✅,`engine/ecl/th16/05` §3):描述符由 ECL 发射器指令逐字段写——etSprite→[0]/[1]、etAngle→[5]/[6]、etSpeed→[7]/[8]、etCount→[0xd9]、etAim→[0xda]、etSound→[0xdc]、etEx→字节码块 `[0x10+n*0xb]`;**etOn(op 601)= 触发**,调 `bullet_spawn_wrapper(emitter+0x166)`。ECL↔弹幕接缝**已钉死**。
@@ -201,7 +203,7 @@
 **社区对 TH16 说对的(✅✅ 一手实证)**:
 - **EX_ANGLE(0x10)的 `c` 子模式全中**:`c=0/1/4`→直接设角;`c=2`→`atan2(player−存档位)`(`+0x131c`)+arg;`c=3`→存档角(`+0x1318`)+arg;`c=5/6`→`r·RANDF2`;`c=7`→速度随机`current+s·RANDF2`。目标:角→`+0x1090`、速→`+0x108c`。(地址 `0x413bf0`–`0x413c66`)
 - **EX_SAVE 存档机制**:`+0x131c`=存档位、`+0x1318`=存档角、`+0x1314`=存档速,被 c=2/3 回读。
-- **EX_VEL(0x40000)** 的 `990/999/−990` 阈值、**EX_VELTIME(0x200000)** 的 `speed=(r−current)/a`(`→+0x1284`)——逐字吻合。
+- **EX_VEL(0x40000)** 的 `990/999/−990` 阈值、**EX_VELTIME(`0x200000`)** 的 `speed=(r−current)/a`(`→+0x1284`)——逐字吻合。
 - 角解析基础三分支(`≤−999990`→当前角 / 字面 / `≥999990`→`atan2(player)+m`)+ helper(`0x443840`=朝玩家角、`0x405340/405480/402d30`=归一、`prng_randf_signed`=RANDF2)。
 
 **社区对 TH16 说错的(❌ 实测推翻 —— ECL-info 像是跨版本/后作文档)**:
@@ -216,11 +218,11 @@
 | --- | --- | --- |
 | **EX_BOUNCE**(0x40) | walls 位:`0x1`=上 / `0x2`=下 / `0x4`=左(`0x415790`,`pos_x<−192` 触发)/ `0x8`=右(`0x4158d0`,`pos_x≥+192`)→ **与社区 `BOUNCE_U/D/L/R=1/2/4/8` 全吻合**;`b&0x20`=自定义边界(`size=instr[1/2]`),否则默认 384/448;`r`=反弹后最小速;`a`=次数。⚠️ 中途有子 agent 误判 L/R 互换,**主控一手复核证伪了该误判**——社区是对的。 | ✅ |
 | **EX_SETSPRITE**(0x200) | `sprite=instr[4]`、`color=instr[5]&0x7fff`;`instr[5]&0x8000` → `FUN_004173c0` 置 `+0x490=2`(= 跑 anm 中断 2)。 | ✅ |
-| **EX_SIZE**(0x400000) | `initial=instr[0]→+0x13ec`、`final=instr[1]→+0x13f0`、`end_time=instr[4]→+0x1414`、`mode=instr[5]→+0x1418`;`+0x141c`=**每帧插值输出的尺寸标量**(`FUN_004171c0` 算,mode 0x7/0x11 线性、0x8 贝塞尔)。 | ✅ |
+| **EX_SIZE**(`0x400000`) | `initial=instr[0]→+0x13ec`、`final=instr[1]→+0x13f0`、`end_time=instr[4]→+0x1414`、`mode=instr[5]→+0x1418`;`+0x141c`=**每帧插值输出的尺寸标量**(`FUN_004171c0` 算,mode 0x7/0x11 线性、0x8 贝塞尔)。 | ✅ |
 | **EX_OFFSCREEN**(0x100) | `max_time=a→+0x12c0`;**`b`(`+0x12ec`)= 开关**:0=纯计时离屏,非0=额外开"四角视锥可见性测试"(社区标的 unknown 解开了)。 | ✅ |
 | **EX_WRAP**(0x1000) | `max_count=a`、`walls=b`(位 0-3=上/下/左/右);**传送**到对侧(偏移 = 视野半幅 + 屏常量 384/448),非夹取。 | ✅ |
 | **EX_DELETE**(0x400) | `a==1`→`+0xc5c=−1`(抑制死亡特效)后调死亡;否则带特效删。 | ✅ |
-| **EX_SHOOT**(0x2000→`bullet_spawn_wrapper` 0x414da0) | 用 `instr` 参数(aim/effect_index/count1/count2/sprite/color + 角速阈值)建 fire 描述符 → `bullet_pool_spawn`(§6 同结构);子弹复制父字节码。 | ✅(结构) |
+| **EX_SHOOT**(0x2000→`bullet_spawn_wrapper` `0x414da0`) | 用 `instr` 参数(aim/effect_index/count1/count2/sprite/color + 角速阈值)建 fire 描述符 → `bullet_pool_spawn`(§6 同结构);子弹复制父字节码。 | ✅(结构) |
 | **EX_HOMING/EX_ACCEL_2/EX_NO_GRAZE**(社区新表 31/32/33) | **TH16 无**:枚举了 `bullet_vm_exec` 全部 opcode + `bullet_tick` 全部位,只有旧位场那套(29 个),无这三者。TH16 的"追踪"靠 EX_MOVE + 朝玩家阈值实现。 | ✅ |
 | **擦弹环**(`player_collide_circle`) | `graze_ring = max(40.0, 弹半径/2.5)`(`DAT_00494604=40`、`DAT_00494570=2.5` PE 实测);命中 `dist²<(自机+弹)²`、擦弹 `dist²<(自机+环)²+弹²`、否则未中。 | ✅ |
 | **擦弹处理**(`FUN_00444cf0`) | 累计 `DAT_004a57c0`(HUD 擦弹数,cap 99999999)+ `DAT_004a57c4`(副计数,出分数弹);SFX `0x2a`(42);`obj+0x20` 位 `0x4`=已擦弹防重入;生擦弹粒子 + 分数弹。 | ✅ |

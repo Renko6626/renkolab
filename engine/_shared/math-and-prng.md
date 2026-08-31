@@ -1,6 +1,8 @@
 # TH16 引擎数学 / CRT 模块(逆向语义表)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
-> **主题**:东方红楼梦…不,**TH16《鬼形兽》(th16.exe,imagebase 0x400000)** 的数学子系统——
+> **主题**:东方红楼梦…不,**TH16《鬼形兽》(th16.exe,imagebase `0x400000`)** 的数学子系统——
 > 角度/向量几何、PRNG、以及游戏所链接的 MSVC CRT 浮点函数。
 > 这是**跨主题的引擎知识**(不专属 SHT),按 `shared/` 录入规范登记:每条标 **出处 / 可信度 / 适用版本 / 地址·函数**。
 >
@@ -9,7 +11,7 @@
 >
 > **方法与诚实声明**:本表由「Workflow 中立命名(不喂标签防 priming)→ 对抗证伪」流水线(20 函数 ×2 阶段,
 > 共 ~40 子 agent)+ 主控**一手复核**产出。**对抗证伪阶段已完整跑完**,并**实打实抓出一处错误**:
-> 0x488a00 初判 `trunc`,对抗 agent 改判 `floor`,经我反汇编负数分支(`x<trunc 时 SUBSD 1.0`)证实=**floor**(见 §1.3)。
+> `0x488a00` 初判 `trunc`,对抗 agent 改判 `floor`,经我反汇编负数分支(`x<trunc 时 SUBSD 1.0`)证实=**floor**(见 §1.3)。
 > 另有两 agent 对 sin/cos 对名**互相矛盾**,由我看旋转式 `X'=X·cos−Y·sin` 一手裁定(§1.4)。
 > 浮点常量值与关键 x87 指令(FPREM/FPATAN)由**直接读取 th16.exe 的 PE 字节**确认(见 §1.6、§4),非反编译器推断。
 > 纪律来源:`METHOD.md`、memory `re-overclaim-guard` / `re-agent-no-hypothesis-priming`。
@@ -28,7 +30,7 @@
 | PRNG | **16位满周期生成器**(单步 `0x449720`/双步 gameplay `0x402be0`)、播种 `0x43b520`、回放存还原 `0x449030`/`0x447760`、float 包装 `0x402cb0`/`70`/`f0`;周期 65536/gameplay 32768,模型见 `scripts/th16_prng_model.py` | ✅ |
 | 运动积分器(用上述原语) | `0x402ff0`、`0x403110` | ✅(行为) |
 
-**枢纽洞察**:本作**没有链接 1 参 `_CIxxx` CRT intrinsic**(2 参分派器 `__cintrindisp2`@0x488bb0 只有 2 个 stub;1 参分派器 `__cintrindisp1`/`__ctrandisp1`/`__ctrandisp2` 的 `get_xrefs_to` **全为空**)。三角函数走**直接调用 `__libm_sse2_sin/cos` 核**(SSE2 多项式),不经 `_CI` x87 分派。这点把 CRT 面收得很窄。
+**枢纽洞察**:本作**没有链接 1 参 `_CIxxx` CRT intrinsic**(2 参分派器 `__cintrindisp2` `0x488bb0` 只有 2 个 stub;1 参分派器 `__cintrindisp1`/`__ctrandisp1`/`__ctrandisp2` 的 `get_xrefs_to` **全为空**)。三角函数走**直接调用 `__libm_sse2_sin/cos` 核**(SSE2 多项式),不经 `_CI` x87 分派。这点把 CRT 面收得很窄。
 
 ---
 
@@ -36,13 +38,13 @@
 
 > 本作 CRT = **MSVC VS2015+**,**混合实现**:
 > - **2 参 intrinsic(atan2/fmod)走 x87 thunk**——经 `__cintrindisp2`/`__trandisp2` 分派到含 `FPATAN`/`FPREM`
->   的 x87 例程(PE 字节实测:fmod 的 thunk 0x487ad4 内 `FPREM=D9 F8`;atan2 簇内有 `FPTAN/FPATAN`)。
+>   的 x87 例程(PE 字节实测:fmod 的 thunk `0x487ad4` 内 `FPREM=D9 F8`;atan2 簇内有 `FPTAN/FPATAN`)。
 > - **1 参(sin/cos/sqrt/floor)走 SSE2 `__libm_sse2_*` 多项式**(无 x87 超越指令)。
 >
-> ⚠️ 早前「全簇无 x87 超越指令」的说法**错了**——当时只反了 SSE2 核(0x4884c0 等),没反 2 参 intrinsic 的 x87 thunk。识别靠**x87 指令特征(fmod)+ 调用约定 + call-site 行为(atan2)**。
+> ⚠️ 早前「全簇无 x87 超越指令」的说法**错了**——当时只反了 SSE2 核(`0x4884c0` 等),没反 2 参 intrinsic 的 x87 thunk。识别靠**x87 指令特征(fmod)+ 调用约定 + call-site 行为(atan2)**。
 
 ### 1.1 `0x487aaa` = `atan2` ✅
-- **出处/证据**:① stub 形态 `MOV EDX,0x494e50; JMP 0x488bb0(__cintrindisp2)` = MSVC `_CIatan2/_CIpow/_CIfmod` 家族的 2 参 x87 intrinsic 规范壳;`__cintrindisp2` 对 ST0/ST1 双 FXAM(确为 2 参)。② **独立交叉印证**:一个**不知情(无标签)的子 agent** 反编译浮点包装 `0x4052a0` 时,仅凭「两参=坐标差 (dy,dx)、返回当角度用」就独立判定为 atan2(见 §1.5)。③ 17 个 call-site,homing(`playershot_tick_homing_idx1`@0x445ee0)中 `find_nearest_enemy→atan2(dy,dx)→拧角` 教科书式。
+- **出处/证据**:① stub 形态 `MOV EDX,0x494e50; JMP 0x488bb0(__cintrindisp2)` = MSVC `_CIatan2/_CIpow/_CIfmod` 家族的 2 参 x87 intrinsic 规范壳;`__cintrindisp2` 对 ST0/ST1 双 FXAM(确为 2 参)。② **独立交叉印证**:一个**不知情(无标签)的子 agent** 反编译浮点包装 `0x4052a0` 时,仅凭「两参=坐标差 (dy,dx)、返回当角度用」就独立判定为 atan2(见 §1.5)。③ 17 个 call-site,homing(`playershot_tick_homing_idx1` `0x445ee0`)中 `find_nearest_enemy→atan2(dy,dx)→拧角` 教科书式。
 - ④ **零值护栏**:包装 `FUN_00443840` 在 `dy==0 && dx==0` 时直接返回 `0x494534=π/2`(`atan2(0,0)` 的约定缺省)——这是 atan2 特有模式,pow/fmod 不会有。⑤ 对抗证伪 agent 枚举全 17 call-site:**无一处把返回值当模长/距离/幂用**(那会暴露 pow/fmod 误判),证伪不掉。
 - **结论**:TH16 的 2 参反正切 CRT intrinsic = `atan2(ST1=dy, ST0=dx)`(`_CIatan2`),走 x87 thunk。同走 `0x488bb0` 的另一个 2 参 stub = `0x487aca`=fmod(§1.6)。
 - 旧记录 `crt_atan2_likely`(`apply_th16_sht_names.py`)→ 升级 `crt_atan2` ✅。
@@ -52,12 +54,12 @@
 
 ### 1.3 `0x488a00` = `floor`(向 −∞ 取整)✅ ★对抗证伪纠错
 - **★教训**:初判 `trunc`(向零),**被对抗 agent 改判 `floor`,我反汇编坐实=floor**。
-- **决定性证据**(负数分支 0x488a98):`PSRLQ/PSLLQ` 先得「向零截断」的尾数 → `CMPLTPD x<截断? → ANDPD 1.0(0x494e00) → SUBSD 截断−1.0`。即 **x 为负且有小数时减 1** = 向 −∞ = floor(`trunc(-2.3)=-2`,但本函数给 `-3`)。常量 `0x494e00=1.0`(PE 实测,double)。
+- **决定性证据**(负数分支 `0x488a98`):`PSRLQ/PSLLQ` 先得「向零截断」的尾数 → `CMPLTPD x<截断? → ANDPD 1.0(0x494e00) → SUBSD 截断−1.0`。即 **x 为负且有小数时减 1** = 向 −∞ = floor(`trunc(-2.3)=-2`,但本函数给 `-3`)。常量 `0x494e00=1.0`(PE 实测,double)。
 - 其余:`PSRLQ XMM0,0x34` 取指数 → 移位量;阈值 `CMP EAX,0x3ff`(|x|<1)、`0x432`(|x|≥2^53→原样)。call-site(`FUN_00417bc0`/`0x437ee0`/`0x438370`)用作 `floor(elapsed/period)` 帧/计分分箱(小数部 `x−floor(x)∈[0,1)` 恒非负,正合分箱语义)。
 - **可信**:✅(指令级负数分支 + 常量 PE 实测)。
 
 ### 1.4 `0x405510`=`sinf`(核 `0x4884c0`)/ `0x4054f0`=`cosf`(核 `0x488300`)✅ ★对抗裁定
-- **对名一手裁定**:旋转点 `FUN_0040e490` @0x40e527/0x40e537:`r1=0x405510(angle); r2=0x4054f0(angle)`,
+- **对名一手裁定**:旋转点 `FUN_0040e490` `0x40e527`/0x40e537:`r1=0x405510(angle); r2=0x4054f0(angle)`,
   再 `X'=X·r2 − Y·r1`。标准旋转 `X'=X·cos − Y·sin` ⇒ **r2=cos、r1=sin** ⇒ **`0x405510`=sin、`0x4054f0`=cos**。
   (两个子 agent 对此**互相打架**,一个说反了;以此旋转式为准。)
 - 包装体:`CVTSS2SD → CALL 核 → CVTSD2SS`;两核同形(`STMXCSR` 检精度 → `PEXTRW` 指数范围归约)= `__libm_sse2_sin`/`__libm_sse2_cos`。
@@ -112,7 +114,7 @@
   - **Stream B** = `DAT_004a6d80` / 计数器 `DAT_004a6d84` —— init/其他(`0x458db0` 启动时预热 256 步)。
 
 ### 3.1 核心递推(单步)✅ 指令级
-一手反汇编 `0x449720`(@0x449782–0x4497a7),**单步**:
+一手反汇编 `0x449720`(`0x449782`–`0x4497a7`),**单步**:
 ```
 t  = ((s ^ 0x9630) - 0x6553) & 0xFFFF     ; 非线性混合(XOR 常量 + 减常量)
 s' = ((t << 2) | (t >> 14)) & 0xFFFF      ; = ROL16(t, 2)   状态前进
@@ -159,23 +161,23 @@ s' = ((t << 2) | (t >> 14)) & 0xFFFF      ; = ROL16(t, 2)   状态前进
 
 | 符号(建议名) | VA | 实测值 | = |
 | --- | --- | --- | --- |
-| `f_PI` | 0x494588 | 3.14159274 | **π** |
-| `f_2PI` | 0x4945b8 | 6.28318548 | **2π** |
-| `f_negPI` | 0x494734 | −3.14159274 | **−π** |
-| `f_PI_2` | 0x494534 | 1.57079637 | **π/2** |
-| `f_PI_4` | 0x4944c0 | 0.785398185 | **π/4** |
-| `f_PI_12` | 0x494464 | 0.261799395 | **π/12**(15°) |
-| `f_inv512` | 0x4943e8 | 0.001953125 | **1/512** |
-| `f_inv128` | 0x4943f4 | 0.0078125 | **1/128** |
-| `f_128` | 0x494644 | 128 | 屏幕坐标尺度 |
-| `f_rng_2pow_m31` | 0x4943d4 | 4.65661e-10 | **2⁻³¹**(RNG [−1,1) 尺度) |
-| `f_rng_2pow_m32` | 0x4943d0 | 2.32831e-10 | **2⁻³²**(RNG [0,1) 尺度) |
-| `f_rng_2pow31_div_pi` | 0x494700 | 683565248 | **≈2³¹/π**(RNG 角度尺度) |
-| `f_one` | 0x4944d8 | 1.0 | RNG −1.0 偏置 |
-| `d_ufix[0]/[1]` | 0x494850 | 0.0 / 4294967296.0 | **{0, 2³²}** 无符号修正表(double) |
-| `d_halfframe` | 0x4944e0 | 0.00835(double) | ≈½ 帧 @60fps(`0x487aca` 用) |
-| `d_frame` | 0x494500 | 0.0167(double) | ≈1 帧 @60fps |
-| `d_100` | 0x494598 | 100.0(double) | |
+| `f_PI` | `0x494588` | 3.14159274 | **π** |
+| `f_2PI` | `0x4945b8` | 6.28318548 | **2π** |
+| `f_negPI` | `0x494734` | −3.14159274 | **−π** |
+| `f_PI_2` | `0x494534` | 1.57079637 | **π/2** |
+| `f_PI_4` | `0x4944c0` | 0.785398185 | **π/4** |
+| `f_PI_12` | `0x494464` | 0.261799395 | **π/12**(15°) |
+| `f_inv512` | `0x4943e8` | 0.001953125 | **1/512** |
+| `f_inv128` | `0x4943f4` | 0.0078125 | **1/128** |
+| `f_128` | `0x494644` | 128 | 屏幕坐标尺度 |
+| `f_rng_2pow_m31` | `0x4943d4` | 4.65661e-10 | **2⁻³¹**(RNG [−1,1) 尺度) |
+| `f_rng_2pow_m32` | `0x4943d0` | 2.32831e-10 | **2⁻³²**(RNG [0,1) 尺度) |
+| `f_rng_2pow31_div_pi` | `0x494700` | 683565248 | **≈2³¹/π**(RNG 角度尺度) |
+| `f_one` | `0x4944d8` | 1.0 | RNG −1.0 偏置 |
+| `d_ufix[0]/[1]` | `0x494850` | 0.0 / 4294967296.0 | **{0, 2³²}** 无符号修正表(double) |
+| `d_halfframe` | `0x4944e0` | 0.00835(double) | ≈½ 帧 @60fps(`0x487aca` 用) |
+| `d_frame` | `0x494500` | 0.0167(double) | ≈1 帧 @60fps |
+| `d_100` | `0x494598` | 100.0(double) | |
 
 > ⚠️ 早期 `findings/06` §9 的常量表(标 0x494xxx)逐一与本实测一致(已抽查 π/12·π/4·π/2·1/512·1/128·128 全中),可信。
 

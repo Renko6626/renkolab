@@ -1,4 +1,6 @@
 # 00 · 逆向工程记录纪律(所有 findings 必须遵守)
+> **版本**：跨版本。本文出现的地址一律带版本前缀（如 `th16:0x442560`）。
+>
 
 > 教训来自实战:本工作区曾把"魔理沙→错角色"、"idx2-5 全标 homing(锚定偏置)"当结论写出,均靠
 > **领域常识 + 可复核证据**才纠正。结论一旦缺证据链,解包/IDE 策略就建在沙子上。故立此纪律。
@@ -23,14 +25,14 @@
 
 ## 范例(idx1 = 寻的,完整链条)
 
-- **① 发现**:`sht_parse_resolve_funcptrs`@0x443790 把 shooter+0x2c 用表 0x4919a0 索引替换;pl00 文件
-  里灵梦的 rate5 shooter 取 tick 索引=1;0x4919a0[1]=0x445ee0。
+- **① 发现**:`sht_parse_resolve_funcptrs` `th16:0x443790` 把 shooter+0x2c 用表 `th16:0x4919a0` 索引替换;pl00 文件
+  里灵梦的 rate5 shooter 取 tick 索引=1;`th16:0x4919a0`[1]=`th16:0x445ee0`。
 - **② 推测**:func_on_tick 索引选"每帧行为";idx1 可能是寻的(灵梦设定如此)。
-- **③ 验证**:(a) 反编译 0x445ee0 → 调 `find_nearest_enemy`(0x425240,读敌人 +0x1250/54)+ `atan2`
-  (0x487aaa) 逐帧拧角 +0x60;(b) 自写解析器确认仅 pl00/pl00sub 用 idx1,其余角色不用;(c) touhouwiki:
+- **③ 验证**:(a) 反编译 `th16:0x445ee0` → 调 `find_nearest_enemy`(`th16:0x425240`,读敌人 +0x1250/54)+ `atan2`
+  (`th16:0x487aaa`) 逐帧拧角 +0x60;(b) 自写解析器确认仅 pl00/pl00sub 用 idx1,其余角色不用;(c) touhouwiki:
   灵梦=春=追踪樱花瓣。三方一致。
 - **④ 结论**:**TH16 idx1 = 寻的/homing** ✅(解包+反汇编+wiki 三证);仅 TH16,勿外推。
-- **⑤ 证据**:th16.exe 函数 0x445ee0/0x425240/0x487aaa;解析脚本(files/ 本地);
+- **⑤ 证据**:th16.exe 函数 `th16:0x445ee0`/0x425240/0x487aaa;解析脚本(files/ 本地);
   <https://en.touhouwiki.net/wiki/Hidden_Star_in_Four_Seasons>。
 
 ## 适用

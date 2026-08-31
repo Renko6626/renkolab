@@ -1,6 +1,8 @@
 # player 逆向 04:option / 子机系统(本体子机 + ★季节子机)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
-> 方法:Ghidra(ghidra-re MCP)一手反编译 `PlayerInner__repopulate_options` @0x4440e0(th16.exe 用户自有,
+> 方法:Ghidra(ghidra-re MCP)一手反编译 `PlayerInner__repopulate_options` `0x4440e0`(th16.exe 用户自有,
 > ExpHP 符号已套)。日期 2026-06-12。分级 ✅高 / 🟡中 / ❓未解。**仅 TH16 v1.00a**。
 > 回答用户点名的"季节子机":TH16 自机的两组 option(子机)各从哪来、几个、摆在哪。
 
@@ -15,7 +17,7 @@ TH16 自机有**两组 option(子机)**,由 `PlayerInner__repopulate_options` �
 两组都是 stride **0xe4** 的运行时槽(与 `engine/sht/th16/04` 的自机弹槽同 stride);**子机既是"显示的小球"也是
 "副火力发射点"**——shooterset 的 `opt` 字段(`../sht/05` §2、`07` §2)就是选第几个子机当发射点。
 
-## 1. 触发与流程:`PlayerInner__repopulate_options` @0x4440e0 ✅
+## 1. 触发与流程:`PlayerInner__repopulate_options` `0x4440e0` ✅
 
 **何时调**(一手):
 - `player_update_perframe` 状态2 帧==3(死亡掉 power 后,`engine/player/th16/01` §4);
@@ -132,7 +134,7 @@ for (i = 0; i < season_lvl; i++) {
 
 | 符号 / 地址 | 含义 | 可信 |
 | --- | --- | --- |
-| `PlayerInner__repopulate_options` @0x4440e0 | 重建两组 option | ✅ |
+| `PlayerInner__repopulate_options` `0x4440e0` | 重建两组 option | ✅ |
 | `0x4a5e4c` | 本体子机布局索引表 `[CHARACTER][power_lvl]`,值 `{0,1,3,6,10,11,13,16}` | ✅值(§4b)/ 🟡对齐 |
 | `0x4a5dac` | 季节子机布局索引表 `[SUBSEASON][season_lvl]`,值 `{0,1,3,6,10,15,21,28}`(三角数)| ✅值(§4b)/ 🟡对齐 |
 | `DAT_00492c00[CHARACTER]` | 本体子机 anm 脚本 id(疑 `{8,7,11,11}`,与邻表混淆风险,🟡)| 🟡 |
@@ -146,11 +148,11 @@ for (i = 0; i < season_lvl; i++) {
 1. ✅ 布局索引表数值已 dump(§4b);🟡 剩 lvl0 哨兵/行对齐的动态确认。
 2. ✅ option 槽 0xe4 字段图已补(§4c);🟡 剩与 `../sht/04` 的 `+0x60/64/b0` 语义冲突(需开火/spawn 函数判定,❓)。
 3. 🟡 `option_pos` 两段(unfocus/focus)的条目数与各档用到的下标范围。
-4. 🟡 `DAT_00492c00`(本体子机 anm)与邻接表(0x492be0+0x20 起)边界未确切切分,暂标 🟡。
+4. 🟡 `DAT_00492c00`(本体子机 anm)与邻接表(`0x492be0`+0x20 起)边界未确切切分,暂标 🟡。
 
 ## 7. 可信度 / 复核
 
-- ✅ 一手:`PlayerInner__repopulate_options`(0x4440e0)本会话反编译;两组结构、数量来源(火力档/季节档)、
+- ✅ 一手:`PlayerInner__repopulate_options`(`0x4440e0`)本会话反编译;两组结构、数量来源(火力档/季节档)、
   位置表(主/副 .sht option_pos +0x40/+0xe8)、按 CHARACTER/SUBSEASON 选精灵——全来自代码读写点。
 - 🟡 索引表数值、槽字段精确对应未取;option_pos 条目数为算术推断。
 - 复核入口:Ghidra DB `th16`,地址见上。交叉:`engine/sht/th16/05`(option_pos)、`07`(opt/shooterset)、

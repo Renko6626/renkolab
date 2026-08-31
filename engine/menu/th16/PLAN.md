@@ -1,4 +1,6 @@
 # TH16 MainMenu 子系统逆向计划
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 版本:**TH16《鬼形兽》v1.00a**(`local/th16.v1.00a/th16.exe`,imagebase `0x400000`)。仅此版本,勿外推。
 > 目标子系统:`MainMenu`(标题/选项/键位/难度/角色/副季/练习/录像/音乐室/符卡练习 等所有标题菜单态)。
@@ -68,21 +70,21 @@
 
 | addr | size | xrefs | 推测(待反编译证实) |
 | --- | --- | --- | --- |
-| **0x0044c8c0** | 5034 | 3 | 紧接 `do_options`(0x44c89f)之后 → 选项菜单的**绘制/明细子逻辑**,或音量/画面设置态 |
-| 0x0044dc70 | 3255 | 4 | 介于 options 与 key_config 之间 |
-| 0x0044ec60 | 2725 | 4 | 紧接 `do_key_config`(0x44ec45)之后 → 键位绘制/应用 |
-| **0x004560b0** | 2277 | **7** | ★高 xref → **跨菜单复用的 helper**(光标/条目列表/输入轮询);优先 |
-| 0x0044f810 | 1540 | 2 | key_config↔difficulty 之间 |
-| 0x00452c30 | 1011 | 3 | replay 相关簇内 |
-| 0x00451560 | 475 | 1 | replay 簇 |
-| 0x0044ad20 | 447 | 2 | 介于 initialize 与 on_tick → **子初始化** |
-| 0x004545a0 | 331 | 1 | music_room 簇 |
-| 0x0044f710 | 241 | 1 | difficulty 前 |
-| 0x004569a0 | 119 | 4 | 高 xref 小函数 → 复用 leaf(clamp/取项数?) |
-| 0x00455370 | 92 | 3 | spell_practice 簇复用 leaf |
-| 0x00456060 | 80 | 1 | |
-| 0x00455330 | 57 | 1 | |
-| 0x0044af50 | 34 | 2 | 紧贴 on_tick 前 → trampoline/getter |
+| **`0x0044c8c0`** | 5034 | 3 | 紧接 `do_options`(`0x44c89f`)之后 → 选项菜单的**绘制/明细子逻辑**,或音量/画面设置态 |
+| `0x0044dc70` | 3255 | 4 | 介于 options 与 key_config 之间 |
+| `0x0044ec60` | 2725 | 4 | 紧接 `do_key_config`(`0x44ec45`)之后 → 键位绘制/应用 |
+| **`0x004560b0`** | 2277 | **7** | ★高 xref → **跨菜单复用的 helper**(光标/条目列表/输入轮询);优先 |
+| `0x0044f810` | 1540 | 2 | key_config↔difficulty 之间 |
+| `0x00452c30` | 1011 | 3 | replay 相关簇内 |
+| `0x00451560` | 475 | 1 | replay 簇 |
+| `0x0044ad20` | 447 | 2 | 介于 initialize 与 on_tick → **子初始化** |
+| `0x004545a0` | 331 | 1 | music_room 簇 |
+| `0x0044f710` | 241 | 1 | difficulty 前 |
+| `0x004569a0` | 119 | 4 | 高 xref 小函数 → 复用 leaf(clamp/取项数?) |
+| `0x00455370` | 92 | 3 | spell_practice 簇复用 leaf |
+| `0x00456060` | 80 | 1 | |
+| `0x00455330` | 57 | 1 | |
+| `0x0044af50` | 34 | 2 | 紧贴 on_tick 前 → trampoline/getter |
 
 ## 3. 分阶段执行
 
@@ -94,9 +96,9 @@
   (GhidraProject driver + `proj.save()`,参考本目录 `apply_th16_thredata_bulk_names.py`)。函数名/注释 MCP 可落盘。
 
 ### Phase 1 — on_tick 状态机骨架(先解分派)
-1. 反 `MainMenu__on_tick`(0x44af80):确认它读 `this+0x18 current_menu`(证实/证伪 §1.1 假设),
+1. 反 `MainMenu__on_tick`(`0x44af80`):确认它读 `this+0x18 current_menu`(证实/证伪 §1.1 假设),
    找 **switch / 跳转表 / if 链** → 建立 **`current_menu` 枚举值 → `do_*` handler** 映射表。
-2. 顺带反 `constructor`/`initialize`/`0x44ad20`(子初始化)/`on_draw`(0x44b530,看它怎么按态选 `on_draw__*`)。
+2. 顺带反 `constructor`/`initialize`/`0x44ad20`(子初始化)/`on_draw`(`0x44b530`,看它怎么按态选 `on_draw__*`)。
 3. 产出:**状态机图**(态枚举 ↔ do_handler ↔ on_draw_handler ↔ 转移条件)。这是后续一切的脚手架。
 
 ### Phase 2 — 复用菜单控件(高 xref 待挖 = zMenuHelper 方法)
@@ -136,5 +138,5 @@
   > (findings 暂放 `funcs/mainmenu/`;若 MainMenu 研究做大,可比照 `anm/`/`bullets/` 升格为顶层 `mainmenu/` 文件夹。)
 
 ## 6. 第一刀(下次动手起点)
-**反 `MainMenu__on_tick`(0x44af80)** → 证实/证伪 "switch on `this+0x18 current_menu`" → 产出态枚举→handler 映射(Phase 1.1)。
+**反 `MainMenu__on_tick`(`0x44af80`)** → 证实/证伪 "switch on `this+0x18 current_menu`" → 产出态枚举→handler 映射(Phase 1.1)。
 同时跑 Phase 0 把 `zMainMenu`/`zMenuHelper` 套上 this,让 on_tick 的字段访问直接显字段名。

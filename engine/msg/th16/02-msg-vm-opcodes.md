@@ -1,4 +1,6 @@
 # 02 · TH16 stage-MSG opcode → 行为表(对话 VM 指令集)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 适用:**TH16《鬼形兽》`th16.exe` v1.00a**,**仅"关卡内对话 stage MSG"**(`stXXy.msg`)。
 > ⚠️ **结局 / staff roll / mission.msg 是另一套指令集**(ExpHP 原话:"Ending MSG and staff MSG files use a
@@ -7,7 +9,7 @@
 > **本表是三方交叉结果,可信度高**:
 > - **ExpHP `truth`**(权威编译器)`src/core_mapfiles/msg.rs` → **指令签名 + 逐版本编号**(MSG_10_185 链)。
 > - **ExpHP `thpages`**(指令参考站)`js/tables/reference/msg.ts` → **指令名 + 行为描述**(本表"ExpHP 行为"列)。
-> - **我们一手反编译** `GuiMsgVm::run`(0x42A1D0)→ **exe 实证**(本表"exe 实证"列,带 case/地址)。
+> - **我们一手反编译** `GuiMsgVm::run`(`0x42A1D0`)→ **exe 实证**(本表"exe 实证"列,带 case/地址)。
 > 三者一致标 ✅;仅 ExpHP 双源、我们未逐条验 exe 的标 🟡。
 > 出处与许可:ExpHP/truth、ExpHP/thpages(GitHub,GPL 系)。本表为**摘要+交叉注**,非原文照搬;详细 prose 见
 > <https://exphp.github.io/thpages/> 的 MSG 页。
@@ -32,7 +34,7 @@ override 了 5/8/14/20/24 并加 32,TH11 在 TH10 基础上**在 9 处插了一�
 > 列:opcode · ExpHP 名(ref) · 签名(truth)· ExpHP 行为(摘要)· exe 实证(我们 `run` 内 case/地址)· 可信度。
 > 签名记法:`S`=int32, `f`=float, `m`=掩码字符串(文本), `_`=被忽略的 dword, `ss`/`SS`=两个参数。
 
-| op | 名(ExpHP ref) | 签名 | ExpHP 行为(摘要) | exe 实证(case @0x42A1D0) | 可信 |
+| op | 名(ExpHP ref) | 签名 | ExpHP 行为(摘要) | exe 实证(case `0x42A1D0`) | 可信 |
 | --- | --- | --- | --- | --- | --- |
 | 0 | end | — | 终止脚本(不杀引擎) | case 0 → `return 0xffffffff`(触发拆 VM) | ✅ |
 | 1 | show-player | `_` | 自机立绘出现 | case 1:create_effect 自机/敌方 face(读 instr+4) | ✅ |
@@ -85,7 +87,7 @@ override 了 5/8/14/20/24 并加 32,TH11 在 TH10 基础上**在 9 处插了一�
 
 ## 3.5 独立盲验证(2026-06-11)
 
-派**未喂任何我们/ExpHP 命名**的子 agent 重反 `GuiMsgVm::run`(0x42A1D0),用中立机械描述逐 case 复核(防过拟合,
+派**未喂任何我们/ExpHP 命名**的子 agent 重反 `GuiMsgVm::run`(`0x42A1D0`),用中立机械描述逐 case 复核(防过拟合,
 memory `re-agent-no-hypothesis-priming`)。结果:**绝大多数 ✅ 印证**(0/1/2/4/5/6/10/11/12/13/14/15/16/17/18/19/20/21/25/26/28/29/31/32/33/34/35
 行为与本表一致,且独立确认 12=ecl-resume 写 +0x18c、25=y-offset 写 +0x4e4、28=两 float、33/34 读 +4 与 +8 两参)。
 **纠错**:22/23/24 对齐(见上)。**澄清**:op3、op0x1e(30)在 `run` 中**无 case**(nop/未用)。
@@ -101,20 +103,20 @@ ECL:  519 dialogWait ────────► 卡住,等
 MSG:  …演出… 12 ecl-resume ──► 放行上面的 519
 MSG:  0 end ────────────────► 拆 VM(on_tick_20 检 run==-1)
 ```
-✅ **握手已逐指令锁定**(`ins 12` 写 `vm[0x18c]` 一帧脉冲、`519 dialogWait`@0x4216e0 读它、run 顶部每帧清)——详见 `03-dialogue-lifecycle.md` §2。
+✅ **握手已逐指令锁定**(`ins 12` 写 `vm[0x18c]` 一帧脉冲、`519 dialogWait` `0x4216e0` 读它、run 顶部每帧清)——详见 `03-dialogue-lifecycle.md` §2。
 
 ## 5. 下一步
 
 1. **对死 🟡 项**(12 ecl-resume 的 +0x18c 信号链、22/23/24 shake、3/27/30)——逐条反编译 `run` 对应 case + 找
-   `519 dialogWait`(0x4216e0)的检查点,把握手字段彻底锁死 → `03-dialogue-lifecycle.md`。
+   `519 dialogWait`(`0x4216e0`)的检查点,把握手字段彻底锁死 → `03-dialogue-lifecycle.md`。
 2. **`\|x,y,` 文本定位语法**(ins 17 内 `FUN_0042bbe0`/`FUN_00476c60`)精解——对 thcrap 译文 / IDE 文本编辑相关。
 3. **结局/staff 第二指令集**(独立,优先级低)。
 4. **回填 THTK-Studio 仓库的 `docs/`**:IDE 的 MSG 支持 = 本表(结构化 opcode 编辑)+ §1 文本编解码 + thmsg/truth 互通。
 
 ## 证据指针
 
-- 一手:`GuiMsgVm::run` 0x42A1D0(switch on `instr->opcode`,case 0..0x23);`Gui::start_dialogue` 0x429FF0;
-  ECL `dialogRead/Wait` 0x4216b3/0x4216e0。
+- 一手:`GuiMsgVm::run` `0x42A1D0`(switch on `instr->opcode`,case 0..0x23);`Gui::start_dialogue` `0x429FF0`;
+  ECL `dialogRead/Wait` `0x4216b3`/0x4216e0。
 - ExpHP truth:`map`/`src/core_mapfiles/msg.rs`(MSG_10_185,签名+逐版本编号);GitHub `ExpHP/truth`。
 - ExpHP thpages:`js/tables/reference/msg.ts`(名+行为 prose);站点 <https://exphp.github.io/thpages/>(MSG 页;**注:为 stage MSG**)。
 - 社区来源速查见 `engine/_shared/community-sources.md`。

@@ -1,11 +1,13 @@
 # TH16 MainMenu 状态机骨架(Phase 1)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 版本:**TH16 v1.00a**(`th16.exe`,imagebase `0x400000`)。
 > 计划:`../mainmenu-plan.md`。本篇 = Phase 1 产出(on_tick 分派 + 转移函数 + 状态枚举)。
 > 写于 2026-06-10,一手反编译。可信度见各条。
 
 ## 结论速览
-- ✅ **`MainMenu__on_tick`(0x44af80)是状态机分派器**,`switch (this->current_menu)`,即 `switch(*(int*)(this+0x18))`。
+- ✅ **`MainMenu__on_tick`(`0x44af80`)是状态机分派器**,`switch (this->current_menu)`,即 `switch(*(int*)(this+0x18))`。
 - ✅ **`zMainMenu` 前部布局一手坐实**:`+0x18 current_menu` · `+0x1c previous_menu` · `+0x20 status`(态内子相位)· `+0x2ac time_on_current_menu`(zTimer)。与 ExpHP `type-structs-own.json` 完全一致。
 - ✅ **`MainMenu__change_menu(this, new)`**(原 `FUN_0044a560`,已命名):菜单态转移的唯一 setter。
 - ✅ **状态枚举 0x00–0x14 → handler 全表**(见下)。
@@ -13,16 +15,16 @@
 
 ---
 
-## 1. 分派器 `MainMenu__on_tick` @ 0x44af80
+## 1. 分派器 `MainMenu__on_tick` `0x44af80`
 **发现**:函数签名 `__fastcall MainMenu__on_tick(uint *this)`,核心是 `switch(this[6])`(`this[6]` = 字节偏移 `0x18`)。
 **验证**:`this` 为 `uint*`,索引 6 = `0x18`;与 `zMainMenu+0x18 current_menu` 对齐;`change_menu` 写的也是 `+0x18`(见 §2)→ 互证。
-**结论(✅,TH16 v1.00a)**:on_tick 每帧按 `current_menu` 分派到对应 `do_*`。证据:0x44af80 的 `switchD_0044b16d`。
+**结论(✅,TH16 v1.00a)**:on_tick 每帧按 `current_menu` 分派到对应 `do_*`。证据:`0x44af80` 的 `switchD_0044b16d`。
 
 附带:
 - 函数头部处理 **demo/attract 计时**(`DAT_004a5bf0` 计到 `0x708`=1800 帧→自动放 demo 录像,经 `ReplayManager__destructor`/`ecl_free_runcontext`)与 **BGM/标题进入**(`param_1[0x173a]` 标志 + `SoundManager__modify_bgm` + `FUN_0043c370(0,"th16_01")` 加载标题曲)。🟡 细节未逐一坐实,大意明确。
 - 尾部 `param_1[0xab..0xae]` + `PTR_DAT_00490eb0[param_1[0xae]]` = 某周期性 float 推进(疑菜单背景/光标动画时基)。🟡 待 Phase 2/3 复核。
 
-## 2. 转移函数 `MainMenu__change_menu` @ 0x44a560(原 FUN_0044a560)
+## 2. 转移函数 `MainMenu__change_menu` `0x44a560`(原 FUN_0044a560)
 **发现/证据**(一手反编译):
 ```c
 this->previous_menu = this->current_menu;   // +0x1c = +0x18
@@ -60,7 +62,7 @@ this->time_on_current_menu = 0xffffffff;     // +0x2ac (zTimer 复位)
 
 > 🟡 注:`do_difficulty/character/subseason_select` 等名为 ExpHP 导入,**语义待 Phase 3 一手坐实**;但其在 switch 中的**状态号**是一手确定的。
 
-## 4. 实例:`MainMenu__do_help_manual` @ 0x4545a0(state 0x10,本篇新命名)
+## 4. 实例:`MainMenu__do_help_manual` `0x4545a0`(state 0x10,本篇新命名)
 **发现/证据**:`switch (status @ +0x20)`:`status==0` → 建两个 anm 特效 + `HelpManual__operator_new()`,置 `status=1`、复位 timer;`status==1` 且某全局条件成立 → `AnmManager__interrupt_tree` 收两个 anm、`HelpManual__destructor`+`ecl_free_runcontext`、`change_menu(this,1)` 回标题。
 **结论(✅,TH16 v1.00a)**:state 0x10 = 操作说明/HelpManual 屏。**也佐证了 `status`(+0x20)是态内子相位**(0=入场建对象,1=激活/等退出)。
 
@@ -69,5 +71,5 @@ this->time_on_current_menu = 0xffffffff;     // +0x2ac (zTimer 复位)
 - 全局:`DAT_004a6f1c`(返回菜单目标)、`DAT_004a5bf0`(demo 计时)、`DAT_004c0f48`(AnmManager,已知)。
 
 ## 落盘
-- 已 MCP `rename_function`:`MainMenu__change_menu`(0x44a560)、`MainMenu__do_help_manual`(0x4545a0)。函数名跨会话可靠落盘。
+- 已 MCP `rename_function`:`MainMenu__change_menu`(`0x44a560`)、`MainMenu__do_help_manual`(`0x4545a0`)。函数名跨会话可靠落盘。
 - 结构体类型套用 + 注释 → 待 Phase 0 脚本 `apply_th16_mainmenu_names.py`(driver + proj.save)。

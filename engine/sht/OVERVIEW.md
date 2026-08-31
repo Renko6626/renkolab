@@ -1,4 +1,6 @@
 # sht — SHT 自机（shoot type）配置
+> **版本**：跨版本。本文出现的地址一律带版本前缀（如 `th16:0x442560`）。
+
 
 **SHT 不是脚本语言，是纯二进制配置文件**，逐版本差异大。它描述一个自机的移动速度、判定、
 以及一组组 shooter（发弹器）；运行时按「火力档 × 聚焦」选中一组，逐个 shooter 派发。
@@ -14,11 +16,11 @@
 | 断言 | th16 | th18 | 证据 |
 | --- | :---: | :---: | --- |
 | SHT 是纯二进制配置，无脚本语义（→ IDE 该做表单而非编译） | ✅ | ✅ | [format-reference.md](format-reference.md)、[th16/01](th16/01-runtime-semantics.md) |
-| 解析器 `sht_parse_resolve_funcptrs` @0x443790 把 func_\* 索引**解成函数指针**，无边界检查 | ✅ | 🟡 | [th16/03 §1](th16/03-th16-funcstar-jumptables.md) |
-| 四张函数指针表在 .rdata（tick 表 @0x4919a0） | ✅ | 🟡 | [th16/03 §2](th16/03-th16-funcstar-jumptables.md)、[th16/04 §3](th16/04-th16-shot-runtime-architecture.md) |
+| 解析器 `sht_parse_resolve_funcptrs` `th16:0x443790` 把 func_\* 索引**解成函数指针**，无边界检查 | ✅ | 🟡 | [th16/03 §1](th16/03-th16-funcstar-jumptables.md) |
+| 四张函数指针表在 .rdata（tick 表 `th16:0x4919a0`） | ✅ | 🟡 | [th16/03 §2](th16/03-th16-funcstar-jumptables.md)、[th16/04 §3](th16/04-th16-shot-runtime-architecture.md) |
 | shooter 结构 stride = **0x58** | ✅ | ✅ | [th16/05 §2](th16/05-th16-flags-no-runtime-read.md)；th18 由 ExpHP `zShtShooter` 佐证 |
 | **`flags` 段运行时完全不被读**（负结论，过了对抗证伪） | ✅ | 🟡 | [th16/05 §3–4](th16/05-th16-flags-no-runtime-read.md) |
-| shooterset 按「火力档 × 聚焦」选择，`Player__do_shooting` @0x445470 | ✅ | 🟡 | [th16/07 §1](th16/07-th16-shooterset-organization.md) |
+| shooterset 按「火力档 × 聚焦」选择，`Player__do_shooting` `th16:0x445470` | ✅ | 🟡 | [th16/07 §1](th16/07-th16-shooterset-organization.md) |
 | 组内区分主弹与子机弹 | ✅ | 🟡 | [th16/07 §2](th16/07-th16-shooterset-organization.md) |
 | 自机弹伤害管线：伤害源池 `PLAYER+0xd080`，stride 0x94，256 个 | ✅ | 🟡 | [th16/08 §1–2](th16/08-th16-player-damage-pipeline.md) |
 | header `+0x04`「可配置判定半径」是**哑弹**——运行时不读 | ✅ | 🟡 | [th16/99-QUIRK](th16/99-QUIRK-可配置判定半径其实是哑弹.md) |

@@ -1,4 +1,6 @@
 # TH18 卡牌 deep-research —— 中断抢救(workflow 被余额砍,未到最终合成)
+> **版本**：TH18 v1.00a（`th18.exe`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+>
 
 > 来源:后台 deep-research workflow `wf_19ba9146-918` 的 91 个子 agent 转录,
 > 抢救出 59 段有实质内容的最终输出(各 agent 的 verify/synthesis 结论)。**这是原始素材,未去重未合并。**
@@ -103,7 +105,7 @@ Note: this is a different wiki (wikiwiki.jp/thk) than THBWiki, so it serves as t
 
 Extracted from the zer0kune note.com blog (Lunatic-player opinion piece, published 2021-05-11). It provides player-facing JP card names, effect descriptions, and several concrete numbers — notably damage multipliers (Mukade 1.001x→1.800x), the 20% active-card cooldown cut on Magic Scroll, resource costs for the two death-save cards (2 bombs / 200 funds), and the Jizo instant-resource amounts (+1 life, +5 fragments).
 
-Caveat for the catalog: the costs listed here are player-facing shop prices and several differ from the code price table (e.g. this blog lists Magic Scroll at 300 / Mukade at 300, and gives 140/350/240/etc.). These should be corroborated against the code's price-tier table (0x4b35c4) rather than trusted from this single blog line. Source quality is blog/opinion, so all numeric claims are flagged as needing code corroboration.
+Caveat for the catalog: the costs listed here are player-facing shop prices and several differ from the code price table (e.g. this blog lists Magic Scroll at 300 / Mukade at 300, and gives 140/350/240/etc.). These should be corroborated against the code's price-tier table (`0x4b35c4`) rather than trusted from this single blog line. Source quality is blog/opinion, so all numeric claims are flagged as needing code corroboration.
 
 ---
 ## [12] agent-a7c52c65175f4f598.jsonl
@@ -170,7 +172,7 @@ Verified the claim as NOT refuted. The four-category taxonomy (Item/即効, Equi
 ---
 ## [17] agent-afc7f76d5fa0d40c0.jsonl
 
-The substantive claim is confirmed by both the secondary wiki source and first-hand reverse-engineered code. The "two Spell Cards, or one if only one left" number maps exactly onto the code: `Card__death_save_bomb_revive` (0x40A2A0) decrements `CURRENT_BOMBS` twice, each independently floored at 0, which is the canonical implementation of "consume 2, or 1 if only 1 remains."
+The substantive claim is confirmed by both the secondary wiki source and first-hand reverse-engineered code. The "two Spell Cards, or one if only one left" number maps exactly onto the code: `Card__death_save_bomb_revive` (`0x40A2A0`) decrements `CURRENT_BOMBS` twice, each independently floored at 0, which is the canonical implementation of "consume 2, or 1 if only 1 remains."
 
 I flagged one defect that does not refute the mechanic: the claim's label "AutoBomb, card_id 23" is a card_id confusion. Eirin's elixir is class `CardEirin`, not AutoBomb (which genuinely is card_id 23). The hex `0x23` (decimal 35 = Rokumon) in the death-save code is a money-gate suppression condition, not Eirin's trigger. The load-bearing claim stands; the parenthetical label needs correction. Not refuted.
 
@@ -224,8 +226,8 @@ Verification complete. As adversarial voter 3/3, I could not refute this claim.
 **Verdict: refuted=false (confidence medium)**
 
 The claim survives because:
-1. **All 9 money costs are code-exact** — I dumped the price table at 0x4b35c4 and mapped each card by name through the registry (cards-03). warp=300, Kaname=400, Moon=240, Miko=400, Vampire=240, Sun=450, Lily=300, bass-drum=140, Psyco=180 all match the code price tiers exactly.
-2. **The cooldown mechanism is code-confirmed** — CardTenshi__c_press at 0x40ebf0 uses a per-card recharge-frame constant (card+0x48), so the wiki second-values map to real frame constants.
+1. **All 9 money costs are code-exact** — I dumped the price table at `0x4b35c4` and mapped each card by name through the registry (cards-03). warp=300, Kaname=400, Moon=240, Miko=400, Vampire=240, Sun=450, Lily=300, bass-drum=140, Psyco=180 all match the code price tiers exactly.
+2. **The cooldown mechanism is code-confirmed** — CardTenshi__c_press at `0x40ebf0` uses a per-card recharge-frame constant (card+0x48), so the wiki second-values map to real frame constants.
 3. **The headline cooldowns are double-sourced** — an independent secondary source (66game.cn) corroborates 要石30s/60cd/250-bullets, 月2s/45cd, 太阳1.02P/300cd, matching the THBWiki quote.
 
 The "wiki display numbering" caveat is explicitly stated, so the offset from internal card_id is not a defect.
@@ -240,7 +242,7 @@ I've verified the claim and could not refute it. The claim that TH18 Ability Car
 ---
 ## [26] agent-ae608beea5a5b31c3.jsonl
 
-Claim verified as NOT refuted. The four-subcategory taxonomy and the Active-card C-key-use/D-key-switch/cooldown mechanics are supported both by the quoted en.touhouwiki.net source (corroborated by StrategyWiki and touhou.fandom via WebSearch) and independently by first-hand reverse-engineered code in research/th18/findings/cards-01-system-architecture.md (C-key use at 0x45BE90 input&0x400→c_press, D-key switch input&0x800→set_selected_active_card, cooldown countdown in CardTenshi c_press at 0x40EBF0). The hedge "generally has cooldowns" matches the source's "Most active cards have cooldowns."
+Claim verified as NOT refuted. The four-subcategory taxonomy and the Active-card C-key-use/D-key-switch/cooldown mechanics are supported both by the quoted en.touhouwiki.net source (corroborated by StrategyWiki and touhou.fandom via WebSearch) and independently by first-hand reverse-engineered code in research/th18/findings/cards-01-system-architecture.md (C-key use at `0x45BE90` input&0x400→c_press, D-key switch input&0x800→set_selected_active_card, cooldown countdown in CardTenshi c_press at `0x40EBF0`). The hedge "generally has cooldowns" matches the source's "Most active cards have cooldowns."
 
 ---
 ## [27] agent-a27749bc26ca5f7a1.jsonl
@@ -287,7 +289,7 @@ Verification complete. The claim is **NOT refuted** — it is well-supported by 
 
 Key evidence:
 - **Four subcategories**: confirmed by both en.touhouwiki.net (Item/Equipment/Passive/Active) and code findings §3 (使用/装备/能力/即时). Minor nuance flagged: the engine `flags(+0x50)` only physically distinguishes 3 buckets; the 4th (Item/即时) is split behaviorally, not via a distinct flag bit — not a contradiction.
-- **Active = C-key**: first-hand at `Player__on_tick__body` 0x45BE90, `input & 0x400` → `vtable+0x08 (c_press)`.
+- **Active = C-key**: first-hand at `Player__on_tick__body` `0x45BE90`, `input & 0x400` → `vtable+0x08 (c_press)`.
 - **Switched with D**: first-hand `input & 0x800` → `set_selected_active_card(-1)` cycles selection (literal D-key mapping itself is 🟡-flagged pending keymap RE, but cycle-select behavior is solid).
 - **Generally has cooldowns**: first-hand recharge gating (`card+0x34` countdown from `recharge_time +0x48`), matching the wiki's hedged "Most active cards have cooldowns."
 
@@ -299,8 +301,8 @@ Sources: [Unconnected Marketeers/Gameplay](https://en.touhouwiki.net/wiki/Unconn
 Verification complete. The claim is **not refuted** (confidence: high).
 
 Summary of my adversarial findings:
-- **All 12 money costs are first-hand code-verified**: the price table at 0x4b35c4 (t5=140, t6=180, t8=240, t9=280, t10=300, t12=400, t13=450) cross-referenced against the registry and the character-named `Card*__c_press` functions matches every claimed cost exactly.
-- **flash-spell(54) mechanics confirmed first-hand** in `CardTsukasa__c_press` @0x410e60: `DAT_004ccd40*2 <= CURRENT_POWER` (needs ≥2.00 power), `spend_power(DAT_004ccd40)` (consumes 1.00 power), fires as a bomb — matches the claim verbatim.
+- **All 12 money costs are first-hand code-verified**: the price table at `0x4b35c4` (t5=140, t6=180, t8=240, t9=280, t10=300, t12=400, t13=450) cross-referenced against the registry and the character-named `Card*__c_press` functions matches every claimed cost exactly.
+- **flash-spell(54) mechanics confirmed first-hand** in `CardTsukasa__c_press` `0x410e60`: `DAT_004ccd40*2 <= CURRENT_POWER` (needs ≥2.00 power), `spend_power(DAT_004ccd40)` (consumes 1.00 power), fires as a bomb — matches the claim verbatim.
 - **The headline contested numbers** (Kaname 30s/250-bullets/60s, Utsuho 1.02P/300s) are in the supporting quote AND independently corroborated by a second community source.
 - **Caveat (confidence, not refutation)**: several second-tier cooldown frame numbers (mallet 40s, Moon 45s, Vampire 0.5s/20s, Lily 120s, Psyco 25s, magatama2 90s) rest solely on THBWiki and aren't in the supplied quote; cooldowns are data-driven (card+0x48) so not directly provable as code immediates. This weakens those specific sub-numbers but doesn't contradict the claim, which is correctly scoped as "wiki display numbering."
 
@@ -321,7 +323,7 @@ Verification complete. The claim is NOT refuted (refuted=false, high confidence)
 
 The claim that equipment cards grant options that fire additional shots or erase enemy bullets, spawned via `Player__allocate_option`, is well-supported on both verification fronts:
 
-- **Code (first-hand)**: `Player__allocate_option` @ 0x40A790 confirmed to spawn option familiars; findings cards-01 §4 confirm equipment cards (flags+0x50=0x40) call it via `on_power_level_change` then fire per-card SHT shooters via `on_tick_shooters`. The "fire additional shots" half is first-hand verified.
+- **Code (first-hand)**: `Player__allocate_option` `0x40A790` confirmed to spawn option familiars; findings cards-01 §4 confirm equipment cards (flags+0x50=0x40) call it via `on_power_level_change` then fire per-card SHT shooters via `on_tick_shooters`. The "fire additional shots" half is first-hand verified.
 - **Community (corroborated)**: en.touhouwiki.net + StrategyWiki + GamePretty document specific equipment cards whose options act as bullet-erasing shields (Tenshi keystone, Nue UFO, Misumaru magatama, Clownpiece moon). The "or erase bullets" half is corroborated by multiple sources.
 
 One minor flag included (non-refuting): the bullet-erase behavior is a per-card option-anm property, not located inside `Player__allocate_option` (which is purely a spawn routine), and our findings have not yet pinned it to a specific code address — so that half rests on corroborated community attestation rather than first-hand code. The claim's code attribution itself (allocate_option = spawn familiar) is correct, and the "or" phrasing correctly signals the shield behavior applies only to a subset.
@@ -342,7 +344,7 @@ The one caveat (why medium, not high): the bullet-erase behavior is community-at
 
 I verified the claim against first-hand code and it holds (refuted=false, high confidence). Key findings:
 
-- **Wiki quote backs the stage assignments** for #40 (stage 1, 3 extra draws) and #41 (stage 2, half price), and I confirmed both effect-identifications directly in the binary: `id==0x27` (=39 YAMAWARO) is the half-price trigger in `CardShop__price_for_tier` @0x416DD0, and `id==0x26` (=38 MANEKI) triggers the 3 extra shop draws in `AbilityShop__initialize` @0x4171B0.
+- **Wiki quote backs the stage assignments** for #40 (stage 1, 3 extra draws) and #41 (stage 2, half price), and I confirmed both effect-identifications directly in the binary: `id==0x27` (=39 YAMAWARO) is the half-price trigger in `CardShop__price_for_tier` `0x416DD0`, and `id==0x26` (=38 MANEKI) triggers the 3 extra shop draws in `AbilityShop__initialize` `0x4171B0`.
 - **The reconciliation thesis matches our own code findings** (cards-04 §2b): the per-stage forced set is internal dmode 1-5 = card_ids {38,39,40,51,52,53}, the same six cards the wiki numbers {22,40,41,42,54,55}. Stage-4 = Misumaru's magatama = internal 51.
 
 One caveat I flagged (not refuting): the wiki↔internal map is NOT a uniform +2 offset — #40/41/42/54/55 fit +2 but #22→51 does not, so it's a separate display/collection numbering with no single arithmetic relation. The claim's wording ("same cards, different numbering") is correct and does not assert a clean offset.
@@ -372,7 +374,7 @@ Verified. The claim survives adversarial review.
 
 **Verdict: refuted=false (medium confidence)**
 
-The core assertion — that active-card cooldowns are reported in player-facing *seconds* while the engine internally uses *frames* — is directly confirmed by code: `CardTenshi__c_press` @0x40ebf0 loads `recharge_time(+0x48) * global_mult` into a per-frame countdown timer that `Timer__decrement`s once per tick. The 要石 30s active-duration cap also matches code (state-1 ends at `+0x24 > 0x708` = 1800 frames = 30s @ 60fps).
+The core assertion — that active-card cooldowns are reported in player-facing *seconds* while the engine internally uses *frames* — is directly confirmed by code: `CardTenshi__c_press` `0x40ebf0` loads `recharge_time(+0x48) * global_mult` into a per-frame countdown timer that `Timer__decrement`s once per tick. The 要石 30s active-duration cap also matches code (state-1 ends at `+0x24 > 0x708` = 1800 frames = 30s @ 60fps).
 
 Two anchor numbers (要石=60秒, 疯狂之月=45秒) were independently confirmed by a second THBWiki-derived source, matching the bilibili quote verbatim. Nothing contradicts any figure.
 
@@ -381,7 +383,7 @@ The caveat (not a refutation): the bilibili source is secondary and its page plu
 Sources:
 - [bilibili cv11150717 (primary cited)](https://www.bilibili.com/read/cv11150717/)
 - [THBWiki 虹龙洞/卡牌系统](https://thwiki.cc/index.php?title=%E4%B8%9C%E6%96%B9%E8%99%B9%E9%BE%99%E6%B4%9E%2F%E5%8D%A1%E7%89%8C%E7%B3%BB%E7%BB%9F) (corroborating 60s/45s via search)
-- ghidra th18: `CardTenshi__c_press` @0x40ebf0, `CardTenshi____on_tick_2` @0x40e8c0
+- ghidra th18: `CardTenshi__c_press` `0x40ebf0`, `CardTenshi____on_tick_2` `0x40e8c0`
 
 ---
 ## [42] agent-a6213574a398fb0b0.jsonl
@@ -413,16 +415,16 @@ Caveat: the primary cited bilibili URL returned an empty body (anti-scraping), s
 
 Verification complete. The claim is **refuted** (partially correct with a load-bearing error).
 
-Summary: 5 of the price assertions are directly confirmed against the code price table (0x4b35c4) and registry (cards-03): Extend=80, Mokou=450, Money=140, Yamawaro=80+half-price, and Reimu-option 240/280. But the claim fails on two counts:
+Summary: 5 of the price assertions are directly confirmed against the code price table (`0x4b35c4`) and registry (cards-03): Extend=80, Mokou=450, Money=140, Yamawaro=80+half-price, and Reimu-option 240/280. But the claim fails on two counts:
 
-1. **Eirin death-save=360** — fatal. The code price table at 0x4b35c4 has no value of 360 (entries: 0/50/80/100/100/140/180/200/240/280/300/350/400/450/500), and the 56-card registry has no "死秽回避之药/Eirin" card_id at all (card 35 is ROKUMON, tier5→140; CardEirin is a death-save function, not a priced card). The community 360 conflicts with code, and the claim presents it as fact without flagging — the exact discrepancy the dual-source method exists to catch.
+1. **Eirin death-save=360** — fatal. The code price table at `0x4b35c4` has no value of 360 (entries: 0/50/80/100/100/140/180/200/240/280/300/350/400/450/500), and the 56-card registry has no "死秽回避之药/Eirin" card_id at all (card 35 is ROKUMON, tier5→140; CardEirin is a death-save function, not a priced card). The community 360 conflicts with code, and the claim presents it as fact without flagging — the exact discrepancy the dual-source method exists to catch.
 
 2. **Overreach** — "option cards high=240/low=280" is only true for Reimu/Marisa/Sakuya/Sanae; Cirno_OP and Nue_OP are tier7=200. And the supplied quote only supports Mokou/Money/Yamawaro, not the 360, Eirin, or 240/280 assertions.
 
 ---
 ## [46] agent-aff38aa3151d25210.jsonl
 
-Verification complete. The claim is **refuted** — while most price sub-claims check out against the code (Extend=80, Mokou=450, Money=140, Yamawaro=80, and the Reimu-line option cards at 240/280), the load-bearing assertion "死秽回避之药/Eirin death-save=360" is contradicted by first-hand code: 360 is not a value in the price table at 0x4b35c4 at all, and the Eirin death-save card (ROKUMON id 35) is tier 5 = 140. That number is also absent from the supplied supporting quote, making it both unsupported and contradicted.
+Verification complete. The claim is **refuted** — while most price sub-claims check out against the code (Extend=80, Mokou=450, Money=140, Yamawaro=80, and the Reimu-line option cards at 240/280), the load-bearing assertion "死秽回避之药/Eirin death-save=360" is contradicted by first-hand code: 360 is not a value in the price table at `0x4b35c4` at all, and the Eirin death-save card (ROKUMON id 35) is tier 5 = 140. That number is also absent from the supplied supporting quote, making it both unsupported and contradicted.
 
 ---
 ## [47] agent-aa8f0b6d59904a62d.jsonl
@@ -436,7 +438,7 @@ The claim's general thesis (the Bilibili guide uses a 1-indexed player-data disp
 
 I've completed the adversarial verification.
 
-Summary: The claim is **refuted** (refuted=true, high confidence). While most prices in the bundle are code-confirmed (Extend=80, Mokou=450, options 240/280, Money=140, Yamawaro=80 — all verified against the price table at 0x4b35c4 and registry tiers), the claim contains a load-bearing numeric error: **"Eirin death-save=360"** is contradicted by first-hand code. The number 360 is not a valid price anywhere in the game's table (prices jump from 350 to 400), and the actual Eirin/ROKUMON death-save card (0x23, function 0x40A4F0) is registry id 35 at tier 5 = 140. That number also does not appear in the cited bilibili quote. Additionally, "Mokou trial=500" rests on a single secondary source with no retail-code corroboration (no card uses tier 14).
+Summary: The claim is **refuted** (refuted=true, high confidence). While most prices in the bundle are code-confirmed (Extend=80, Mokou=450, options 240/280, Money=140, Yamawaro=80 — all verified against the price table at `0x4b35c4` and registry tiers), the claim contains a load-bearing numeric error: **"Eirin death-save=360"** is contradicted by first-hand code. The number 360 is not a valid price anywhere in the game's table (prices jump from 350 to 400), and the actual Eirin/ROKUMON death-save card (0x23, function `0x40A4F0`) is registry id 35 at tier 5 = 140. That number also does not appear in the cited bilibili quote. Additionally, "Mokou trial=500" rests on a single secondary source with no retail-code corroboration (no card uses tier 14).
 
 ---
 ## [49] agent-a5184b06ba4ec7ec6.jsonl
@@ -464,8 +466,8 @@ Summary of my adversarial check on "法力経典 (Magic Scroll) greatly boosts b
 **Quote support**: The supporting quote literally states the bomb buff plus "使用カード20%クールタイムカット" — the claim is a faithful paraphrase, not an overreach.
 
 **Code ground-truth (first-hand)**:
-- `AbilityManager__allocate_new_card` @ 0x411460, case 0x1a → `AbilityCardMagicScrollInf::vftable`, confirming card_id 26 = MagicScroll.
-- Registry (cards-03) row 26 MAGICSCROLL has price tier **t10**; the task's price table @ 0x4b35c4 gives t10 = **300** → **cost 300 confirmed by code**.
+- `AbilityManager__allocate_new_card` `0x411460`, case 0x1a → `AbilityCardMagicScrollInf::vftable`, confirming card_id 26 = MagicScroll.
+- Registry (cards-03) row 26 MAGICSCROLL has price tier **t10**; the task's price table `0x4b35c4` gives t10 = **300** → **cost 300 confirmed by code**.
 - Flags fall through to the non-active default (`& 0xffffffb5 | 4`, no 0x08 active / 0x40 equipment bit) → it's a passive **能力** card, consistent with a permanent buff that modifies bombs and active-card cooldowns rather than being itself activated. No code-vs-community conflict.
 
 **Community corroboration (multiple independent sources, not just the cited blog)**:
@@ -485,18 +487,18 @@ Verdict: **NOT refuted** (refuted=false).
 
 The claim that "地獄の沙汰も金次第 cancels a hit in exchange for 200 funds (資金力200), listed cost 140" is corroborated by first-hand binary code in th18.exe v1.00a:
 
-- **200 funds death-save**: `CardEirin__on_player_death_after_deathbomb` @ 0x40A4F0 finds a card with id 0x23 (=35, ROKUMON), tests `199 < MONEY` (MONEY ≥ 200), and cancels the impending death via `Card__death_save_bomb_revive` + `Player__cancel_impending_death`.
-- **Cost 140**: the card is price tier 5; price table @ 0x4b35c4 index 5 = 0x8C = 140.
+- **200 funds death-save**: `CardEirin__on_player_death_after_deathbomb` `0x40A4F0` finds a card with id 0x23 (=35, ROKUMON), tests `199 < MONEY` (MONEY ≥ 200), and cancels the impending death via `Card__death_save_bomb_revive` + `Player__cancel_impending_death`.
+- **Cost 140**: the card is price tier 5; price table `0x4b35c4` index 5 = 0x8C = 140.
 
 The only imprecision is the claim's parenthetical "(Money / Rokumon-style death-save)" loosely coupling card 34 MONEY with card 35 ROKUMON — but it self-hedges with "Rokumon-style," and both cards happen to be tier 5 (140), so no numeric claim is wrong. Since the load-bearing numbers are verified against ground-truth code (which outranks the blog source), the blog being low-tier doesn't sink it.
 
 ---
 ## [53] agent-a87ce8f564bb254a9.jsonl
 
-Now I map case→vtable. The cases run sequentially. Counting the second vtable write per case (the first is base 0x4b6010, second is the specific Inf vtable). Case 0 → 0x4b4c78, case 1 → 0x4b5f60, ... Let me map. The specific vtables in order:
-0x4b4c78(0), 0x4b5f60(1), 0x4b5f08(2), 0x4b5eb0(3), 0x4b5e58(4), 0x4b5cf8(5), 0x4b5ca0(6), 0x4b5e00(7), 0x4b4ee0(8), 0x4b4e88(9), 0x4b4e30(10), 0x4b5b40(11), 0x4b5880(12), 0x4b5828(13), 0x4b5778(14), 0x4b5b98(15), 0x4b5bf0(16), 0x4b5670(17), 0x4b5618(18), 0x4b55c0(19), 0x4b5358(20), 0x4b54b8(21), 0x4b5c48(22-AutoBomb), then case 0x18 DeadBombExtend 0x4b5148...
+Now I map case→vtable. The cases run sequentially. Counting the second vtable write per case (the first is base `0x4b6010`, second is the specific Inf vtable). Case 0 → `0x4b4c78`, case 1 → `0x4b5f60`, ... Let me map. The specific vtables in order:
+`0x4b4c78`(0), `0x4b5f60`(1), `0x4b5f08`(2), `0x4b5eb0`(3), `0x4b5e58`(4), `0x4b5cf8`(5), `0x4b5ca0`(6), `0x4b5e00`(7), `0x4b4ee0`(8), `0x4b4e88`(9), `0x4b4e30`(10), `0x4b5b40`(11), `0x4b5880`(12), `0x4b5828`(13), `0x4b5778`(14), `0x4b5b98`(15), `0x4b5bf0`(16), `0x4b5670`(17), `0x4b5618`(18), `0x4b55c0`(19), `0x4b5358`(20), `0x4b54b8`(21), `0x4b5c48`(22-AutoBomb), then case 0x18 DeadBombExtend `0x4b5148`...
 
-Case 0x19 (MainShotPU) = 0x4b50f0, case 0x1a (MagicScroll) = 0x4b51f8. Let me confirm: after 0x4b5148 (DeadBombExtend@0x18) comes 0x4b50f0(0x19 MainShotPU), then 0x4b51f8(0x1a MagicScroll). Let me read the MagicScroll vtable at 0x4b51f8.
+Case 0x19 (MainShotPU) = `0x4b50f0`, case 0x1a (MagicScroll) = `0x4b51f8`. Let me confirm: after `0x4b5148` (DeadBombExtend@0x18) comes `0x4b50f0`(0x19 MainShotPU), then `0x4b51f8`(0x1a MagicScroll). Let me read the MagicScroll vtable at `0x4b51f8`.
 
 ---
 ## [54] agent-a7e84117789f8f565.jsonl
@@ -559,7 +561,7 @@ I have enough across all checklist items. Let me record the structured verdict.
 
 The claim is refuted on multiple independent grounds:
 - **Quote overreach / misread:** the cited quote bundles "×1.4" and "bug with Mukade" onto 弱肉強食; community sources show the bug is Mukade's OWN replay bug, and the ramping multiplier (~1.8×, not 1.4×) is Mukade's, not 弱肉強食's.
-- **Code contradiction:** card_id 31 DEAD_SPELL is tier 3 = 100 money (verified from price table @0x4b35c4 = 0x64), not 180. The 180-money main-shot card is card_id 25 MAINSHOT_PU. The "card_id 31 = MainShotPU-class, cost 180" mapping is internally inconsistent and code-contradicted.
+- **Code contradiction:** card_id 31 DEAD_SPELL is tier 3 = 100 money (verified from price table `0x4b35c4` = 0x64), not 180. The 180-money main-shot card is card_id 25 MAINSHOT_PU. The "card_id 31 = MainShotPU-class, cost 180" mapping is internally inconsistent and code-contradicted.
 - **No primary corroboration:** "×1.4" for 弱肉強食 appears in no source I found; it is an unverified/fabricated number.
 
 ---
@@ -576,7 +578,7 @@ Now the picture is clearer. Key reconciliation point:
 
 The registry `MONEY` (registry row 34, internal_name MONEY) is internal class `AbilityCardMoneyInf`, price_tier 5 (=140), category code 2. The death-save card that spends 200 money is decompiler-labeled `CardShikiEiki` (Eiki Shiki = "Money Is The Best Lawyer In Hell" / お金は地獄の沙汰). These are DIFFERENT cards. The internal name "MONEY" is NOT the same as the "Money Is The Best Lawyer In Hell" card.
 
-So the claim conflates two things. Let me verify: which internal class is `CardShikiEiki`? The decompiler labels in this DB use character names that map to internal Inf classes. CardShikiEiki's on_death is at 0x40DA10, and FUN_0040d840 is its helper. Let me find which registry entry / class CardShikiEiki corresponds to. Eiki Shiki's card "Money Is The Best Lawyer In Hell" — in the roster the Yuyuko card (33, YUYUKO) is a passive. Let me check: the decompiler-labeled character functions (CardEirin, CardTewi, CardShikiEiki) — these belong to which Inf classes? CardEirin uses ROKUMON (card 35, =0x23). Let me find which Inf class maps to CardShikiEiki by checking xrefs to its vtable / the allocate switch.
+So the claim conflates two things. Let me verify: which internal class is `CardShikiEiki`? The decompiler labels in this DB use character names that map to internal Inf classes. CardShikiEiki's on_death is at `0x40DA10`, and FUN_0040d840 is its helper. Let me find which registry entry / class CardShikiEiki corresponds to. Eiki Shiki's card "Money Is The Best Lawyer In Hell" — in the roster the Yuyuko card (33, YUYUKO) is a passive. Let me check: the decompiler-labeled character functions (CardEirin, CardTewi, CardShikiEiki) — these belong to which Inf classes? CardEirin uses ROKUMON (card 35, =0x23). Let me find which Inf class maps to CardShikiEiki by checking xrefs to its vtable / the allocate switch.
 
 Actually, the crucial point for THIS claim is narrower. The claim states: "'Money Is The Best Lawyer In Hell' (card_id 34, Money) spends exactly 200 money to negate death."
 

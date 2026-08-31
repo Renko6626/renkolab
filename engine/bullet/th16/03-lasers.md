@@ -1,4 +1,6 @@
 # 03 — TH16 激光子系统(EX_LASER)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > **对象**:TH16《鬼形兽》`th16.exe`,imagebase `0x400000`。日期 2026-06-09。
 > 来源:主控 inline 钉锚点(构造器 + RTTI vtable 名)→ 子 agent 深挖 → 主控**一手复核碰撞几何**。
@@ -95,14 +97,14 @@ while (piVar3 != 0) {
 
 | 类 | vtable[8] 矩形 | vtable[9] 圆 |
 | --- | --- | --- |
-| **LaserLine** | `cancel_as_bomb_rectangle` 0x433860 | `cancel_as_bomb_circle` 0x434730 |
-| **LaserInfinite** | `cancel_as_bomb_rectangle` 0x435880 | `cancel_as_bomb_circle` 0x436670 |
-| **LaserCurve** | `cancel_as_bomb_rectangle` 0x4397d0 | `cancel_as_bomb_circle` 0x43a2f0(主控亲反 ✅) |
+| **LaserLine** | `cancel_as_bomb_rectangle` `0x433860` | `cancel_as_bomb_circle` `0x434730` |
+| **LaserInfinite** | `cancel_as_bomb_rectangle` `0x435880` | `cancel_as_bomb_circle` `0x436670` |
+| **LaserCurve** | `cancel_as_bomb_rectangle` `0x4397d0` | `cancel_as_bomb_circle` `0x43a2f0`(主控亲反 ✅) |
 | **LaserBeam** | `0x430EA0` **= `ret 0`** | `0x430EB0` **= `ret 0`** |
 
 → ★ **LaserBeam 完全 bomb 免疫**(slot 8/9 都是空实现,bomb 调了等于没调)。
 
-**取消内部干啥**(以 `LaserCurve::cancel_as_bomb_circle` 0x43a2f0 一手反读):
+**取消内部干啥**(以 `LaserCurve::cancel_as_bomb_circle` `0x43a2f0` 一手反读):
 1. **免疫检查**:`if (param_4 != 0 && this+0x5c8 != 0) return;` —— `+0x5c8` 是激光的**自标 bomb 免疫位**,bomb 设 param_4=1 时尊重它。
 2. **逐段测试**:走 `this+0x1524` 段数组(共 `this+0x5f4` 段),每段 (xy) 算 `dist²` vs `radius²`。
 3. **命中段处理**:
@@ -131,7 +133,7 @@ while (piVar3 != 0) {
 | `LaserBeamInf` | `0x49234c` | **`0x1f28`** | `0x4318c0` | **仅 ECL**(`allocate_new_laser` type=3)|
 | `LaserDataInf` | `0x492490` | — | — | 公共基类(vtable 全 stub) |
 
-> 上表 curve=`0x1568`/beam=`0x1f28` 是从 `LaserManager::allocate_new_laser`(0x431760)的 `switch(type)` 里的 `operator_new(size)` 实读(早期猜的 0x1b20 错)。线/无限两路创建:**(A) bullet VM EX_LASER**(`bullet_vm_exec` opcode `0x8000000`,inline 灌 ring,只能 a=0/1)/ **(B) ECL → `allocate_new_laser`**(分发器,4 种 type 都可,见 §3a)。
+> 上表 curve=`0x1568`/beam=`0x1f28` 是从 `LaserManager::allocate_new_laser`(`0x431760`)的 `switch(type)` 里的 `operator_new(size)` 实读(早期猜的 0x1b20 错)。线/无限两路创建:**(A) bullet VM EX_LASER**(`bullet_vm_exec` opcode `0x8000000`,inline 灌 ring,只能 a=0/1)/ **(B) ECL → `allocate_new_laser`**(分发器,4 种 type 都可,见 §3a)。
 
 公共基类 ctor `0x430fc0`;ANM 子精灵 init `0x4093f0`(线 3 个子精灵 body/head/tail,无限 2 个)。
 
@@ -152,7 +154,7 @@ while (piVar3 != 0) {
 | 10 | 死亡/清除特效 | `0x434cd0` | `0x436c70` |
 | 20 | 线激光屏缘**分裂/绕环**(到屏边生子段) | `0x432620` | (stub) |
 
-> ★ **slot 8/9 纠错**(2026-06-27):早期 agent 把这两槽误标为"命中伤害派发(ret0)/split-respawn",实测是 **bomb 取消 矩形/圆** 两套(各类 1.4–2KB,做段过滤 + 道具掉落 + 善后)。LaserBeam 这两槽是 **`ret 0`**(0x430EA0/0x430EB0)= **bomb 免疫**。完整调用链与内部逻辑见 §0.5 C 节。
+> ★ **slot 8/9 纠错**(2026-06-27):早期 agent 把这两槽误标为"命中伤害派发(ret0)/split-respawn",实测是 **bomb 取消 矩形/圆** 两套(各类 1.4–2KB,做段过滤 + 道具掉落 + 善后)。LaserBeam 这两槽是 **`ret 0`**(`0x430EA0`/0x430EB0)= **bomb 免疫**。完整调用链与内部逻辑见 §0.5 C 节。
 
 ## 3. 对象结构(✅ 基类偏移一手;🟡 部分子类字段 agent)
 
@@ -226,7 +228,7 @@ return 0;
 
 ## 6a. ★ 4 个 ECL 创建 opcode 逐表(子 agent 扫 + 主控字节级复核 ✅)
 
-`EnemyData__ecl_run_over_300`(0x41dcb0)用**两级跳转表**派发 ≥300 的 ECL opcode:
+`EnemyData__ecl_run_over_300`(`0x41dcb0`)用**两级跳转表**派发 ≥300 的 ECL opcode:
 - **字节索引表**`ECL_RUN_OVER_300_BYTE_INDEX`(`0x422D70`,174 字节):`byte[opcode-300] = entry_idx`。
 - **跳转表**`ECL_RUN_OVER_300_JUMP_TABLE`(`0x422AB8`,174×4 字节):`JMP table[entry_idx]`。
 
@@ -235,7 +237,7 @@ return 0;
 | ECL opcode | byte[op-300] | jump[entry] | case start | laser type | 类 | ECL args | frame 构建 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | **702** | `0x9B`(155) | `0x00421912` | `0x421912` | 0 | LaserLine | 1(shooter slot)| memset 0x358 |
-| **703** | `0x9C`(156) | `0x00421ACB` | `0x421ACB` | 1 | LaserInfinite | 2(slot, +0x48)| **`LaserInfiniteInner::clear`** 0x411860 |
+| **703** | `0x9C`(156) | `0x00421ACB` | `0x421ACB` | 1 | LaserInfinite | 2(slot, +0x48)| **`LaserInfiniteInner::clear`** `0x411860` |
 | **711** | `0xA4`(164) | `0x00421E0F` | `0x421E0F` | 2 | LaserCurve | 1(slot)| memset 0x358 |
 | **713** | `0xA6`(166) | `0x00421CAB` | `0x421CAB` | 3 | LaserBeam | 2(slot, +0x28)| memset 0x354 |
 
@@ -290,7 +292,7 @@ return 0;
 
 ## 8. 开放 / 待挖
 
-1. ✅ **曲线/beam 激光生成路径** 已结案(本会话 2026-06-13):**仅 ECL** → `allocate_new_laser(type=2/3, &frame)`,4 个 ECL opcode 各在 `EnemyData__ecl_run_over_300` 内(0x421AC1/CA1/E05/F8F)。逐 opcode 的 ECL 号 + 参数布局正由子 agent 扫,结果入 §6a。曲线段内部更新链 `0x437ee0/0x438370` 仍未亲反 🟡。
+1. ✅ **曲线/beam 激光生成路径** 已结案(本会话 2026-06-13):**仅 ECL** → `allocate_new_laser(type=2/3, &frame)`,4 个 ECL opcode 各在 `EnemyData__ecl_run_over_300` 内(`0x421AC1`/CA1/E05/F8F)。逐 opcode 的 ECL 号 + 参数布局正由子 agent 扫,结果入 §6a。曲线段内部更新链 `0x437ee0/0x438370` 仍未亲反 🟡。
 2. **graze 计分公式**(`0x434010`):增量 `+0x608` 的具体算法(随宽/色/缩放)未化简。🟡
 3. **`0x443af0` 里 `DAT_004945e0/0049449c/0049471c`** 撑大自机判定框的标量未 PE 实测(≈1/1/−1)。🟡
 4. **`playershot_tick_laser_idx2`(`0x446260`)** 是**自机激光**,与敌激光是两套,未碰。

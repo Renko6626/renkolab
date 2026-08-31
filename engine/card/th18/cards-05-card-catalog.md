@@ -1,4 +1,6 @@
 # TH18 卡牌功能目录(代码优先 + 社区交叉)
+> **版本**：TH18 v1.00a（`th18.exe`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+>
 
 > 适用:TH18 v1.00a,`th18.exe`(`th18`)。**代码=一手 ground truth**,社区(THBWiki/wikiwiki.jp/bilibili)印证。数值 @60fps。
 > 价格表 `0x4b35c4`:t0=0/t1=50/t2=80/t3=100/t4=100/t5=140/t6=180/t7=200/t8=240/t9=280/t10=300/t11=350/t12=400/t13=450/t14=500。
@@ -56,7 +58,7 @@ dmode 1-5 的"本关专属卡"= 各关 boss 的角色卡,经 vtable 链证实(�
 | 5 | PENDULUM | **Nazrin** | 即时 | 获得即 **+50 金**(MONEY+_DAT_004ccd30 同加) | +50金 | 0 | ✅ |
 | 6 | DANGO | Ringo | 即时 | **+50 power碎片(=+0.50火力)**,跨档则重建option | +0.50P | 0(掉落) | ✅ |
 | 7 | MOKOU | Mokou | 即时 | **+3 残机**,残机上限抬到7 | +3命 | 450 | ✅ |
-| 33 | YUYUKO | Yuyuko | 能力 | **擦弹时有时消去弹幕**(graze-erase;`__on_tick_2`置 BULLET_MGR+0x7a41f0=1 使能)。社区"×1.8"❌证伪(那是MUKADE) | — | 240 | ✅(社区解明) |
+| 33 | YUYUKO | Yuyuko | 能力 | **擦弹时有时消去弹幕**(graze-erase;`__on_tick_2`置 BULLET_MGR+`0x7a41f0`=1 使能)。社区"×1.8"❌证伪(那是MUKADE) | — | 240 | ✅(社区解明) |
 | 34 | MONEY | Yachie | 能力 | **敌人掉落额外金钱**(recharge 散射**金钱道具** type2;`FUN_00446b00` 证 type2 收集=`MONEY+1`)| — | 140 | ✅(社区订正:金钱非火力) |
 | 36 | NARUMI | Narumi | 能力 | 获得时 **+1命,且每过一关 +1命碎片**(on_load 分支 DAT_004cd5f4;析构−1命) | — | 140 | ✅(社区解明) |
 | 37 | PACHE | Patchouli | 能力 | 获得时 **+1炸弹,且每过一关 +1符卡**(钳到MAX_BOMBS) | +1炸/关 | 100 | ✅(社区补全) |

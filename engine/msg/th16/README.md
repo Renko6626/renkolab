@@ -1,4 +1,6 @@
 # research/msg/ — TH16 MSG(对话/文本)系统逆向
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > **逆向 TH16《鬼形兽》(`th16.exe`,imagebase `0x400000`)的 MSG 系统**:`.msg` 里的对话/文本脚本 VM 与运行时
 > ——关卡前后对话、立绘/说话人、逐行文本、等待输入、表情、结局/staff 文本等。东方的"剧情/对话"层挂在 MSG 上。
@@ -15,7 +17,7 @@
 | `01-architecture-overview.md` | 整体架构/数据流/子系统边界/`zGuiMsgVm` 字段图(**先读**) | ✅ |
 | `02-msg-vm-opcodes.md` | **stage-MSG opcode 0..35 → 行为表**(一手 `GuiMsgVm::run` × ExpHP truth 签名 × thpages 名/行为 三方交叉)+ 文本 Shift-JIS/加速 XOR 编码 | ✅(余 op27 见下) |
 | `03-dialogue-lifecycle.md` | 生命周期 + **ECL↔MSG 协程握手逐指令锁定**(`518 dialogRead` / `519 dialogWait` / `12 ecl-resume` 经 `vm[0x18c]` 脉冲) | ✅ |
-| `04-ending-staff-msg-instruction-set.md` | **结局/staff 第二套指令集**(一手 `Ending::on_tick_23__main` 0x4199F0)。三方交叉:一手 × 真实 7 文件实测(e01/e02/e08 + staff1-4)× **thmsg `th10_msg_ed_fmts`**。社区行为表此前空白,我们补全(并多出 op4/op13) | ✅(余 op4/0xd/0xf-0x11 仅代码语义,见下) |
+| `04-ending-staff-msg-instruction-set.md` | **结局/staff 第二套指令集**(一手 `Ending::on_tick_23__main` `0x4199F0`)。三方交叉:一手 × 真实 7 文件实测(e01/e02/e08 + staff1-4)× **thmsg `th10_msg_ed_fmts`**。社区行为表此前空白,我们补全(并多出 op4/op13) | ✅(余 op4/0xd/0xf-0x11 仅代码语义,见下) |
 | `tools/parse_th16_msg.py` | 结局/staff `.msg` 解析+文本解密器(`python3 msg/tools/parse_th16_msg.py files/e01.msg`) | — |
 
 **一句话结论**:`.msg` 一个格式、**两套消费者**——① 关卡内对话 `GuiMsgVm`(由 `Gui` 每帧驱动,ECL `ins 518/519` 触发握手);

@@ -1,6 +1,8 @@
 # 逆向工程发现 07:TH16 SHT shooterset 组织 + shooter 主次结构
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
-> 方法:Ghidra(ghidra-re MCP)反编译 `Player__do_shooting`(ExpHP 名)@ **0x445470**(用户自有
+> 方法:Ghidra(ghidra-re MCP)反编译 `Player__do_shooting`(ExpHP 名)**`0x445470`**(用户自有
 > th16.exe)+ 本地解析 pl02.sht(10 set / 80 shooter)逐字段印证。日期 2026-06-11。
 > 分级:✅高 / 🟡中 / ❓未解。**仅 TH16(天空璋)**。承接 03(func_* 跳转表)、05(字段图)。
 > 回答的问题:**一个 .sht 里那么多 shooter,谁是主弹谁是子机弹?10 个 shooterset 怎么按火力/聚焦选?**
@@ -14,7 +16,7 @@
    **其余 = 子机/option 弹(`opt=1..4`,从子机位置发)**;子机数随火力增长。
 3. 另有**第二条发射循环 = 副/季节弹**,取自**副 .sht**(plXsub),按"季节能量"选档。
 
-## 1. 选择逻辑:`Player__do_shooting` @ 0x445470 ✅(ExpHP 名 + 一手反编译)
+## 1. 选择逻辑:`Player__do_shooting` `0x445470` ✅(ExpHP 名 + 一手反编译)
 
 ```c
 set = CURRENT_POWER / POWER_PER_LEVEL;                 // 火力档(power 存 ×100,POWER_PER_LEVEL=100)

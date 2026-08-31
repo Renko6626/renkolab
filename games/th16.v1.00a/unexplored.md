@@ -1,4 +1,6 @@
 # TH16 未挖函数地图(给新会话的任务指导)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 自动生成:`funcs/build_worklist.py`(交叉 `funcs/th16-funcs.json` 当前工程快照 × ExpHP th-re-data)。
 > 重生成:见 `funcs/README.md`。本表 = TH16 v1.00a。
@@ -32,66 +34,66 @@
 
 | addr | size | xrefs | 子系统线索(nearest named) |
 | --- | --- | --- | --- |
-| 0x00481791 | 5019 | 3 | global_heap_set_null |
-| 0x00408650 | 2128 | 1 | AsciiManager |
-| 0x00448400 | 2061 | 2 | ReplayManager |
-| 0x0046b900 | 1985 | 1 | AnmManager |
-| 0x00405700 | 1973 | 1 | AnmVm |
-| 0x0046c0d0 | 1964 | 3 | AnmManager |
-| 0x00446870 | 1409 | 1 | PlayerBullet |
-| 0x004895ce | 1334 | 1 | math_call_by_name_488bb0 |
-| 0x00487af0 | 1311 | 2 | math_fmod |
-| 0x00437ee0 | 1164 | 4 | LaserCurve |
-| 0x00410550 | 1148 | 1 | BombSubWinter |
-| 0x00438370 | 986 | 2 | LaserCurve |
-| 0x00457b20 | 986 | 2 | Arcfile |
-| 0x00404220 | 982 | 2 | collision_test_circle_rect |
-| 0x00458730 | 954 | 1 | Arcfile |
-| 0x00404600 | 947 | 1 | collision_test_circle_rect |
-| 0x0042e150 | 880 | 2 | GameThread |
-| 0x00468fc0 | 869 | 1 | AnmVm |
-| 0x00403ec0 | 860 | 5 | collision_test_circle_rect |
-| 0x00470320 | 856 | 1 | disabled_logger_470240 |
-| 0x00468c70 | 843 | 3 | AnmVm |
-| 0x00470680 | 809 | 1 | disabled_logger_470240 |
-| 0x0043cb10 | 761 | 1 | Supervisor |
-| 0x00488010 | 747 | 2 | math_fmod |
-| 0x0046d3b0 | 734 | 1 | AnmLoaded |
-| 0x0045d510 | 708 | 1 | SoundManager |
-| 0x0045e990 | 702 | 1 | SoundManager |
-| 0x00489b2e | 681 | 1 | math_call_by_name_488bb0 |
-| 0x0045b7d0 | 673 | 1 | set_window_resolution_from_cfg |
-| 0x0045b530 | 663 | 2 | set_window_resolution_from_cfg |
-| 0x00403a90 | 661 | 1 | interp_common_methods |
-| 0x0047a0e0 | 649 | 1 | create_thread_47952b |
-| 0x00469e20 | 641 | 1 | cartesian_from_polar_469e00 |
-| 0x0046a0b0 | 639 | 1 | cartesian_from_polar_469e00 |
-| 0x00449a00 | 624 | 2 | scorefile_sub_449880 |
-| 0x00487910 | 619 | 1 | memcpy_1 |
-| 0x0043bbd0 | 618 | 1 | Supervisor |
-| 0x0048511e | 614 | 1 | global_heap_set_null |
-| 0x00407e00 | 609 | 2 | AsciiManager |
-| 0x0045a450 | 609 | 1 | UpdateFuncRegistry |
-| 0x00470bb0 | 605 | 2 | disabled_logger_470240 |
-| 0x00488790 | 605 | 3 | _math_sqrt |
-| 0x004714c0 | 597 | 1 | disabled_logger_470240 |
-| 0x00469640 | 588 | 1 | AnmVm |
-| 0x00443cd0 | 576 | 1 | kill_player_in_circle |
-| 0x0046c920 | 572 | 1 | AnmManager |
-| 0x0047fcb4 | 570 | 1 | wrap_CreateDirectory |
-| 0x00469330 | 569 | 1 | AnmVm |
-| 0x0048a17e | 564 | 1 | math_call_by_name_488bb0 |
-| 0x00458130 | 561 | 1 | Arcfile |
-| 0x00469bd0 | 558 | 1 | AnmVm |
-| 0x0040c280 | 541 | 1 | ecl_callSTD_40c040 |
-| 0x00427730 | 539 | 1 | gui_426d70_initializes_many_anms |
-| 0x0043be40 | 528 | 1 | Supervisor |
-| 0x0042b820 | 514 | 2 | GuiMsgVm |
-| 0x0045b330 | 505 | 1 | set_window_resolution_from_cfg |
-| 0x0047e540 | 486 | 1 | compat_RoUninitialize |
-| 0x0046d1c0 | 485 | 1 | AnmLoaded |
-| 0x0045dc50 | 472 | 1 | SoundManager |
-| 0x00484070 | 470 | 1 | global_heap_set_null |
+| `0x00481791` | 5019 | 3 | global_heap_set_null |
+| `0x00408650` | 2128 | 1 | AsciiManager |
+| `0x00448400` | 2061 | 2 | ReplayManager |
+| `0x0046b900` | 1985 | 1 | AnmManager |
+| `0x00405700` | 1973 | 1 | AnmVm |
+| `0x0046c0d0` | 1964 | 3 | AnmManager |
+| `0x00446870` | 1409 | 1 | PlayerBullet |
+| `0x004895ce` | 1334 | 1 | math_call_by_name_488bb0 |
+| `0x00487af0` | 1311 | 2 | math_fmod |
+| `0x00437ee0` | 1164 | 4 | LaserCurve |
+| `0x00410550` | 1148 | 1 | BombSubWinter |
+| `0x00438370` | 986 | 2 | LaserCurve |
+| `0x00457b20` | 986 | 2 | Arcfile |
+| `0x00404220` | 982 | 2 | collision_test_circle_rect |
+| `0x00458730` | 954 | 1 | Arcfile |
+| `0x00404600` | 947 | 1 | collision_test_circle_rect |
+| `0x0042e150` | 880 | 2 | GameThread |
+| `0x00468fc0` | 869 | 1 | AnmVm |
+| `0x00403ec0` | 860 | 5 | collision_test_circle_rect |
+| `0x00470320` | 856 | 1 | disabled_logger_470240 |
+| `0x00468c70` | 843 | 3 | AnmVm |
+| `0x00470680` | 809 | 1 | disabled_logger_470240 |
+| `0x0043cb10` | 761 | 1 | Supervisor |
+| `0x00488010` | 747 | 2 | math_fmod |
+| `0x0046d3b0` | 734 | 1 | AnmLoaded |
+| `0x0045d510` | 708 | 1 | SoundManager |
+| `0x0045e990` | 702 | 1 | SoundManager |
+| `0x00489b2e` | 681 | 1 | math_call_by_name_488bb0 |
+| `0x0045b7d0` | 673 | 1 | set_window_resolution_from_cfg |
+| `0x0045b530` | 663 | 2 | set_window_resolution_from_cfg |
+| `0x00403a90` | 661 | 1 | interp_common_methods |
+| `0x0047a0e0` | 649 | 1 | create_thread_47952b |
+| `0x00469e20` | 641 | 1 | cartesian_from_polar_469e00 |
+| `0x0046a0b0` | 639 | 1 | cartesian_from_polar_469e00 |
+| `0x00449a00` | 624 | 2 | scorefile_sub_449880 |
+| `0x00487910` | 619 | 1 | memcpy_1 |
+| `0x0043bbd0` | 618 | 1 | Supervisor |
+| `0x0048511e` | 614 | 1 | global_heap_set_null |
+| `0x00407e00` | 609 | 2 | AsciiManager |
+| `0x0045a450` | 609 | 1 | UpdateFuncRegistry |
+| `0x00470bb0` | 605 | 2 | disabled_logger_470240 |
+| `0x00488790` | 605 | 3 | _math_sqrt |
+| `0x004714c0` | 597 | 1 | disabled_logger_470240 |
+| `0x00469640` | 588 | 1 | AnmVm |
+| `0x00443cd0` | 576 | 1 | kill_player_in_circle |
+| `0x0046c920` | 572 | 1 | AnmManager |
+| `0x0047fcb4` | 570 | 1 | wrap_CreateDirectory |
+| `0x00469330` | 569 | 1 | AnmVm |
+| `0x0048a17e` | 564 | 1 | math_call_by_name_488bb0 |
+| `0x00458130` | 561 | 1 | Arcfile |
+| `0x00469bd0` | 558 | 1 | AnmVm |
+| `0x0040c280` | 541 | 1 | ecl_callSTD_40c040 |
+| `0x00427730` | 539 | 1 | gui_426d70_initializes_many_anms |
+| `0x0043be40` | 528 | 1 | Supervisor |
+| `0x0042b820` | 514 | 2 | GuiMsgVm |
+| `0x0045b330` | 505 | 1 | set_window_resolution_from_cfg |
+| `0x0047e540` | 486 | 1 | compat_RoUninitialize |
+| `0x0046d1c0` | 485 | 1 | AnmLoaded |
+| `0x0045dc50` | 472 | 1 | SoundManager |
+| `0x00484070` | 470 | 1 | global_heap_set_null |
 
 (共 499 个真·待挖;上表为最大的 60 个。全量在 `funcs/th16-funcs.json` 自行筛 name 以 FUN_ 开头者。)
 

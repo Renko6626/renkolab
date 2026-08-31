@@ -1,4 +1,6 @@
 # 【待办·后续 workflow】58 张卡逐张效果刻画
+> **版本**：TH18 v1.00a（`th18.exe`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+>
 
 > 状态:⏳ **搁置**,留给后续 **workflow 扇出**(用户已同意此类"宽"活才开 workflow)。
 > 适用:TH18 v1.00a,`th18.exe`(`th18`)。架构前置见 `cards-01-system-architecture.md`。

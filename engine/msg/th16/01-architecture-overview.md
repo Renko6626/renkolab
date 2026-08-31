@@ -1,6 +1,8 @@
 # 01 · TH16 MSG(对话/文本)系统 —— 整体架构与编排
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
-> 适用:**TH16《鬼形兽》`th16.exe` v1.00a**(imagebase 0x400000)。勿外推到其它作。
+> 适用:**TH16《鬼形兽》`th16.exe` v1.00a**(imagebase `0x400000`)。勿外推到其它作。
 > 本篇只画**整体结构 / 工作流 / 子系统边界 / 编排关系**,不逐 opcode 展开(opcode 表见将来 `02-*`)。
 > 证据等级:**✅ 一手反编译+多源交叉** / 🟡 单源或部分 / ❓ 待查。方法见 `engine/sht/th16/00-METHOD-*`。
 >
@@ -23,17 +25,17 @@ TH16 的"对话/文本"**不是单一 VM,而是一个格式(`.msg`)被两套场�
 
 | 子系统 | 地址 | 角色 | 证据 |
 | --- | --- | --- | --- |
-| **`Gui`**(单例 `GUI_PTR`) | ctor 0x4268C0 / init 0x426B00 | 关卡内 HUD + 对话宿主;持有 msg 文件缓冲(+0x1cc)与活动 VM 指针(+0x1c8) | ✅ |
-| `Gui::sub_426c10` | 0x426C10 | **`.msg` 文件加载器** → 写 `Gui+0x1cc` | ✅ |
-| `Gui::start_dialogue` | 0x429FF0 | **对话触发多路器**(ECL 调用入口) | ✅ th-re-data 命名 |
-| `Gui::on_tick_20` | 0x427CF0 | **每帧驱动**(UpdateFunc 优先级 0x20):跑 VM + 完成后拆 | ✅ |
-| `Gui::on_draw_2` | 0x428E70 | 对话层绘制(优先级 0x33/0x30) | 🟡 命名,未细看 |
+| **`Gui`**(单例 `GUI_PTR`) | ctor `0x4268C0` / init `0x426B00` | 关卡内 HUD + 对话宿主;持有 msg 文件缓冲(+0x1cc)与活动 VM 指针(+0x1c8) | ✅ |
+| `Gui::sub_426c10` | `0x426C10` | **`.msg` 文件加载器** → 写 `Gui+0x1cc` | ✅ |
+| `Gui::start_dialogue` | `0x429FF0` | **对话触发多路器**(ECL 调用入口) | ✅ th-re-data 命名 |
+| `Gui::on_tick_20` | `0x427CF0` | **每帧驱动**(UpdateFunc 优先级 0x20):跑 VM + 完成后拆 | ✅ |
+| `Gui::on_draw_2` | `0x428E70` | 对话层绘制(优先级 0x33/0x30) | 🟡 命名,未细看 |
 | **`GuiMsgVm`**(struct `zGuiMsgVm`,0x1c8 字节) | — | **关卡内对话脚本 VM** 本体 | ✅ th-re-data struct |
-| `GuiMsgVm::initialize` | 0x429B20 | 绑定脚本起点、建 ANM 立绘/文本槽 | ✅ |
-| `GuiMsgVm::run` | 0x42A1D0 | **取指-派发主循环**(opcode 0..0x23) | ✅ |
-| `GuiMsgVm::destructor` | 0x4264A0 | 拆 VM(回收 ANM 槽) | ✅ |
-| `EnemyData::ecl_run_over_300` | 0x41DD51 | ECL 高位指令派发器;ins **518/519** 在此 | ✅ |
-| **`Ending`** 场景 | init 0x4191F0 / tick 0x4199F0 | **结局 + staff roll** 消费 `e0X.msg`/`staffX.msg`(独立) | 🟡 仅定位 |
+| `GuiMsgVm::initialize` | `0x429B20` | 绑定脚本起点、建 ANM 立绘/文本槽 | ✅ |
+| `GuiMsgVm::run` | `0x42A1D0` | **取指-派发主循环**(opcode 0..0x23) | ✅ |
+| `GuiMsgVm::destructor` | `0x4264A0` | 拆 VM(回收 ANM 槽) | ✅ |
+| `EnemyData::ecl_run_over_300` | `0x41DD51` | ECL 高位指令派发器;ins **518/519** 在此 | ✅ |
+| **`Ending`** 场景 | init `0x4191F0` / tick `0x4199F0` | **结局 + staff roll** 消费 `e0X.msg`/`staffX.msg`(独立) | 🟡 仅定位 |
 
 ---
 
@@ -68,7 +70,7 @@ CUR_TABLE_STAGE_FILES +0x14+(subshot+character)*4  ← 按角色选 .msg 文件�
 
 **ECL↔MSG 握手**(用户关心的"对话被 ECL 触发"):敌机 ECL 脚本里成对出现
 `518 dialogRead(id)` 起对话 → `519 dialogWait` 卡住后续脚本直到对话播完。两条都在
-`EnemyData::ecl_run_over_300`(0x41DD51,高位指令派发器,字节索引跳表 @0x422c44)。
+`EnemyData::ecl_run_over_300`(`0x41DD51`,高位指令派发器,字节索引跳表 `0x422c44`)。
 - 证据:th-re-data `labels.json` 标 `0x4216b3 = 518__dialogRead`、`0x4216e0 = 519__dialogWait`;
   eclmap `th16.eclm` 签名 `518 S`(一个 int 实参 = 对话 id);一手反编译 case 0x3f 调 `Gui::start_dialogue`
   且 `byte_table[518-300]=0x3f`(同表 300/304→case0=enmCreate 自洽对齐)。**三方一致 ✅**。
@@ -148,9 +150,9 @@ CUR_TABLE_STAGE_FILES +0x14+(subshot+character)*4  ← 按角色选 .msg 文件�
 
 ## 5. 第二子系统:结局 / Staff Roll(独立,未反)🟡
 
-- `e01.msg`..`e08.msg`(8 个结局)在文件名表 @0x491780;`staff1..4.msg` 在 @0x4917A0,
-  且 **`Ending::on_tick_23__main`(0x4199F0)直接引用 `staff1.msg`(0x419F0D)** → 结局场景自己消费。
-- 即结局/staff 文本**不经 GuiMsgVm**,是 `Ending` 场景(`Ending::initialize` 0x4191F0 / `on_tick_23` 0x4196C0)
+- `e01.msg`..`e08.msg`(8 个结局)在文件名表 `0x491780`;`staff1..4.msg` 在 `0x4917A0`,
+  且 **`Ending::on_tick_23__main`(`0x4199F0`)直接引用 `staff1.msg`(`0x419F0D`)** → 结局场景自己消费。
+- 即结局/staff 文本**不经 GuiMsgVm**,是 `Ending` 场景(`Ending::initialize` `0x4191F0` / `on_tick_23` `0x4196C0`)
   的独立解释器。**格式同为 `.msg`**(thmsg 的 endmsg 变体),但运行时是另一套 VM。
 - 状态:仅定位,未反编译。列为 MSG 系统的**第二条线**,优先级低于关卡内对话。
 
@@ -167,9 +169,9 @@ CUR_TABLE_STAGE_FILES +0x14+(subshot+character)*4  ← 按角色选 .msg 文件�
 
 ## 证据指针(便于复核)
 
-th16.exe v1.00a:`Gui::start_dialogue` 0x429FF0、`Gui::sub_426c10` 0x426C10、`Gui::on_tick_20` 0x427CF0、
-`GuiMsgVm::run` 0x42A1D0、`GuiMsgVm::initialize` 0x429B20、`EnemyData::ecl_run_over_300` 0x41DD51
-(ins 518 调用点 0x4216C3,跳表 @0x422C44)、归档读 0x402440、文本转 anm 0x46D990、
-`Ending::on_tick_23__main` 0x4199F0。
+th16.exe v1.00a:`Gui::start_dialogue` `0x429FF0`、`Gui::sub_426c10` `0x426C10`、`Gui::on_tick_20` `0x427CF0`、
+`GuiMsgVm::run` `0x42A1D0`、`GuiMsgVm::initialize` `0x429B20`、`EnemyData::ecl_run_over_300` `0x41DD51`
+(ins 518 调用点 `0x4216C3`,跳表 `0x422C44`)、归档读 `0x402440`、文本转 anm `0x46D990`、
+`Ending::on_tick_23__main` `0x4199F0`。
 th-re-data:`data/th16.v1.00a/{funcs,labels,type-structs-own}.json`(GuiMsgVm/zMsgRawInstr/zGuiMsgVm)。
 eclmap:`research/ecl/vendor/th16.eclm`(`518 S` / `519`)。

@@ -1,14 +1,16 @@
 # 05 — ECL 游戏 opcode 派发 + 开火接缝(ECL et* → 弹幕 fire 描述符)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
-> **对象**:TH16 `th16.exe`,imagebase 0x400000。日期 2026-06-10。
-> **方法**:subagent 一手反编译 `ecl_run_over_300`(0x41dcb0)+ `bullet_spawn_wrapper`(0x414da0)+ `ecl_enm_create`(0x423050)+ PE 跳转表 `0x422c44`;与 Priw8 `vendor/th16.eclm`(命名层)对差,与 `engine/bullet/th16/01` §6(spawn 读取侧)交叉印证。
+> **对象**:TH16 `th16.exe`,imagebase `0x400000`。日期 2026-06-10。
+> **方法**:subagent 一手反编译 `ecl_run_over_300`(`0x41dcb0`)+ `bullet_spawn_wrapper`(`0x414da0`)+ `ecl_enm_create`(`0x423050`)+ PE 跳转表 `0x422c44`;与 Priw8 `vendor/th16.eclm`(命名层)对差,与 `engine/bullet/th16/01` §6(spawn 读取侧)交叉印证。
 > **provenance/可信度**:结论为 **subagent 一手反编译,地址可复核**;关键字段映射经 **写入侧(et* handler)与读取侧(bullet_spawn_wrapper)双向自洽** + 与我们独立做的 `engine/bullet/th16/01` §6 一致 = 强。标 ✅一手 / 🟡推断 / ❓存疑。仅 TH16。
 
 ---
 
 ## 1. 游戏 opcode 派发结构(✅)
 
-`ecl_run`(0x472030)对游戏 opcode 走 `vm->vtable[0]` = **`EnemyData::ecl_run_over_300`(0x41dcb0)**,后者:
+`ecl_run`(`0x472030`)对游戏 opcode 走 `vm->vtable[0]` = **`EnemyData::ecl_run_over_300`(`0x41dcb0`)**,后者:
 - 取指同 `ecl_run`(file_manager+0x11f8 → subs+0x8c → bytecode;opcode=`*(u16*)(instr+4)`)。
 - **范围闸**:仅 `[300, 1001]`(`(short)op - 300U ≤ 0x2bd`)进派发,其余(含所有 <300)落 default = no-op。
 - **跳转表**:`switch(*(u8*)(0x422c44 + opcode))` —— `0x422c44`(.text,文件 off 0x22044)是按 raw opcode 索引的**压缩字节表**,选 174 个 case 之一(0..0xac + 0xad=default)。
@@ -29,7 +31,7 @@
 
 ## 3. ★★ 开火接缝:发射器结构体 = fire 描述符(✅✅ 双向自洽)
 
-**模型**:敌机/VM 对象内嵌**发射器(emitter)数组**,每个发射器 idx `i`(= 所有 et* 指令的 arg0)位于 `param_1 + i*0xe0 + 0x166`(dword 索引;**stride 0xe0 dword = 0x380 字节**,由 etCopy(op 614)的 `for(0xe0)` 拷贝循环坐实)。**这个发射器结构体就是传给 `bullet_spawn_wrapper`(0x414da0)的 fire 描述符**(= `engine/bullet/th16/01` §6 的 `param_1`)。et* 指令是配置 setter,`etOn` 是触发。
+**模型**:敌机/VM 对象内嵌**发射器(emitter)数组**,每个发射器 idx `i`(= 所有 et* 指令的 arg0)位于 `param_1 + i*0xe0 + 0x166`(dword 索引;**stride 0xe0 dword = 0x380 字节**,由 etCopy(op 614)的 `for(0xe0)` 拷贝循环坐实)。**这个发射器结构体就是传给 `bullet_spawn_wrapper`(`0x414da0`)的 fire 描述符**(= `engine/bullet/th16/01` §6 的 `param_1`)。et* 指令是配置 setter,`etOn` 是触发。
 
 ### 3.1 et* opcode → 描述符字段(写入侧一手,desc 偏移相对发射器基 dword)
 
@@ -46,7 +48,7 @@
 | 608 | etSound | 0x7a | desc **`[0xdc]`=sfx id**、`[0xdd]`=第二音参 | ✅✅ |
 | 609–612 | etEx/etEx2 | 0x7b | 写一条 **etEx 效果 = 11 dword(0x2c 字节)弹字节码指令** 入描述符字节码块 `[0x10 + n*0xb]`(stride 0xb dword = `engine/bullet/th16/01` §3 弹 VM stride);按 raw opcode 0x262/0x263/0x264 变参数布局 | ✅ |
 
-### 3.2 spawn 读取侧确认(`bullet_spawn_wrapper` 0x414da0,✅✅)
+### 3.2 spawn 读取侧确认(`bullet_spawn_wrapper` `0x414da0`,✅✅)
 
 - 外层循环 `wave` 跑 `*(short*)(desc+0x366)`(= etCount 高16);内层 `spread_i` 跑 `(short)desc[0xd9]`(= etCount 低16)。
 - 每颗 `bullet_pool_spawn(g_bullet_mgr, desc, spread_i, wave, baseAngle)`。
@@ -58,7 +60,7 @@
 
 ---
 
-## 4. enmCreate(`ecl_enm_create` 0x423050,op 300/301/304/305/309/311/312/321)✅
+## 4. enmCreate(`ecl_enm_create` `0x423050`,op 300/301/304/305/309/311/312/321)✅
 
 - float arg1/arg2 = spawn x/y;int arg3/4/5 = 额外参(life/anim/score,默认取指令立即数字段)。
 - op 300/0x135/0x141/0x137/0x130:加**父敌机位置**(`param_1+0x44/+0x48`)→ 相对 spawn;"M"/相对变体置标志;mirror 标志 `0x80000` 翻 x 符号。
@@ -68,7 +70,7 @@
 ---
 
 ## 5. 开放 / 待挖
-- 散布模式 `[0xda]` 的 0..0xc 各模式精确几何在 `bullet_pool_spawn`(0x412cb0)内,本轮未展开(🟡;接 `ECL-info.md` etAim 0-12 对照)。
+- 散布模式 `[0xda]` 的 0..0xc 各模式精确几何在 `bullet_pool_spawn`(`0x412cb0`)内,本轮未展开(🟡;接 `ECL-info.md` etAim 0-12 对照)。
 - 发射器辅助区:et-offset `+0xf76..`、`+0xfa6..`(第二/"冻结"位,etOn 在 `+0xfa8 > 常量` 时用)、per-emitter 计数 `+0xf66`(etEx 自增)——存在 ✅,`+0xfa6` 分支用途 🟡。
 - etEx 写入的弹字节码块 = `engine/bullet/th16/01` §3 弹 VM 程序;ECL `etEx(type,a,b,r,s)` 的 type→opcode、a/b/r/s→指令字段已在 `ECL-info.md`/`engine/bullet/th16/01` §8 交叉验证。
 

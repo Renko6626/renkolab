@@ -1,4 +1,6 @@
 # player 逆向 06:资源获得经济(命 / 炸 / power / 季节 的"涨"端)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 方法:Ghidra(ghidra-re MCP)一手反编译 th16.exe(用户自有,ExpHP 符号 + struct 已套)。
 > 日期 2026-06-13。分级 ✅一手 / 🟡推断或单点 / ❓未解。**仅 TH16 v1.00a**。
@@ -84,7 +86,7 @@ switch 全覆盖)**,版本 TH16 v1.00a。
 > 🟡 **与"东方常见命片"直觉相悖,留作交叉核**:HUD 仍显示 `CURRENT_LIFE_FRAGMENTS`(`Gui__update_lives`
 > 第二参),但关内无拾取写入 → 可能 TH16 本就用"满命道具 + 分数续命"而非碎片制,该字段或为存档/续关延续或
 > 余留 HUD 元素。**未当定论:仅报代码事实(无拾取写入点),不否认可能有非道具来源(如符卡奖励)未被本次 xref 命中**——
-> 但 0x4a57f8 是定址全局,任何 `MOV/INC [0x4a57f8]` 都会 xref,故"无关内拾取增量"较硬。
+> 但 `0x4a57f8` 是定址全局,任何 `MOV/INC [0x4a57f8]` 都会 xref,故"无关内拾取增量"较硬。
 
 ## 5. power / point / 季节 的获得(✅,旁证收集机制)
 
@@ -104,9 +106,9 @@ switch 全覆盖)**,版本 TH16 v1.00a。
 
 ## 7. 可信度 / 复核
 
-- ✅ 一手(本会话反编译):`ItemManager__on_tick_1d__body`(0x42f4e0 分派 switch)、`Globals__collect_extend`
-  (0x43df70)、`collect_bomb`(0x43dfb0)、`collect_bomb_fragment`(0x43dff0)、`add_to_score`(0x43e080)、
-  `get_score_extend_quota`(0x43ddd0)、`collect_power_item/big_power/furu_powah`(0x430100/0x4304a0/0x4303a0)。
+- ✅ 一手(本会话反编译):`ItemManager__on_tick_1d__body`(`0x42f4e0` 分派 switch)、`Globals__collect_extend`
+  (`0x43df70`)、`collect_bomb`(`0x43dfb0`)、`collect_bomb_fragment`(`0x43dff0`)、`add_to_score`(`0x43e080`)、
+  `get_score_extend_quota`(`0x43ddd0`)、`collect_power_item/big_power/furu_powah`(`0x430100`/0x4304a0/0x4303a0)。
 - ✅ 档表值 = .rdata 静态字节直读;命碎片负结论 = `CURRENT_LIFE_FRAGMENTS` 全 xref(7 条)+ 分派 switch 全覆盖。
 - 🟡 显示分 ×10 换算、type 9-0xe 的 PIV/季节下游、`Gui__sub_42bcf0` 参数语义未追。
 - 复核入口:Ghidra DB `th16`,地址见上。全局:`CURRENT_LIVES@0x4a57f4`、`CURRENT_LIFE_FRAGMENTS@0x4a57f8`、

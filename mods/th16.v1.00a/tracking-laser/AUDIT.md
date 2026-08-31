@@ -1,4 +1,6 @@
 # test-laser:对抗审计记录 + 经验
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+
 
 ## 对抗审计(2026-06-11,两个独立 agent,默认"我们写错了"去 th16.exe 证伪)
 
@@ -6,7 +8,7 @@
 - **★ BLOCKER(已修):`find_nearest_enemy`/`is_enemy_alive`/`anm_unload` 是 STDCALL(callee 清栈,
   分别 `RET 8`/`RET 4`/`RET 4`),不是 cdecl。** 原 asm 在调用后还 `add esp` → ESP 抬高 →
   `pop esi/edi` 读到栈帧里的局部(非真正保存的 esi/edi)→ **esi/edi 被破坏 → tick_bullets 崩**
-  (它跨调用持有 ESI=弹槽、EDI=PLAYER_PTR)。一手铁证:寻的 tick 0x445ee0 调这三个**都没有 add esp**。
+  (它跨调用持有 ESI=弹槽、EDI=PLAYER_PTR)。一手铁证:寻的 tick `0x445ee0` 调这三个**都没有 add esp**。
   → **修复**:删掉 `tick_tracking_burst_starter.asm` 里 3 条 `add esp`;`.c` extern 标 `__stdcall`。
 - 其余全部核对**正确**:slot/enemy 偏移、atan2 的 FPU 压栈顺序(dy 先 dx 后)与角度方向、
   伤害源对象地址算法(`link*0x94 + PLAYER + 0xd080`,无 +1)、self-free 后返回非 0 安全(tick_bullets

@@ -1,4 +1,6 @@
 # 逆向工程发现 04:TH16 自机射击运行时架构(子弹行为控制链)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 方法:Ghidra(ghidra-re MCP)+ objdump(裸码)反汇编**用户自有 th16.exe**。日期 2026-06-08。
 > 承接 `03-*.md`(func_* 跳转表):03 解决"索引→哪个函数",本篇解决"这些函数/变量在引擎里**怎么被
@@ -22,8 +24,8 @@
 | 回调 | 何时/谁派发 | 怎么取到函数 |
 | --- | --- | --- |
 | `func_on_init` | 开火创建 shot 时 | 解析时存入 shooter+0x28;spawn 时调 |
-| **`func_on_tick`** | **每帧**,`FUN_00442380`@0x442380 | **已拷入运行时槽 slot+0xdc**,非空则 `(*slot+0xdc)()` |
-| **`func_on_hit`** | 命中敌人(碰撞回调 `playershot_hit_dispatch`@0x445d40,注册式无直接 xref) | `this+0x88`→选槽,槽 **+0xac** 打包索引现场反推 shooter,调 **shooter+0x34** |
+| **`func_on_tick`** | **每帧**,`FUN_00442380` `0x442380` | **已拷入运行时槽 slot+0xdc**,非空则 `(*slot+0xdc)()` |
+| **`func_on_hit`** | 命中敌人(碰撞回调 `playershot_hit_dispatch` `0x445d40`,注册式无直接 xref) | `this+0x88`→选槽,槽 **+0xac** 打包索引现场反推 shooter,调 **shooter+0x34** |
 | `_old_on_draw` | (TH16 不调,表全 null) | — |
 
 > 注意两种取法并存:**tick 把解析后的指针拷进运行时槽(slot+0xdc)**;**hit 不拷,靠 slot+0xac 回链 SHT
@@ -54,18 +56,18 @@
 
 | 表址 | 用途 | 索引来源 |
 | --- | --- | --- |
-| 0x4919c0 / 0x4919a0 / 0x4a6f04 / 0x491980 | 自机 func_on_init/tick/draw/hit(见 03) | SHT shooter 字段 |
-| **0x491b0c** | ~~效果/敌弹行为派发~~ → **实为 `ANM_ON_SWITCH_FUNCS`**(ANM VM on-switch 回调,见下) | ANM 对象 `+0x5d0` switch 类型 |
+| `0x4919c0` / `0x4919a0` / `0x4a6f04` / `0x491980` | 自机 func_on_init/tick/draw/hit(见 03) | SHT shooter 字段 |
+| **`0x491b0c`** | ~~效果/敌弹行为派发~~ → **实为 `ANM_ON_SWITCH_FUNCS`**(ANM VM on-switch 回调,见下) | ANM 对象 `+0x5d0` switch 类型 |
 
 > ❌ **更正(2026-06-09,th-re-data + dump + 反编译,见 `../engine/ecl/th16/03-thredata-crosscheck.md` §4c)**:`0x491b0c` **不是**"敌弹/效果子系统入口",而是 **ANM(动画)VM 的 on-switch 回调表**:`void*[4]`={null,`0x407900`,`0x405f20`,`0x406920`}=`AnmVm::on_switch__1/2/3`(操作 AnmVm 顶点数组 `+0x5b8`、设渲染/混合模式)。属一整族 ANM 事件表(`0x491b0c`..`0x491b58`:switch/sprite_set/draw/copy/delete)。`FUN_0044f810`/`FUN_0044c8c0` 是 ANM 管理器(`DAT_004c0f48`)的每帧渲染更新器,不是敌弹派发器。**敌弹行为请走 `../engine/bullet/th16/`(弹运动 VM `0x413860`),别再顺这表挖敌弹。** 归口 `../engine/anm/th16/`。
 
 ## 4. 常用辅助函数(已实证,复用)✅/🟡
 `FUN_0046efa0(mgr,handle)` 句柄→对象 | `FUN_0046f0b0(handle,mode)` 释放/改状态 | `FUN_00406380` 分配
 渲染对象 | `FUN_0040e5c0` 注册渲染条目 | `FUN_00442380` shot 每帧派发 | `FUN_00445d40` 命中派发 |
-`FUN_00445e20` 共享发射收尾 | `find_nearest_enemy`@0x425240 | `atan2`@0x487aaa(见 03 词汇表)。
+`FUN_00445e20` 共享发射收尾 | `find_nearest_enemy` `0x425240` | `atan2` `0x487aaa`(见 03 词汇表)。
 
 ## 5. 下一步
-1. ~~顺 0x491b0c 表挖敌弹/效果行为~~ **作废**:0x491b0c = ANM on-switch 表(见上更正);`FUN_0044f810`/`FUN_0044c8c0` 是 ANM 渲染更新器。敌弹行为已在 `../engine/bullet/th16/`,ANM 在 `../engine/anm/th16/`。
+1. ~~顺 `0x491b0c` 表挖敌弹/效果行为~~ **作废**:`0x491b0c` = ANM on-switch 表(见上更正);`FUN_0044f810`/`FUN_0044c8c0` 是 ANM 渲染更新器。敌弹行为已在 `../engine/bullet/th16/`,ANM 在 `../engine/anm/th16/`。
 2. 补 `func_on_init` 的 spawn 派发点(开火读 fire_rate/start_delay 计时 → 建槽 → 调 init)。
 3. 把 slot(0xe4)与池(0x94)结构字段补全,回填 `docs/` 作 IDE 运行时语义参考。
 4. 用同套锚点(player_shot_init→FUN_00442560→FUN_00442380→func 表)在 TH18/19 验证架构是否通用。

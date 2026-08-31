@@ -1,8 +1,10 @@
 # test-laser:追踪 + 爆发式激光(TH16 自机扩展实验)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 目标(用户设定):做一个**追踪+脉冲激光**自机弹——每隔一段时间发射一次,**锁定一个敌人**,
 > 造成**短暂的脉冲伤害**,然后**消失**。
-> 版本:TH16 v1.00a(th16.exe,imagebase 0x400000)。日期 2026-06-11。
+> 版本:TH16 v1.00a(th16.exe,imagebase `0x400000`)。日期 2026-06-11。
 > 性质:**档 1(打 exe 补丁)实验**——纯改 .sht 做不到(见下),需 thcrap code cave。
 
 ## 0. 为什么纯 .sht(档 0)做不到
@@ -32,7 +34,7 @@
   ⚠️ 但它们用的是 **init=3**;激光需要 **init=2**(清蓄力 +0xa0 + 建 +0xb0 激光池对象 + SFX)。
   → **需重生成 pl02:`(init=2, tick=4, hit=0)`**(见 §4 待办)。
 - hit:用户要"hit 效果就是伤害"。激光伤害走 idx2 的 **+0xb0 激光池对象**(本身对接触敌人持续掉血),
-  故 **func_on_hit 设 0** 即可(不挂额外命中特效);若想要"束体截断到接触点"再用 hit2(0x446870)。
+  故 **func_on_hit 设 0** 即可(不挂额外命中特效);若想要"束体截断到接触点"再用 hit2(`0x446870`)。
 
 ## 3. 开放 RE / 风险
 
@@ -40,13 +42,13 @@
 1. ~~❓ 激光伤害怎么施加~~ → ✅ **伤害走独立管线,敌人侧自动处理**:spawn 给每发弹建 `+0xb0` 伤害源
    (dmg = .sht `dmg` 字段 +0x02),tick_bullets 每帧拷弹位置进去,敌人 `enm_compute_damage_sources`
    遍历重叠源累加扣血(封顶 = .sht `max_dmg` header+0x28)。**cave 函数不用写任何伤害代码。**
-2. ~~❓ +0xb0 谁创建~~ → ✅ **`PlayerBullet__create`(spawn 0x444e10)给每发弹都建**(`sub_444b20`),
+2. ~~❓ +0xb0 谁创建~~ → ✅ **`PlayerBullet__create`(spawn `0x444e10`)给每发弹都建**(`sub_444b20`),
    dmg 自动 = .sht dmg 字段。我们的弹是正常 .sht 发的 → 自动有伤害源。**连 init=2 都不是伤害的必要条件。**
 
 → **重大去风险**:追踪激光只要(a)正常 .sht 发射、(b)cave 保持 `slot+0x48` 位置更新、(c)活到
    BURST_FRAMES 再结束,**伤害自动生效**。甚至"束形"都不是掉血必要条件(点在敌人身上的伤害源就掉血)。
 
-### ✅ ABI/地址已补(2026-06-11,反 0x445ee0 + list_names)
+### ✅ ABI/地址已补(2026-06-11,反 `0x445ee0` + list_names)
 3. ~~find_nearest_enemy ABI~~ → ✅ `find_nearest_enemy(out,&refpos)` cdecl,**半径 XMM3 = `[0x494680]` = 256.0**,调用后 `*out`=句柄。
 4. ~~地址~~ → ✅ 全部:`find_nearest 0x425240`、`is_enemy_alive 0x41a980`、`handle_to_enemy 0x41b540`(__fastcall ECX=&句柄)、
    `crt_atan2 0x487aaa`(FPU)、`math_add_normalize_angle 0x4052e0`、`get_vm_with_id 0x46efa0`、`anm_unload 0x46f1c0`。

@@ -1,4 +1,6 @@
 # thcrap patch:注入「追踪+爆发激光」(重指 tick idx4)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 把 `tick_tracking_burst_starter.asm` 编成 code cave,并用 binhack **重指 TH16 tick 表 idx4 槽**
 > (`0x4919b0`,现 = `0x004470f0`)指向 cave。配套 `local/th16.v1.00a/pl02_tracklaser.sht`(已生成)。
@@ -65,8 +67,8 @@ test-laser/                  ← patch 根(run config 的 archive 指向这里)
 nasm -f bin tick_tracking_burst_starter.asm -o cave.bin
 xxd -p cave.bin                       # 取 hex,贴进 codecave.code
 ```
-- 所有引擎函数地址已填实(见 .asm / starter.c):find_nearest 0x425240、is_enemy_alive 0x41a980、
-  handle_to_enemy 0x41b540、crt_atan2 0x487aaa、anm_unload 0x46f1c0。半径 256 = `[0x494680]`。
+- 所有引擎函数地址已填实(见 .asm / starter.c):find_nearest `0x425240`、is_enemy_alive `0x41a980`、
+  handle_to_enemy `0x41b540`、crt_atan2 `0x487aaa`、anm_unload `0x46f1c0`。半径 256 = `[0x494680]`。
 - ★ 手写汇编必须**汇编后比对 + 游戏内验证**(尤其 FPU 栈平衡、find_nearest 参数顺序、frame 平衡)。
 
 ## 4. .sht 侧(配套)—— 起步版已生成 ✅

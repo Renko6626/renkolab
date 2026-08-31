@@ -1,4 +1,6 @@
 # TARGET —— tracking-laser 死绑登记
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+
 
 **换一个 exe build，下面每一项都要重取。**
 

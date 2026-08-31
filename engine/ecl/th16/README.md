@@ -1,4 +1,6 @@
 # research/ecl/ — TH16 ECL(敌机/弹幕脚本)VM 逆向(新会话入口)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 本文件夹专做一件事:**逆向 TH16《鬼形兽》(`th16.exe`,imagebase `0x400000`)的 ECL 系统**——
 > 即 `.ecl` 字节码的**虚拟机(VM)**与运行时:敌机/Boss/关卡脚本怎么被解释、**开火指令怎么把参数喂给
@@ -48,7 +50,7 @@ ECL 在最上层:**ECL 的"开火"指令 → 创建弹对象 + 灌运动字节�
 - 弹 spawn `FUN_00412cb0`(从池取槽 + 灌 `obj+0xc88` 字节码)**唯一**被 `FUN_00414da0` 调。
 - `FUN_00414da0`(弹 spawn 包装)的调用方 4 个:
   - `FUN_00413860`(弹 VM 自身,opcode 0x2000 子弹分裂——内部,**不是** ECL)。
-  - **`FUN_0041dcb0`**(@0x420aa0)、**`FUN_00431fe0`**(@0x432465)、**`FUN_00438cb0`**(@0x4391b0)= bullet_spawn_wrapper 的外部调用方。⚠️ **更正(ExpHP 对照)**:只有 **`0x41dcb0` 是 ECL**(`EnemyData::ecl_run_over_300`,游戏 opcode 派发,开火接缝见 `05`);**`0x431fe0`=`LaserLine::method_4`、`0x438cb0`=`LaserCurve::method_4`(激光的 et_ex 方法,非 ECL handler)**。早期"3 个都疑 ECL 开火 handler"的猜测有误。
+  - **`FUN_0041dcb0`**(`0x420aa0`)、**`FUN_00431fe0`**(`0x432465`)、**`FUN_00438cb0`**(`0x4391b0`)= bullet_spawn_wrapper 的外部调用方。⚠️ **更正(ExpHP 对照)**:只有 **`0x41dcb0` 是 ECL**(`EnemyData::ecl_run_over_300`,游戏 opcode 派发,开火接缝见 `05`);**`0x431fe0`=`LaserLine::method_4`、`0x438cb0`=`LaserCurve::method_4`(激光的 et_ex 方法,非 ECL handler)**。早期"3 个都疑 ECL 开火 handler"的猜测有误。
 - **第一刀**:反这 3 个外部调用方——它们读什么参数(角/速/弹型/anm)灌进 spawn 描述符 `param_2`(`+0x28` 起是弹字节码、`+0x378` 是初始 PC)。
 - ✅ **`FUN_0041dcb0` 身份已定**(ExpHP th-re-data + deep research,2026-06-09)= **`EnemyData::ecl_run_over_300`** = ECL **opcode ≥300(enmCreate/move/anm/et*…)处理器**,正是 fire/spawn handoff 入口;enmCreate=`0x423050 ecl_enm_create`、激光=`0x4319e0 ecl_545`。详见 **`02-runtime-vm.md`** §3。
 
@@ -67,7 +69,7 @@ ECL 在最上层:**ECL 的"开火"指令 → 创建弹对象 + 灌运动字节�
 ## ★ ECL-info.md(社区 etEx 速查,已与本仓库 VM 交叉验证)
 
 - **`ECL-info.md`**(本目录,来自 thcrap 社区 Discord)= ECL 指令速查 + **`etEx` 子弹效果表**(EX_* 代号 + 参数语义)+ 子弹 Sprite/颜色表 + 敌人指令(enmCreate/move*/anm*)。
-- **已确立的桥梁**(见 `engine/bullet/th16/01-core-engine.md` §8,2026-06-09):**`etEx` 的效果 = 弹运动 VM(`bullet_vm_exec` 0x413860)的 opcode**;`obj+0xc68` == etEx 效果位场;社区"旧 etEx"位值 == 我反出的 opcode 整数,**~28/28 吻合**。即:**一颗弹的字节码(`obj+0xc88`)= 发射器编译好的一串 etEx 效果**。`etEx(id,...,type,a,b,r,s)` 的 `type`=EX_=opcode,`a/b/r/s`=指令字段。
+- **已确立的桥梁**(见 `engine/bullet/th16/01-core-engine.md` §8,2026-06-09):**`etEx` 的效果 = 弹运动 VM(`bullet_vm_exec` `0x413860`)的 opcode**;`obj+0xc68` == etEx 效果位场;社区"旧 etEx"位值 == 我反出的 opcode 整数,**~28/28 吻合**。即:**一颗弹的字节码(`obj+0xc88`)= 发射器编译好的一串 etEx 效果**。`etEx(id,...,type,a,b,r,s)` 的 `type`=EX_=opcode,`a/b/r/s`=指令字段。
 - **由它解开的**:`+0x141c`=EX_SIZE 尺寸、`+0x24`=EX_INVULN、`0x8000000`=**EX_LASER**(子对象其实是激光,线/无限两型)。
 - ✅ **参数分支已二次验证**(2026-06-09,见 `engine/bullet/th16/01-core-engine.md` §8.1):EX_ANGLE 的 c 子模式、EX_SAVE 存档机制、EX_VEL/VELTIME、基础角阈值——**TH16 实测吻合**。但 ❌ **两处 ECL-info 对 TH16 是错的**(像是后作文档):① 所谓 EX_ACCEL/VELTIME 的"7 档角度阶梯"(`1999990/2999990/...` 配 RANDF2/boss 角)**在 TH16 不存在**(常量全文搜不到,只有 ±999990 与 9999990);② EX_ANGLE c=7 阈值实测是 `990` 不是 `999`。**ECL-info 是社区单源(Discord)、跨版本**,冲突以 TH16 exe 为准。
 - **et* 发射器指令**(etNew/etOn/etAim/etCount/etSpeed/etAngle/etEx/etSprite…)= 配置发射器→`bullet_pool_spawn` 的 fire 描述符(`engine/bullet/th16/01` §6 已逐字段解);**第一刀**可对着 ECL-info 的 etAim mode 0-12 / etCount 路数·层数,去 exe 里核 spawn 描述符 `[0xda]`散布模式 / `[0xd9]`数量的对应。
@@ -78,7 +80,7 @@ ECL 在最上层:**ECL 的"开火"指令 → 创建弹对象 + 灌运动字节�
   把"运行时 opcode"对到"格式指令号"的**权威外部锚点**——逆向时**先看 thecl 的 ins_ 表**,再去 exe 核对实现。
   - ★ **已克隆 + 消化** → `vendor/thtk/`(gitignore,可重克隆)+ **`00-thecl-format-reference.md`**(.ecl 二进制格式 / TH16 opcode→参数格式全表 / VM 机器核低位 opcode / ECS→opcode 降级 / eclmap 命名层 / 怎么驱动 exe 逆向)。**动手反 exe 前先读 `00-*`。**
 - **父仓库已有现成资源**:THTK-Studio 仓库的 `src-tauri/src/modules/ecl/`(THTK-Studio 自己的 thecl 封装/error_parser/eclmap),THTK-Studio 仓库的 `tools/thecl.exe_ghidra/`(thecl.exe 的 Ghidra 工程,理解 .ecl 格式编译侧)。
-- **★★ ExpHP `exphp-share/th-re-data`**(已克隆 `vendor/th-re-data`):**TH16 专属(`data/th16.v1.00a/`)结构体 + 命名 VM 函数地址表**——`zEclVm`/`zEclRunContext`/`zEclStack`/`zEclLocation` 布局 + `ecl_run`(0x472030)/`call_sub`/`ecl_run_over_300`(0x41dcb0)等 45 个 ECL 函数地址。**可直接导进 Ghidra**(下一步 `apply_th16_ecl_names.py`)。**当前最硬的 TH16 运行时一手源。** 详见 `02-runtime-vm.md`。
+- **★★ ExpHP `exphp-share/th-re-data`**(已克隆 `vendor/th-re-data`):**TH16 专属(`data/th16.v1.00a/`)结构体 + 命名 VM 函数地址表**——`zEclVm`/`zEclRunContext`/`zEclStack`/`zEclLocation` 布局 + `ecl_run`(`0x472030`)/`call_sub`/`ecl_run_over_300`(`0x41dcb0`)等 45 个 ECL 函数地址。**可直接导进 Ghidra**(下一步 `apply_th16_ecl_names.py`)。**当前最硬的 TH16 运行时一手源。** 详见 `02-runtime-vm.md`。
   - ⚠️ **粒度 = 仅符号名 + 结构体偏移,无语义注释**(932/1930 函数命名,`comment` 字段 0 条):它给"叫什么/字段在哪",**不给"干什么/参数含义/opcode→行为"**。覆盖重 ANM/laser/ecl/bullet,**SHT 几乎为零**。已验证:我们深挖的弹幕函数它都命名了(身份对上),但语义层(EX handler 每帧算什么、c68 位场、SHT 全部)仍是我们的原创产出。**当命名层用,语义层自己做。**
 - **★ Priw8 ECL 文档站**(`priw8.github.io`,源码 `github.com/Priw8/priw8.github.io`):**特殊变量全表**(`js/ecl/vars.js`,逐作负 id + rw/scope)、`content/modding/ins.md`、**`eclmap-16.md`(TH16 指令名)**、`transforms.md`(etEx)、`ecl-tutorial/`(每敌机解释器模型)。已与本仓库 exe **逐项吻合**(见 `01-*`)。
 - 速查 `engine/_shared/community-sources.md`;参考仓库克隆走 `vendor/`(gitignore)。
@@ -87,7 +89,7 @@ ECL 在最上层:**ECL 的"开火"指令 → 创建弹对象 + 灌运动字节�
 
 ## 产出(现状 2026-06-10)
 
-- ✅ `00-thecl-format-reference.md`(格式/opcode 表)· `01-ecl-context-and-variables.md`(变量/上下文)· `02-runtime-vm.md`(运行时结构+函数地图)· `03-thredata-crosscheck.md`(vs ExpHP 审计)· **`04-ecl-vm-interpreter.md`**(★ `ecl_run` 派发循环一手)· **`05-fire-interface.md`**(★ 游戏 opcode 派发 + ECL et*→弹幕 fire 描述符接缝)· **`06-adding-custom-instructions.md`**(★ 如何加自定义 ECL 指令:参考 ECLplus + TH16 钩点 0x41DD3A)· **`07-vm-architecture.md`**(★★ 宏观总览 + 核心机制确定性表,先读这篇看全局)。
+- ✅ `00-thecl-format-reference.md`(格式/opcode 表)· `01-ecl-context-and-variables.md`(变量/上下文)· `02-runtime-vm.md`(运行时结构+函数地图)· `03-thredata-crosscheck.md`(vs ExpHP 审计)· **`04-ecl-vm-interpreter.md`**(★ `ecl_run` 派发循环一手)· **`05-fire-interface.md`**(★ 游戏 opcode 派发 + ECL et*→弹幕 fire 描述符接缝)· **`06-adding-custom-instructions.md`**(★ 如何加自定义 ECL 指令:参考 ECLplus + TH16 钩点 `0x41DD3A`)· **`07-vm-architecture.md`**(★★ 宏观总览 + 核心机制确定性表,先读这篇看全局)。
 - ✅ `tooling/ghidra/scripts/apply_th16_ecl_names.py`(ECL 函数命名,MCP 已落盘)。
 - **VM 核心已基本通**:格式↔运行时、解释循环、变量模型、ECL→弹幕接缝全打通;未公开 opcode 仅低位系统码 18/19/20/41。
 - **下一步选项**:① 回填 THTK-Studio 仓库的 `docs/`(驱动 IDE);② ExpHP 指路的待挖区(敌人 tick/spell/anm VM);③ 18/19/20/41 异步语义细挖。

@@ -1,11 +1,13 @@
 # TH16 角色/副季选择 → .sht 加载链(Phase 3,★ SHT 回扣)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
-> 版本:**TH16 v1.00a**(`th16.exe`,imagebase 0x400000)。计划 `../mainmenu-plan.md`,前篇 01/02。
+> 版本:**TH16 v1.00a**(`th16.exe`,imagebase `0x400000`)。计划 `../mainmenu-plan.md`,前篇 01/02。
 > 写于 2026-06-10,一手反编译 + xref 追踪。**这是把主菜单接回 SHT 任务的关键一篇。**
 
 ## 结论速览(✅ 一手)
 主菜单的**角色选择**(state 6)和**副季选择**(state 7)把玩家选择写进一组全局配置变量,
-开局时 **`player_shot_init`(0x440fb0)读这组全局,从 4 张字符串指针表选出对应的 `.sht`/`.anm` 文件,
+开局时 **`player_shot_init`(`0x440fb0`)读这组全局,从 4 张字符串指针表选出对应的 `.sht`/`.anm` 文件,
 经 `sht_parse_resolve_funcptrs` 解析 SHT、把 shot 行为函数指针装进 player 对象**。
 
 完整链:`do_character_select`/`do_subseason_select` → `DAT_004a57a4`/`DAT_004a57ac` 等全局 → `player_shot_init` → `.sht` 表 + `sht_parse_resolve_funcptrs` → `player+0x2c788/0x2c78c` 行为 funcptrs。
@@ -14,7 +16,7 @@
 
 ## 1. 选择写入点(一手,来自 do_*_select 反编译)
 
-### `MainMenu__do_character_select`(0x4502c0,state 6)
+### `MainMenu__do_character_select`(`0x4502c0`,state 6)
 光标选择存 `this+0x24`(角色 index 0..3)。确认链:case 2 检测确认键(`DAT_004a50bc & 0x80001`)→ 进 case 3 →
 计时满后 `LAB_004509e1`:
 ```c
@@ -25,7 +27,7 @@ DAT_004a6f24 = DAT_004a57a4;                     //   镜像(开局参数块)
 ```
 取消(`& 0x102`)→ 退回上一态。
 
-### `MainMenu__do_subseason_select`(0x450af0,state 7)
+### `MainMenu__do_subseason_select`(`0x450af0`,state 7)
 光标选择存 `this+0x24`(副季 index)。case 0 初始化时 `... + (short)DAT_004a57a4 + 0x1f` → **读角色选择**挑 anm。
 确认链:case 2(`& 0x80001`)→ case 3 → 计时满(`+0x2b0 > 0x27`):
 ```c
@@ -39,15 +41,15 @@ MainMenu__change_menu(param_1, 2);          // → state 2 = 开局淡出/进游
 ### 全局配置块(开局参数,一手 + on_tick boot 旁证)
 | 全局 | 含义 | 写处 | 读处(关键) |
 | --- | --- | --- | --- |
-| **`DAT_004a57a4`** | **角色(自机/shot type)选择** | do_character_select(0x4509ed) | `player_shot_init`、GameThread、ECL global、Spellcard、Gui… |
+| **`DAT_004a57a4`** | **角色(自机/shot type)选择** | do_character_select(`0x4509ed`) | `player_shot_init`、GameThread、ECL global、Spellcard、Gui… |
 | `DAT_004a57a8` | 主 shot 表**基偏移**(正常 0;由 replay/+0x88 设) | on_tick boot | `player_shot_init`(`a57a8 + a57a4` 索引) 🟡 |
-| **`DAT_004a57ac`** | **副季(sub weapon)选择** | do_subseason_select(0x450d95…) | `player_shot_init`、Item__init…season |
+| **`DAT_004a57ac`** | **副季(sub weapon)选择** | do_subseason_select(`0x450d95`…) | `player_shot_init`、Item__init…season |
 | `DAT_004a57b4` | 模式标志(`==4` = Extra/特殊;`>3` 分支) | on_tick boot(replay/+0x8c) | 两 do_select 顶部 `(==4)*2+0x96/0x97` |
 | `DAT_004a6f24` | 角色选择镜像 | do_character_select | |
 > on_tick 的 boot 态(case 0)从 replay 头 `uVar4+0x84/0x88/0x9c/0x8c` 填这组 → 回放时用录像里的选择;正常游戏用菜单写入。
 
-## 2. 消费者 `player_shot_init`(0x440fb0,✅ 一手 + 旧 audit 旁证)
-> 已有注释:"Resolves main(+0x2c788)+sub(+0x2c78c) .sht via sht_parse_resolve_funcptrs … Caller: player ctor 0x441c60. CONFIRMED(audit)." 本篇把它接到菜单选择源头。
+## 2. 消费者 `player_shot_init`(`0x440fb0`,✅ 一手 + 旧 audit 旁证)
+> 已有注释:"Resolves main(+0x2c788)+sub(+0x2c78c) .sht via sht_parse_resolve_funcptrs … Caller: player ctor `0x441c60`. CONFIRMED(audit)." 本篇把它接到菜单选择源头。
 
 按选择从 **4 张并行字符串指针表**取文件名(下标全来自菜单全局):
 | 表 @地址 | 内容 | 下标 |

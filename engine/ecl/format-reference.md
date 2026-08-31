@@ -1,10 +1,12 @@
 # 00 — thecl 格式参考(.ecl 二进制格式 + TH16 opcode 表 + ECS→opcode 降级)
+> **版本**：跨版本。本文出现的地址一律带版本前缀（如 `th16:0x442560`）。
+>
 
 > **来源**:`vendor/thtk/thecl/`(thtk @ `892114a0`,BSD 许可),由 thpatch 社区维护的 ECL 反汇编/重编译器。
 > **可信度框架**:
 > - ✅**格式侧**(文件布局 / id→参数格式 / ECS→opcode 降级):thecl 是 de-facto 标准工具、能 round-trip 真实游戏 .ecl,**单源但权威**。
 > - 🟡**命名**:thtk **不附带任何 TH16 eclmap**;opcode/变量的**人类可读名**(enmCreate/etNew/movePos…)来自 `ECL-info.md` 及社区 eclmap,thecl 只给数字 id + 参数格式。
-> - ✅**运行时语义(已做,更新 2026-06-10)**:thecl 只给参数形状(WHAT);运行时实现(HOW)已反编译——系统 opcode 见 `04-ecl-vm-interpreter.md`(`ecl_run` 0x472030),游戏 opcode 派发 + 开火接缝见 `05-fire-interface.md`(`ecl_run_over_300` 0x41dcb0)。⚠️ 旧注里的"派发表 0x4921b4"是误判,实为变量访问器表(已纠,见 `01`/`03`)。
+> - ✅**运行时语义(已做,更新 2026-06-10)**:thecl 只给参数形状(WHAT);运行时实现(HOW)已反编译——系统 opcode 见 `04-ecl-vm-interpreter.md`(`ecl_run` `th16:0x472030`),游戏 opcode 派发 + 开火接缝见 `05-fire-interface.md`(`ecl_run_over_300` `th16:0x41dcb0`)。⚠️ 旧注里的"派发表 `th16:0x4921b4`"是误判,实为变量访问器表(已纠,见 `01`/`03`)。
 > - **仅 TH16**(version 16);TH16.5=165 是独立变体,勿混。
 >
 > **本文件用途**:做 `th16.exe` ECL VM 逆向时的**外部锚点**——把运行时 opcode 派发表的每一项,对到下面 thecl 的"格式 id → 参数格式 / 语义类别"。
@@ -13,7 +15,7 @@
 
 ## 0. 速览:这份素材为什么对 exe 逆向关键
 
-1. **补全了 VM 机器层**:`ECL-info.md` 全是高层命名指令(enmCreate/etNew…),但 thecl 暴露了**低位 opcode = VM 控制核**(RET/CALL/STACK_ALLOC/LOAD/SET/算术/比较/跳转)。这正是 exe 派发表 `0x4921b4` 里那些操作"每 sub 栈帧 + 表达式栈 + PC"的小 handler。已知 `FUN_00424110`=random handler 是表中一项。
+1. **补全了 VM 机器层**:`ECL-info.md` 全是高层命名指令(enmCreate/etNew…),但 thecl 暴露了**低位 opcode = VM 控制核**(RET/CALL/STACK_ALLOC/LOAD/SET/算术/比较/跳转)。这正是 exe 派发表 `th16:0x4921b4` 里那些操作"每 sub 栈帧 + 表达式栈 + PC"的小 handler。已知 `FUN_00424110`=random handler 是表中一项。
 2. **id 区段 ↔ ECL-info 分类吻合**(双向印证,见 §3):`300-340`敌人/ANM、`400-439`移动、`500-572`杂项,与 ECL-info 标注逐段对齐。
 3. **TH16 ≈ TH13**:TH16 只改 6 个 opcode(337/338/339/340/572/1000),其余继承 TH13 → 社区 TH13-15 eclmap 命名基本可复用。
 
@@ -93,7 +95,7 @@
 
 ### 2.1 ★ VM 机器核(低位 opcode)— 对 exe 逆向最关键
 
-> 这些是 `ECL-info.md` **没有**记录的底层指令(它只记高层命名指令)。exe 派发表 `0x4921b4` 的低位项应对应这些。来自 `th10_fmts`(`:167-348`)+ `expr.c:88-143` 表达式表 + `thecl.h:66-78`。
+> 这些是 `ECL-info.md` **没有**记录的底层指令(它只记高层命名指令)。exe 派发表 `th16:0x4921b4` 的低位项应对应这些。来自 `th10_fmts`(`:167-348`)+ `expr.c:88-143` 表达式表 + `thecl.h:66-78`。
 
 | id | 助记符 | 格式 | 语义(thecl 侧) | 栈 |
 | --- | --- | --- | --- | --- |
@@ -197,15 +199,15 @@
 
 ## 5. 怎么用它驱动 exe 逆向(衔接 README §A/§B)
 
-1. **派发表对名**:dump exe `0x4921b4` 指针表 → 表索引 i 大概率 = opcode id。先核**低位(§2.1 VM 核)**:找到只操作"栈/变量/PC/time"的小 handler 应是 LOAD/SET/算术/GOTO/CALL;`FUN_00424110`(random)已知是一项,定位它在表中的索引可校准整张表的 id 基准。
+1. **派发表对名**:dump exe `th16:0x4921b4` 指针表 → 表索引 i 大概率 = opcode id。先核**低位(§2.1 VM 核)**:找到只操作"栈/变量/PC/time"的小 handler 应是 LOAD/SET/算术/GOTO/CALL;`FUN_00424110`(random)已知是一项,定位它在表中的索引可校准整张表的 id 基准。
 2. **CALL/STACK_ALLOC 验栈帧模型**:在 exe 找 STACK_ALLOC(40)handler → 它怎么给敌机/sub 开栈帧 → 坐实"敌机结构里的 ECL PC/栈指针"(README §C 的关键假设)。
 3. **开火指令落位**:§2.2 里 et*/开火相关高层 opcode(疑在 600 区或独立)→ 对到 README §A 的外部开火点 `FUN_0041dcb0`/`FUN_00431fe0`/`FUN_00438cb0`,看它们对应哪个 opcode id、怎么把参数灌进 fire 描述符(`bullets/01` §6)。
-4. **time/rank 门控**:exe 的 ECL 主循环按 time 推进 + rank_mask 过滤——✅ **已定位 = `EclRunContext::ecl_run`(0x472030,见 `04`)**。⚠️ 早期"疑 VM 主体 `FUN_0044c8c0`"的猜测**错了**(ExpHP:`0x44c8c0` 被 `MainMenu::do_options` 0x44c570 调 → 菜单逻辑,非 ECL VM),勿再追。
+4. **time/rank 门控**:exe 的 ECL 主循环按 time 推进 + rank_mask 过滤——✅ **已定位 = `EclRunContext::ecl_run`(`th16:0x472030`,见 `04`)**。⚠️ 早期"疑 VM 主体 `FUN_0044c8c0`"的猜测**错了**(ExpHP:`th16:0x44c8c0` 被 `MainMenu::do_options` `th16:0x44c570` 调 → 菜单逻辑,非 ECL VM),勿再追。
 
 ---
 
 ## 关联
-- exe 侧锚点 / 派发表 `0x4921b4` / 开火点:`README.md` §A/§B/§C。
+- exe 侧锚点 / 派发表 `th16:0x4921b4` / 开火点:`README.md` §A/§B/§C。
 - 高层命名 + etEx 效果:`ECL-info.md`(已与弹运动 VM 交叉验证,见 `engine/bullet/th16/01` §8)。
 - 弹运动 VM(ECL 下游,opcode 0x2000/EX_SHOOT 创建):`engine/bullet/th16/01-core-engine.md` §3/§6。
 - 来源 commit:thtk `892114a0`(`vendor/` 已 gitignore,按本记录可重克隆)。

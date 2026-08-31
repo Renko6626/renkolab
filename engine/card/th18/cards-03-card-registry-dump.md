@@ -1,4 +1,6 @@
 # TH18 卡牌注册表 dump(58 项,一手)
+> **版本**：TH18 v1.00a（`th18.exe`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+>
 
 > 注册表 `zTableCardData[]` @ **`0x4c53c0`**,stride **0x34**,共 58 项(`TableCardData__get` 线性查 card_id)。
 > 本表为 dump 原始数据,供 58 卡逐张刻画(`cards-TODO-58card-characterization.md`)起手。字段语义见 `cards-04` §6。

@@ -1,4 +1,6 @@
 # research/anm/ — TH16 ANM(动画/精灵显示)系统逆向(新会话入口)
+> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
+>
 
 > 本文件夹专做一件事:**逆向 TH16《鬼形兽》(`th16.exe`,imagebase `0x400000`)的 ANM 系统**——
 > 即 `.anm` 资源里的精灵/动画**脚本 VM** 与运行时。东方里几乎所有"显示"都挂在 .anm 上:
@@ -71,7 +73,7 @@
 
 ## 关联
 
-- ★ 锚点来源与证据链:`engine/bullet/th16/01-core-engine.md` §1.3 † 脚注(0x40e5c0→0x46f600→0x407b20 三级)。
+- ★ 锚点来源与证据链:`engine/bullet/th16/01-core-engine.md` §1.3 † 脚注(`0x40e5c0`→`0x46f600`→`0x407b20` 三级)。
 - 弹幕引擎(gameplay ECL VM,与 anm 是**两套独立 VM**):`engine/bullet/th16/README.md`、`engine/bullet/th16/01-core-engine.md`。
 - 旧切口(二手,待复核):`engine/sht/th16/06-th16-engine-incisions.md §6`(图形)、`engine/sht/th16/04 §2`(DAT_004c0f48)。
 - 纪律:`METHOD.md`;memory `re-overclaim-guard` / `re-agent-no-hypothesis-priming` / `re-evidence-chain-discipline` / `re-workflow-fanout-cost`。

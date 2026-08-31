@@ -1,0 +1,10 @@
+# 超长表格单元格的历史欠账 —— 见 DOCSTYLE.md「表格」。
+# 键 = sha1(相对路径 + 单元格内容)[:12]，与行号无关。
+# 只允许变少:改好一处就删一行。新增的违规会直接报错。
+2e606044468b  engine/card/th18/cards-04-card-shop.md  209字符  **一手破**:`is_available_at_stage` 对 dmode∈1-5 且 `CURRENT_S
+7869a160fed4  engine/menu/th16/02-state-helpers.md  244字符  ★**原名 draw_replay_list_rows 是错的**:实为**符卡得分列表**——按难度(`DAT
+80cdd44813ed  engine/bullet/th16/01-core-engine.md  251字符  walls 位:`0x1`=上 / `0x2`=下 / `0x4`=左(`0x415790`,`pos_x<−1
+92ce9efeec3c  engine/bullet/th16/03-lasers.md  236字符  ★ **真正的每帧 tick**。遍历 `mgr+0x14` 活动链,每节点按 flags 路由:`node[4
+9463547366db  engine/sht/th16/03-th16-funcstar-jumptables.md  223字符  命中:**读该 shooter 的 dmg(short@+2,经自机已载 .sht 的 sht_off[+0x1
+b06be94ee163  engine/sht/th16/03-th16-funcstar-jumptables.md  244字符  **锁敌→水平冲刺**(反汇编+游戏内双验,2026-06-11):扫 ENEMY_MANAGER 链,锁定**
+f64323454dba  engine/bullet/th16/03-lasers.md  291字符  预加载 **`bullet.anm`**(`AnmManager::preload_anm(7,"bullet.
