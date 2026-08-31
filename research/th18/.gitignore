@@ -1,6 +1,0 @@
-# TH18 版权字节 / 大体积 scratch —— 不入库(但保留 th18-files/README.md 这个位置说明)
-th18-files/*
-!th18-files/README.md
-exports/
-vendor/
-*.exe

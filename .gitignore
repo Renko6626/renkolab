@@ -1,0 +1,16 @@
+# ─── 本地版权字节 / 大体积 scratch ───────────────────────────────
+# 纪律:本仓库不留任何版权字节。游戏 exe、解包资产、Ghidra 工程、
+# 第三方仓库克隆一律只存在于 local/,不入库。
+# 只保留 local/README.md 说明"什么放哪、怎么重建"。
+local/*
+!local/README.md
+
+# ─── 工具产物 ───────────────────────────────────────────────────
+__pycache__/
+*.pyc
+exports/
+*.zip
+
+# 全函数符号 dump:由 tooling/ghidra/dump_funcs.py 重建,
+# 且混入 ExpHP(上游无 LICENSE)函数名,不擅自转发。
+*-funcs.json
