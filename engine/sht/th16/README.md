@@ -12,7 +12,7 @@
   - `shmupcc-sht/` — Priw8 quickjs CLI 编译器,声明式 struct + JSON 互转架构
     - 上游:<https://github.com/Priw8/shmupcc-sht> @ `dcf1f91` (2023-09-12)
   - ⚠️ 两个仓库都无 LICENSE 文件;按社区公开资料 + 作者允许进行研究/移植,正式发布前需确认授权。
-  - 重新获取:`git clone <url> research/sht/vendor/<name>`
+  - 重新获取:`git clone <url> local/vendor/<name>`
 - `findings/` — 逆向工程的产出(deep research 报告、字段语义草稿、运行时模型笔记)
 
 ## 研究目标(为什么还要更深一层)

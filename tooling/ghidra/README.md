@@ -29,8 +29,8 @@
 
 ```bash
 # scripts/run.sh <binary> <script.py> [args...]
-research/sht/disasm/scripts/run.sh research/sht/disasm/samples/th18.exe \
-  research/sht/disasm/scripts/find_sht.py
+research/tooling/ghidra/scripts/run.sh research/tooling/ghidra/samples/th18.exe \
+  research/tooling/ghidra/scripts/find_sht.py
 ```
 
 `run.sh` 已封装好 `GHIDRA_INSTALL_DIR` / `JAVA_HOME` 并调用 `pyghidra`。pyghidra 首次会对 exe

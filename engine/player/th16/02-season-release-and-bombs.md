@@ -15,7 +15,7 @@ TH16 每局**同时存在两个 `Bomb` 对象**(`operator_new(0x108)` 各一,见
 
 **季节释放**就是用户说的"按 C 触发的技能":消耗**季节槽**(捡春/夏/秋/冬道具充能),释放一发**随槽位档次
 变大的清弹屏障 + 短无敌**;多数副季节释放后槽**清零**,而**夏 / 土用**两个副季节**只扣一档**(可连放)。
-触发都在 `player_update_perframe`(`../player/01` §1)的状态 1 / 状态 4(决死)里。
+触发都在 `player_update_perframe`(`engine/player/th16/01` §1)的状态 1 / 状态 4(决死)里。
 
 > 输入位值 = ✅(反编译);"X / C" 物理键名 = 🟡(TH16 默认布局 + DInput 重映射未逐位解;关键是
 > **两个独立动作位 0x2 与 0x800**,季节释放是 0x800)。
@@ -44,7 +44,7 @@ SUBSEASON_BOMB_PTR = sub;
 
 **`CHARACTER` 枚举(由本 switch 一手坐实):`{0:Reimu, 1:Cirno, 2:Aya, 3:Marisa}`** = TH16 选关菜单的
 四自机顺序。⚠️ 这**与 `pl0X.sht` 文件编号不同**(文件:pl00=灵梦/pl01=魔理沙/pl02=琪露诺/pl03=文,见
-`../sht/findings/03` §4);CHARACTER 全局是**菜单序**,别把两者当同一索引。
+`engine/sht/th16/03` §4);CHARACTER 全局是**菜单序**,别把两者当同一索引。
 
 **`SUBSEASON` 枚举 = 玩家选的副季节**,`{0,1,2,3,4}`,对应 vftable 用"拥有该季节的角色"命名;ExpHP 的
 **函数名直接给了季节语义**(`BombSub*__begin`):
@@ -113,7 +113,7 @@ else {               // 季节释放:
 return 1;
 ```
 
-**`Bomb__activate_bomb` @0x40db20**(按炸触发,`../player/01` §1 状态1/4 调):
+**`Bomb__activate_bomb` @0x40db20**(按炸触发,`engine/player/th16/01` §1 状态1/4 调):
 ```c
 if (param[0xc] != 0) return -1;        // 已在发,忽略(+0xc = "正在执行"标志)
 param[0xc] = 1;                        // 置发动
@@ -159,7 +159,7 @@ level = 当前季节档;                              // 强度档
 特效对象 +0x4b0 = RELEASE_LEVEL_RADIUS_DOYOU[level];     // 内圈清弹半径(随档变大)
 特效对象 +0x4b4 = RELEASE_LEVEL_RADIUS_2_DOYOU[level] (+8); // 外圈半径
 特效对象 +0x4ac = RELEASE_LEVEL_DURATION_DOYOU[level];   // 释放持续时长(随档变长)
-PLAYER+0x1663c = 10(0x41200000=10.0f);          // ★ 释放瞬间 10 帧无敌(见 ../player/01 §3)
+PLAYER+0x1663c = 10(0x41200000=10.0f);          // ★ 释放瞬间 10 帧无敌(见 engine/player/th16/01 §3)
 ENEMY_MANAGER+0x40 += 1;                          // 释放计数器(疑计分/无释放奖励统计,🟡)
 ```
 - **释放 = 一个半径式清弹屏障**:`+0x4b0/4b4` 内外半径、`+0x4ac` 时长,逐帧由 vtable[1](on_tick)推进、
@@ -244,7 +244,7 @@ for (laser in g_laser_mgr 链表)  if (laser+0x10 != 1)
 - → **主炸 = 实例化自主寻的弹对象(自带物理/AI/生命周期),季节释放 = 跟随一个 anm 特效在其中心清弹+造伤**。
   两者只共用 `Bomb` 外壳调度。(BombReimu 实证;其余角色主炸 begin 同样置 `+0x1664c` bit0x4 + 120 帧无敌,见 `05`。)
 
-## 6. player 侧的触发点(回指 `../player/01`)✅
+## 6. player 侧的触发点(回指 `engine/player/th16/01`)✅
 
 `player_update_perframe`(0x442560):
 - **状态 1(存活)**:`MAIN_BOMB_PTR & can_bomb & (INPUT_RISING_EDGE&0x2)` → 主炸;

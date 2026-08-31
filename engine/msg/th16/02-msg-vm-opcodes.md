@@ -109,7 +109,7 @@ MSG:  0 end ────────────────► 拆 VM(on_tick_2
    `519 dialogWait`(0x4216e0)的检查点,把握手字段彻底锁死 → `03-dialogue-lifecycle.md`。
 2. **`\|x,y,` 文本定位语法**(ins 17 内 `FUN_0042bbe0`/`FUN_00476c60`)精解——对 thcrap 译文 / IDE 文本编辑相关。
 3. **结局/staff 第二指令集**(独立,优先级低)。
-4. **回填 `../../docs/`**:IDE 的 MSG 支持 = 本表(结构化 opcode 编辑)+ §1 文本编解码 + thmsg/truth 互通。
+4. **回填 THTK-Studio 仓库的 `docs/`**:IDE 的 MSG 支持 = 本表(结构化 opcode 编辑)+ §1 文本编解码 + thmsg/truth 互通。
 
 ## 证据指针
 
@@ -117,4 +117,4 @@ MSG:  0 end ────────────────► 拆 VM(on_tick_2
   ECL `dialogRead/Wait` 0x4216b3/0x4216e0。
 - ExpHP truth:`map`/`src/core_mapfiles/msg.rs`(MSG_10_185,签名+逐版本编号);GitHub `ExpHP/truth`。
 - ExpHP thpages:`js/tables/reference/msg.ts`(名+行为 prose);站点 <https://exphp.github.io/thpages/>(MSG 页;**注:为 stage MSG**)。
-- 社区来源速查见 `../shared/touhou-modding-sources.md`。
+- 社区来源速查见 `engine/_shared/community-sources.md`。

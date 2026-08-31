@@ -63,7 +63,7 @@ ECLplus 也 hook 了**变量 getter 的范围闸**(TH17 `0x427524` 取值 / `0x4
 ## 5. 注意事项(坑)
 
 - **地址版本锁**:上述全是 **TH16 v1.00a**;换版本/作品,`ecl_run_over_300`/范围闸 `ja`/取参函数地址都会变,须用同套方法(我们的 `04`/`05`)重定位。ECLplus 也是每作单独做。
-- **replay/版本不兼容**:加了 opcode = 改了模拟,**录像必然 desync**(见之前 replay 讨论);用 RNG/浮点的 handler 还要注意确定性(replay-safe 流见 `../shared/th16-engine-math.md`)。
+- **replay/版本不兼容**:加了 opcode = 改了模拟,**录像必然 desync**(见之前 replay 讨论);用 RNG/浮点的 handler 还要注意确定性(replay-safe 流见 `engine/_shared/math-and-prng.md`)。
 - **别撞已有 opcode**:`[300,1001]` 内大量是 default 空槽、`<300` 基本没用,但仍以我们枚举的已用集为准(`05` §2);选 ≥2000 最稳。
 - **code cave 要可执行**(`VirtualAlloc PAGE_EXECUTE_READWRITE`);patch 点要 `VirtualProtect` 开写再还原。
 - **thiscall 调参**:`ecl_get_int_arg` 等是 `__thiscall`(ecx=enm),C 里要用内联汇编调(见 ECLplus `ECLplus.cpp` 的 `GetIntArg`)。

@@ -2,7 +2,7 @@
 
 > 适用:**TH16《鬼形兽》`th16.exe` v1.00a**(imagebase 0x400000)。勿外推到其它作。
 > 本篇只画**整体结构 / 工作流 / 子系统边界 / 编排关系**,不逐 opcode 展开(opcode 表见将来 `02-*`)。
-> 证据等级:**✅ 一手反编译+多源交叉** / 🟡 单源或部分 / ❓ 待查。方法见 `../sht/findings/00-METHOD-*`。
+> 证据等级:**✅ 一手反编译+多源交叉** / 🟡 单源或部分 / ❓ 待查。方法见 `engine/sht/th16/00-METHOD-*`。
 >
 > **三方交叉已对上**(这是本篇可信度高的原因):一手反编译(Ghidra `th16` DB)× ExpHP th-re-data
 > 命名/结构体 × thtk eclmap `th16.eclm`。凡三者一致处标 ✅。
@@ -163,7 +163,7 @@ CUR_TABLE_STAGE_FILES +0x14+(subshot+character)*4  ← 按角色选 .msg 文件�
 2. **文件头/入口表布局**:验 `Gui+0x1cc` 头部 8 字节项的其余字段(只确认了 +4=偏移)。
 3. **文本定位语法**:opcode 0x11 里 `|x,y,文本` 的解析(FUN_0042bbe0 取串、FUN_00476c60 切逗号)——对 thcrap 译文有用。
 4. **结局/staff 第二 VM**:`Ending::on_tick_23__main` 怎么解 `e0X.msg`/`staffX.msg`(独立优先级低)。
-5. **回填**:稳定后 → `../../docs/`(IDE 的 MSG 支持:结构化 opcode 编辑 + 对 thmsg)。
+5. **回填**:稳定后 → THTK-Studio 仓库的 `docs/`(IDE 的 MSG 支持:结构化 opcode 编辑 + 对 thmsg)。
 
 ## 证据指针(便于复核)
 

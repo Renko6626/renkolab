@@ -3,7 +3,7 @@
 > 方法:Ghidra(ghidra-re MCP)一手反编译 th16.exe(用户自有,ExpHP 符号已套)。日期 2026-06-12。
 > 分级 ✅一手读写点 / 🟡观测但写点或全语义未追 / ❓未解。**仅 TH16 v1.00a**。
 > 本篇是 player 子系统的**字段总账**:把 01–04 散落的偏移集中、补齐、标注读写点与可信度;**已在
-> `../sht/findings/04,05,08` 给过的(shooter/header/运行时槽/伤害源)只指引、不重复**。
+> `engine/sht/th16/04,05,08` 给过的(shooter/header/运行时槽/伤害源)只指引、不重复**。
 
 ## 0. 三个对象 / 池
 
@@ -27,8 +27,8 @@
 - **套到全局**:`PLAYER_PTR@0x4a6ef8`→`zPlayer*`、`MAIN_BOMB_PTR@0x4a6da8`/`SUBSEASON_BOMB_PTR@0x4a6da4`→`zBomb*`。
 - **套到函数签名**(set_function_type,param→具名结构指针):`player_update_perframe/on_death/input_move/commit_death_on_miss/set_alive_after_bomb/shot_init`(`zPlayer*`)、`tick_shooting_state`、`PlayerInner__repopulate_options`(`zPlayerInner*`)、`Bomb__activate_bomb/can_bomb/on_tick/on_draw/initiate_season_release_cooldown`、`BombSub{Doyou,Spring,Fall,Winter}` + `BombReimu`(`zBomb*`)。
 - 效果:反编译从裸偏移变成具名字段。如 `player_on_death` 现读 `(player->inner).state=4`、`(player->inner).iframes.current=6`、`(player->inner).flags & 8`;`Bomb__can_bomb` 现读 `bomb->is_season`、`bomb->cooldown.current<0`、`MAIN_BOMB_PTR->bomb_is_in_use`。
-- 复跑 `funcs/import_th_re_data.py` 不会动这些(它只导 funcs/statics,**不导 struct**)。
-- **★ 写了专门的 struct 导入器 `funcs/import_th_re_data_structs.py`**(ExpHP 无此工具):从 `type-structs-*.json` 生成布局精确的 C(每字段具名或 `char[size]` 兜底,值内嵌拓扑排序),`--check` 自检 **288/288 size 全对**;**✅ 已用法 B(headless,programmatic build)把全部 158 个 z* 结构体导入并落盘**(zEnemy/zBullet/zItem/zGui/zLaser*/zStage/zSupervisor/zMainMenu/zEclVm… 全在)。⚠️ 坑:Ghidra `CParser.parse` 不可靠落盘,改用 `StructureDataType`+`dtm.addDataType(REPLACE)` 才成。本次还导入了 **SHT 格式结构体**(`zShtRawFile/zShtShooter/zShtRawFileHeader/zShtRawOptionPos/zFloat2`,size 实测 0x210/0x58/0x40/0xa8 ✓——**直接是 IDE 的 SHT 数据模型**)+ player 邻接(`zSpellcard/zEnemyLife/zEnemyDropSeason/zPlayerBullet/zPosVel/zScreenEffect/zUpdateFunc/zVTableBomb/zVTableLaser`)。详见 `../funcs/README.md`。
+- 复跑 `tooling/ghidra/import_th_re_data.py` 不会动这些(它只导 funcs/statics,**不导 struct**)。
+- **★ 写了专门的 struct 导入器 `tooling/ghidra/import_th_re_data_structs.py`**(ExpHP 无此工具):从 `type-structs-*.json` 生成布局精确的 C(每字段具名或 `char[size]` 兜底,值内嵌拓扑排序),`--check` 自检 **288/288 size 全对**;**✅ 已用法 B(headless,programmatic build)把全部 158 个 z* 结构体导入并落盘**(zEnemy/zBullet/zItem/zGui/zLaser*/zStage/zSupervisor/zMainMenu/zEclVm… 全在)。⚠️ 坑:Ghidra `CParser.parse` 不可靠落盘,改用 `StructureDataType`+`dtm.addDataType(REPLACE)` 才成。本次还导入了 **SHT 格式结构体**(`zShtRawFile/zShtShooter/zShtRawFileHeader/zShtRawOptionPos/zFloat2`,size 实测 0x210/0x58/0x40/0xa8 ✓——**直接是 IDE 的 SHT 数据模型**)+ player 邻接(`zSpellcard/zEnemyLife/zEnemyDropSeason/zPlayerBullet/zPosVel/zScreenEffect/zUpdateFunc/zVTableBomb/zVTableLaser`)。详见 `tooling/ghidra/README.md`。
 - 注:ExpHP `zShtShooter` 已有字段名(fire_rate/damage/angle/speed/option/func_on_*),但 **`+0x38` flags 段、`+0x21`、`+0x1c` 仍标 `__unknown`** → 我们的"flags 运行时不读"(`../sht/05`)、`+0x21` 按角色 {0,1,2,4}、func_* 索引→行为表(`../sht/03`)是 ExpHP 没有的语义增量。
 
 ### ExpHP 名 ↔ 我们偏移(关键字段,全部 ✅ 对上)
@@ -190,8 +190,8 @@
 | `+0x80` | 1 | obj+0x80 命中间隔 |
 
 → **完全吻合 `../sht/08` 的伤害源字段图**(独立反推两次一致 = 强交叉验证)。调用方实测:
-- **复活清屏**:`(player, pos, 0x1e=30, 0x96=150)` → 30 帧寿命、150 伤害(`../player/01` §5)。
-- **季节释放**:on_tick 每帧 `(player, pos, 1, 100)` → 1 帧寿命、100 伤害(`../player/02` §5d)→ 连续造伤。
+- **复活清屏**:`(player, pos, 0x1e=30, 0x96=150)` → 30 帧寿命、150 伤害(`engine/player/th16/01` §5)。
+- **季节释放**:on_tick 每帧 `(player, pos, 1, 100)` → 1 帧寿命、100 伤害(`engine/player/th16/02` §5d)→ 连续造伤。
 - 命中派生子弹(hit3/4):见 `../sht/03` §6.4 / `08`。
 
 ---
@@ -203,7 +203,7 @@
 - 🟡 `+0x638/63c/640`、`+0x64c/650/654` 的复位点全链;`+0x16680/84/88`、`+0x1668c/90/94`、`+0x6c0+i*0xe4`(option 槽某字段)精确语义。
 - 🟡 Bomb `+0x2c` 释放角、`+0x68` 符卡标记的下游消费;option 记录 `+0x60/64/b0` 与 `../sht/04` 运动学字段的语义冲突(`04` §4c,❓)。
 - `__ptr_GAME_SPEED_MULT_FROM_ECL`:被所有 Timer 推进引用的调速乘子表(ECL 驱动的游戏速度);本篇按"调速"
-  定性,未反其填充(归 `../ecl/`)。
+  定性,未反其填充(归 `engine/ecl/th16/`)。
 
 ## 5. 可信度 / 复核
 
@@ -212,4 +212,4 @@
   `player_shot_init`(0x440fb0);其余偏移来自 01–04 已反函数。
 - ✅ 季节 DELTAS seed `{0,100,130,160,200,250,300,0}`、box 表地址、伤害源参数 = 静态/反编译实证。
 - 🟡 见 §4。复核入口:Ghidra DB `th16`,地址见各表。
-- 交叉:`../sht/findings/04`(运行时槽)、`05`(shooter/header/box 覆写)、`08`(伤害源);`../player/01–04`。
+- 交叉:`engine/sht/th16/04`(运行时槽)、`05`(shooter/header/box 覆写)、`08`(伤害源);`engine/player/th16/01–04`。

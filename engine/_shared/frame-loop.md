@@ -3,7 +3,7 @@
 > **对象**:TH16 `th16.exe`,imagebase 0x400000。日期 2026-06-10。
 > **方法**:ExpHP th-re-data 命名 + 本仓库一手反编译 `run_all_on_tick`(0x401460)与 `EnemyManager::on_tick_1a__body`(0x41b3d0)双重坐实;xref 追到顶层 `Window::do_frame`。
 > **可信度**:派发器机制 + 敌机/弹幕驱动链 = ✅一手;子系统命名/优先级 = ExpHP(✅✅,与本仓库吻合)。仅 TH16。
-> 这补上了 `../bullets/01-core-engine.md` §6 标 🟡 的"调度器顶层 runner 未反"。
+> 这补上了 `engine/bullet/th16/01-core-engine.md` §6 标 🟡 的"调度器顶层 runner 未反"。
 
 ---
 
@@ -27,13 +27,13 @@ Window::do_frame__normal_version (0x45a8a0)              ← 顶层帧驱动(另
     ├ Stage::on_tick_11            (0x409e50, prio 0x11)  → 关卡/STD/背景
     ├ EnemyManager::on_tick_1a     (0x41b4f0 / body 0x41b3d0, prio 0x1a) ✅一手
     │    └ 遍历敌人链表 mgr+0x180;每敌机 Enemy::on_tick (0x41d1e0)
-    │         └ Enemy::ecl_run (0x473bc0) → EclRunContext::ecl_run (0x472030)   【ECL VM,见 ../ecl/04】
+    │         └ Enemy::ecl_run (0x473bc0) → EclRunContext::ecl_run (0x472030)   【ECL VM,见 engine/ecl/th16/04】
     ├ LaserManager::on_tick_1b     (0x4316b0 / body 0x431510, prio 0x1b) ✅一手(2026-06-13 补)
     │    └ 遍历激光活动链 mgr+0x14(g_laser_mgr=0x4a6ee0);按节点 flags 路由 vtable[4]/[6]/[13]
-    │         └ vtable[4] = LaserLine/Inf/Curve/Beam_frame_tick(各类一份)  【激光 vtable,见 ../bullets/03 §2/§7】
+    │         └ vtable[4] = LaserLine/Inf/Curve/Beam_frame_tick(各类一份)  【激光 vtable,见 engine/bullet/th16/03 §2/§7】
     ├ BulletManager::on_tick_1c    (0x412c50 / body 0x412860, prio 0x1c) ✅一手
     │    └ 遍历弹池活动链 mgr+0x70;每弹 Bullet::on_tick (0x411e70)
-    │         └ Bullet::run_ex (0x413860)   【弹运动 VM,见 ../bullets/01 §3】
+    │         └ Bullet::run_ex (0x413860)   【弹运动 VM,见 engine/bullet/th16/01 §3】
     ├ EffectManager::on_tick_1f    (0x418ab0, prio 0x1f)
     ├ Spellcard::on_tick (0x417930) · Bomb::on_tick (各机体) · Ending::on_tick_23 (0x4199f0) · AsciiManager::on_tick (0x408fb0) …
  └ UpdateFuncRegistry::run_all_on_draw (0x4015a0)          ← 渲染遍(各子系统 on_draw,按渲染层)
@@ -51,7 +51,7 @@ Window::do_frame__normal_version (0x45a8a0)              ← 顶层帧驱动(另
 - 各子系统注册的**完整优先级表**(谁在 0x11..0x23 之间)可枚举 `register__on_tick` 调用方补全。
 
 ## 关联
-- ECL VM:`../ecl/04-ecl-vm-interpreter.md`(`ecl_run`)、`../ecl/02-runtime-vm.md`(每敌机一解释器)。
-- 弹运动 VM / 弹池 tick:`../bullets/01-core-engine.md` §1/§3/§6(本文补其 §6 的 🟡 调度器 runner)。
-- 子系统切口:`../sht/findings/06-th16-engine-incisions.md`(敌人/道具/图形…)。
-- 命名来源:ExpHP `../ecl/vendor/th-re-data`(`UpdateFuncRegistry`/`Window::do_frame`/各 `on_tick_NN`);纪律 `../sht/findings/00-METHOD-逆向记录纪律.md`。
+- ECL VM:`engine/ecl/th16/04-ecl-vm-interpreter.md`(`ecl_run`)、`engine/ecl/th16/02-runtime-vm.md`(每敌机一解释器)。
+- 弹运动 VM / 弹池 tick:`engine/bullet/th16/01-core-engine.md` §1/§3/§6(本文补其 §6 的 🟡 调度器 runner)。
+- 子系统切口:`engine/sht/th16/06-th16-engine-incisions.md`(敌人/道具/图形…)。
+- 命名来源:ExpHP `local/vendor/th-re-data`(`UpdateFuncRegistry`/`Window::do_frame`/各 `on_tick_NN`);纪律 `METHOD.md`。

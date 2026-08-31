@@ -1,12 +1,12 @@
 # TH16 MainMenu 子系统逆向计划
 
-> 版本:**TH16《鬼形兽》v1.00a**(`files/th16.exe`,imagebase `0x400000`)。仅此版本,勿外推。
+> 版本:**TH16《鬼形兽》v1.00a**(`local/th16.v1.00a/th16.exe`,imagebase `0x400000`)。仅此版本,勿外推。
 > 目标子系统:`MainMenu`(标题/选项/键位/难度/角色/副季/练习/录像/音乐室/符卡练习 等所有标题菜单态)。
 > 选它的理由:`🔬 真·待挖`里**累计字节最大的子系统**(15 函数 / 17.7KB,含全工程最大的
 > `0x44c8c0` = 5034 字节);且 ExpHP 已给 28 个 `MainMenu__do_*` 锚点 + 3 个菜单结构体,
 > **导航底图最全 = 性价比最高的语义首攻**。
 >
-> 写于 2026-06-10,批量导名(872 命名)完成后。纪律见 `../sht/findings/00-METHOD-逆向记录纪律.md`。
+> 写于 2026-06-10,批量导名(872 命名)完成后。纪律见 `METHOD.md`。
 
 > **状态(2026-06-10):Phase 1–3 已完成,MainMenu 真·待挖 15→0(全清)。**
 > - Phase 1 状态机骨架 → `mainmenu/01-state-machine.md`(on_tick 分派 + change_menu + 态枚举 0x00–0x14 全表)。
@@ -90,7 +90,7 @@
 - 用 `parse_type_declaration` 把 `zMainMenu` / `zMenuHelper` / `zMenuCommonThing` / `zVTableMainMenu`
   建进工程(依赖 `zAnmLoaded`/`zUpdateFunc`/`zTimer`/`zThread`/`zAnmId`/`zMusicRoomData` 等;缺的先建占位或裁字段)。
 - 给 `on_tick`/`do_*`/各 helper 的 this 指针套 `zMainMenu*` / `zMenuHelper*`。
-- ⚠️ 结构体/数据符号改动 **MCP 不持久**,要写进 `../sht/disasm/scripts/apply_th16_mainmenu_names.py`
+- ⚠️ 结构体/数据符号改动 **MCP 不持久**,要写进 `tooling/ghidra/scripts/apply_th16_mainmenu_names.py`
   (GhidraProject driver + `proj.save()`,参考本目录 `apply_th16_thredata_bulk_names.py`)。函数名/注释 MCP 可落盘。
 
 ### Phase 1 — on_tick 状态机骨架(先解分派)
@@ -116,7 +116,7 @@
 ### Phase 4 — 交叉印证 + 回流
 - 与 ExpHP `funcs.json`/`type-structs` 逐项对名;**冲突先怀疑自己**(四闸门,memory `re-overclaim-guard`)。
 - 存档/配置字段与 `statics.json`、配置结构体核对。
-- 写 findings(见 §产出);命名 + 结构体经 `apply_th16_mainmenu_names.py` 固化;稳定结论回填 `../../docs/`。
+- 写 findings(见 §产出);命名 + 结构体经 `apply_th16_mainmenu_names.py` 固化;稳定结论回填 THTK-Studio 仓库的 `docs/`。
 
 ## 4. 方法 / 纪律(每条结论必守)
 - **五段证据链**:发现→推测→验证→结论(可信度+版本)→证据(地址/读写点)。一手反编译 > 推断 > 社区单源。
@@ -131,8 +131,8 @@
 - `funcs/mainmenu/01-state-machine.md` —— on_tick 状态机图 + current_menu 枚举 → handler 映射(Phase 1)。
 - `funcs/mainmenu/02-menu-helpers.md` —— zMenuHelper 控件方法语义(Phase 2)。
 - `funcs/mainmenu/03-states-and-sht-selection.md` —— 各菜单态 + ★ character/subseason→SHT 选择链(Phase 3)。
-- `../sht/disasm/scripts/apply_th16_mainmenu_names.py` —— 函数/结构体/注释,headless 可复现。
-- 稳定后回填 `../../docs/`(SHT 选择链部分)。
+- `tooling/ghidra/scripts/apply_th16_mainmenu_names.py` —— 函数/结构体/注释,headless 可复现。
+- 稳定后回填 THTK-Studio 仓库的 `docs/`(SHT 选择链部分)。
   > (findings 暂放 `funcs/mainmenu/`;若 MainMenu 研究做大,可比照 `anm/`/`bullets/` 升格为顶层 `mainmenu/` 文件夹。)
 
 ## 6. 第一刀(下次动手起点)

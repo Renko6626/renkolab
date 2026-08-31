@@ -5,7 +5,7 @@
 
 > ⚠️ **本表是 2026-06-11 之前的快照,已部分过时——以 Ghidra DB `th16` 为准。已知更正**:
 > - **player-shot 段(0x444–0x447)现已 100% 命名**(SHT func 表全员 + 助手;findings/03 §6、08)。下表"PlayerBullet ~10"已清零。
-> - **Arcfile 段已做**(THA1 归档 + zun 加密 + LZSS,见 `shared/th16-archive-thai-lzss.md`);`0x458730` 是 hint 误导(文本字形平滑,**非归档/非 mipmap**)。
+> - **Arcfile 段已做**(THA1 归档 + zun 加密 + LZSS,见 `engine/_shared/archive-tha1.md`);`0x458730` 是 hint 误导(文本字形平滑,**非归档/非 mipmap**)。
 > - **★ 选题启发式有缺陷**:本表按"大小 × 未命名"排,**过度偏向基础设施**(heap/log/CRT/Win32/AnmVm 渲染)。
 >   高价值判据应是「**社区真没解(不在 thtk/pytouhou/wiki)且驱动可 mod 的格式/玩法**」;TH16 的玩法/格式函数 ExpHP
 >   多已命名,故纯挖"未命名"边际递减——更值钱的是**深挖已命名函数的行为语义**(如 SHT func_*)或**换 TH18/19**。

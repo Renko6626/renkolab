@@ -1,6 +1,6 @@
 # sht-webedit / shmupcc-sht 源码分析（面向 IDE 移植）
 
-承接 [sht-format-research.md](./sht-format-research.md) 的高层调研，本文是对 Priw8 两个仓库的
+承接 [sht-format-research.md](./format-reference.md) 的高层调研，本文是对 Priw8 两个仓库的
 **源码级**分析,目标是给 THTK-Studio 的 SHT 支持定一套可落地的架构。两个仓库都是 touhou modding
 开源社区的公开资料,已确认可以合法研究和移植。
 

@@ -28,7 +28,7 @@
 
 - **决策**:不新增表项,直接**重指 tick 表的 idx4 槽**(`0x4919b0`,现 = `0x004470f0` lock-dash,
   零售零使用)→ 指向我们的 cave 函数。`../findings/03` §4 实测 tick∈{0,1,2,5},idx4 安全。
-- **.sht 侧已就绪**:我们之前生成的 `files/pl02_lockdash_*.sht` 已经把子机 tick 填成 **4**。
+- **.sht 侧已就绪**:我们之前生成的 `local/th16.v1.00a/pl02_lockdash_*.sht` 已经把子机 tick 填成 **4**。
   ⚠️ 但它们用的是 **init=3**;激光需要 **init=2**(清蓄力 +0xa0 + 建 +0xb0 激光池对象 + SFX)。
   → **需重生成 pl02:`(init=2, tick=4, hit=0)`**(见 §4 待办)。
 - hit:用户要"hit 效果就是伤害"。激光伤害走 idx2 的 **+0xb0 激光池对象**(本身对接触敌人持续掉血),
@@ -59,7 +59,7 @@
 
 - [x] ~~反伤害施加路径 + +0xb0 创建点~~ → ✅ `../findings/08`(伤害自动,免写代码)。
 - [x] ~~补 ABI/地址~~ → ✅ §3(半径 256、全部函数地址)。
-- [x] ~~生成 .sht~~ → ✅ `files/pl02_tracklaser.sht`(子机 init=3/tick=4/hit=0,dmg=30;主弹保留直线)。
+- [x] ~~生成 .sht~~ → ✅ `local/th16.v1.00a/pl02_tracklaser.sht`(子机 init=3/tick=4/hit=0,dmg=30;主弹保留直线)。
 - [x] ~~写起步版 cave~~ → ✅ `tick_tracking_burst_starter.c` + `.asm`(简化版:追踪+脉冲+伤害,无束体)。
 - [x] ~~对抗审计 cave/管线~~ → ✅ 见 `NOTES.md`:抓到并修了 BLOCKER(stdcall 误当 cdecl 多 add esp);hit=0 证为安全;链条补实。
 - [ ] **汇编 cave**:`nasm -f bin tick_tracking_burst_starter.asm -o cave.bin` → hexdump 贴进 thcrap codecave。

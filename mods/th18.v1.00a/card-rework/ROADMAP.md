@@ -46,19 +46,19 @@
 
 ## 开工顺序
 
-1. 读 [README.md](README.md) 和 [findings/README.md](findings/README.md)，确认样本和证据纪律。
-2. 按任务阅读：架构 [cards-01-system-architecture.md](findings/cards-01-system-architecture.md)，卡效果 [cards-05-card-catalog.md](findings/cards-05-card-catalog.md)，商店 [cards-04-card-shop.md](findings/cards-04-card-shop.md)。
-3. 在本地、忽略的 `th18-files/` 中打开 TH18 数据库；以函数语义和控制流复核目标点，记录 EXE 的版本/哈希和原始字节。
+1. 读 [README.md](../../../games/th18.v1.00a/INDEX.md) 和 [findings/README.md](../../../engine/card/th18/README.md)，确认样本和证据纪律。
+2. 按任务阅读：架构 [cards-01-system-architecture.md](../../../engine/card/th18/cards-01-system-architecture.md)，卡效果 [cards-05-card-catalog.md](../../../engine/card/th18/cards-05-card-catalog.md)，商店 [cards-04-card-shop.md](../../../engine/card/th18/cards-04-card-shop.md)。
+3. 在本地、忽略的 `local/th18.v1.00a/` 中打开 TH18 数据库；以函数语义和控制流复核目标点，记录 EXE 的版本/哈希和原始字节。
 4. 用 thcrap patch 组织实验：逐版本脚本、`expected` 原字节校验、最小 codecave/binhack；地址只写入该版本文件。
 5. 先做无行为改动的加载验证，再一次只加入一个行为变化；保留可还原补丁和游戏内验证记录。
 6. 把已验证的地址、原字节、调用约定、测试步骤和结果写回 `findings/`；猜测只能留在开放问题。
 
 ## 可复用资料（仅流程，不是 TH18 地址）
 
-- [../sht/test-laser/thcrap_patch.md](../sht/test-laser/thcrap_patch.md)：thcrap patch 目录、`binhack`/`codecave`、`expected` 校验及相对 `[…]`、绝对 `<…>` 表达式。
-- [../sht/test-laser/NOTES.md](../sht/test-laser/NOTES.md)：ABI/栈平衡审计；按目标函数 `RET` 和游戏调用点确认调用约定。
-- [../sht/disasm/README.md](../sht/disasm/README.md)：本地 Ghidra/PyGhidra 环境和样本边界。
-- [../sht/findings/00-METHOD-逆向记录纪律.md](../sht/findings/00-METHOD-逆向记录纪律.md)：可复查结论的证据标准。
+- [mods/th16.v1.00a/tracking-laser/thcrap_patch.md](../../th16.v1.00a/tracking-laser/patch/thcrap_patch.md)：thcrap patch 目录、`binhack`/`codecave`、`expected` 校验及相对 `[…]`、绝对 `<…>` 表达式。
+- [mods/th16.v1.00a/tracking-laser/NOTES.md](../../th16.v1.00a/tracking-laser/AUDIT.md)：ABI/栈平衡审计；按目标函数 `RET` 和游戏调用点确认调用约定。
+- [tooling/ghidra/README.md](../../../tooling/ghidra/README.md)：本地 Ghidra/PyGhidra 环境和样本边界。
+- [METHOD.md](../../../METHOD.md)：可复查结论的证据标准。
 
 TH16 `test-laser` 尚未完成游戏内实跑，因此它是**经过静态审计的流程参考**，不是可照搬到 TH18 的生产模板。
 

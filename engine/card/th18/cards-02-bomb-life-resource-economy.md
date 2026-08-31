@@ -1,7 +1,7 @@
 # TH18 炸弹/残机 资源经济 — 卡牌喂库存(一手反)
 
 > 适用:TH18 v1.00a,`th18.exe`(`th18`)。前置:`cards-01-system-architecture.md`(架构)。
-> 证据链纪律见 `../../sht/findings/00-METHOD-逆向记录纪律.md`。
+> 证据链纪律见 `../METHOD.md`。
 
 ## 0. 一句话
 TH18 的**炸弹(X)/残机库存不是普通计数器,而是由资源卡喂养**:`CardBomb/CardLife/...` 在

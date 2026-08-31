@@ -37,7 +37,7 @@ option/释放弹(道具)。所以拉 SHT 这一根线,半张引擎骨架都被�
 - **slot 字段**(✅):+0x48/4c 坐标、**+0x60 速度**、**+0x64 角度**、+0x8c 状态(1活/2完)、+0x90 homing目标、
   +0xa0 激光长、+0xac 打包shooter idx、+0xb0 弹链接、+0xdc tick指针。
 - **弹/特效池**:player+0xd080(stride 0x94)、+0x1110(stride 0xc0)。
-- ~~下一刀:第 5 张表 0x491b0c(敌弹/特效派发)~~ **更正(2026-06-09)**:`0x491b0c` = **ANM VM `ANM_ON_SWITCH_FUNCS`**(动画 on-switch 回调,非敌弹),`0044f810`/`0044c8c0` 是 ANM 渲染更新器。详见 `../../ecl/03-thredata-crosscheck.md` §4c;归 `../../anm/`。
+- ~~下一刀:第 5 张表 0x491b0c(敌弹/特效派发)~~ **更正(2026-06-09)**:`0x491b0c` = **ANM VM `ANM_ON_SWITCH_FUNCS`**(动画 on-switch 回调,非敌弹),`0044f810`/`0044c8c0` 是 ANM 渲染更新器。详见 `../engine/ecl/th16/03-thredata-crosscheck.md` §4c;归 `../engine/anm/th16/`。
 
 ## 3. 自机本体 🟢🟡
 
@@ -71,7 +71,7 @@ option/释放弹(道具)。所以拉 SHT 这一根线,半张引擎骨架都被�
 
 - 管理器 `DAT_004c0f48`;句柄→对象 `46efa0(mgr,handle)`、释放 `46f0b0`、分配 `406380`、注册渲染 `40e5c0`。
 - ANM on-switch 回调表 **`0x491b0c`** = `ANM_ON_SWITCH_FUNCS`(更正:ANM VM,非"特效/敌弹";`+0x5d0`=ANM switch 类型)。
-- **下一刀**:ANM VM 整体 → `../../anm/`;`46efa0`=`AnmManager::get_vm_with_id`,对象 `+0x5d0`=switch idx 索引 on-switch 表。
+- **下一刀**:ANM VM 整体 → `../engine/anm/th16/`;`46efa0`=`AnmManager::get_vm_with_id`,对象 `+0x5d0`=switch idx 索引 on-switch 表。
 
 ## 7. 音效 🔴
 
@@ -86,7 +86,7 @@ option/释放弹(道具)。所以拉 SHT 这一根线,半张引擎骨架都被�
 
 ## 9. ★ 数学 / CRT 模块(下个会话主攻,起步包)
 
-> ✅ **已兑现 → `../../shared/th16-engine-math.md`**(2026-06-09)。本节是当时的起步线索;最终结论以那份为准。
+> ✅ **已兑现 → `../engine/_shared/math-and-prng.md`**(2026-06-09)。本节是当时的起步线索;最终结论以那份为准。
 > 几处本节的推断**被后续一手复核纠正**:`0x402cb0` 家族**不读种子**(那是 float 包装,核心 PRNG 在 `0x402be0`/
 > `0x449720`,种子 `0x4a6d88/d80`);`0x405510/0x4054f0` 确为 **sin/cos**(0x405510=sin);`0x487aaa`=atan2、
 > 新解出 `0x487aca`=**fmod**、`0x488a00`=**floor**(非 trunc);PRNG 为 16 位满周期、gameplay 周期 32768。
@@ -144,5 +144,5 @@ option/释放弹(道具)。所以拉 SHT 这一根线,半张引擎骨架都被�
 
 ## 关联
 - 一手细节:`03-*`(func 表/行为)、`04-*`(运行时架构)、`05-*`(flags/字段图/死字段)、`99-QUIRK-*`(哑弹糗事)。
-- 社区对照:`../shared/touhou-modding-sources.md`。
+- 社区对照:`engine/_shared/community-sources.md`。
 - 纪律:`00-METHOD-*`;memory `re-overclaim-guard` / `re-evidence-chain-discipline`。

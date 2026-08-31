@@ -1,41 +1,55 @@
-# th18-files/ — TH18 的样本 exe + Ghidra 工程(独立于 th16)
+# local/ — 本地样本与工程（**不入库**）
 
-> ★ **TH18 用的是和 TH16 完全不同的一套文件/工程**。这里放 `th18.exe` 和它自己的 Ghidra 工程,
-> **不要和 th16 那套搞混**。本目录内的版权字节 / 工程缓存**全部 gitignore**(见 `../.gitignore`),
-> 本 README 是唯一入库的、用来标位置的文件。
+**纪律：本仓库不留任何版权字节。** 游戏 exe、解包资产、Ghidra 工程、第三方仓库克隆
+一律只存在于这个目录，根 `.gitignore` 把 `local/*` 全部忽略，只保留本文件。
 
-## 放什么(用户本地提供,不入库)
+新会话/新机器上这里是空的——照下表自己放回去。
+
+## 布局
 
 ```
-th18/th18-files/
-├── th18.exe                 # ★ TH18 本体(32 位 PE,ZUN 版权,用户放进来)
-└── ghidra_projects/         # th18 的 Ghidra 工程(MCP/driver 自动生成)
-    ├── th18.exe.gpr / .rep
-    └── ...
+local/
+├── th16.v1.00a/          TH16《鬼形兽》
+│   ├── th16.exe          md5 cb9caf54ce5738f70086e783ec88fd2a  (683,520 B)
+│   ├── th16.dat          原始归档(77 MB)
+│   ├── pl0*.sht          从 .dat 解出的自机配置 + 我们改造过的实验档
+│   ├── e0*.msg staff*.msg 结局/staff roll 样本
+│   ├── ghidra_projects/  ★ 主工程 th16.exe.{gpr,rep}
+│   └── th16.exe_ghidra/  早期工程(已弃用,留档)
+├── th18.v1.00a/          TH18《虹龍洞》
+│   ├── th18.exe          md5 9969cac756098c1da05a81de45437a70  (847,360 B)
+│   └── ghidra_projects/  ★ 主工程 th18.exe.{gpr,rep}
+├── vendor/               第三方仓库克隆(只记来源，不转发源码)
+│   ├── th-re-data/       ★★ ExpHP 逐版本符号金矿(funcs/statics/structs)
+│   ├── thtk/             thecl/thanm/thmsg/thstd/thdat
+│   ├── sht-webedit/      SHT 字节布局的社区事实标准
+│   ├── shmupcc-sht/      另一个 SHT 参考实现
+│   └── th16.eclm th16.eclmap
+└── scratch/              smoke_test 工程等一次性产物
 ```
 
-## 两套工程的位置对照(★别混)
+## 怎么放回去
 
-| 作品 | exe 路径 | MCP `database_id` | headless driver 的 project-dir / project / program |
-| --- | --- | --- | --- |
-| **TH16** | `research/files/th16.exe` | `th16` | `research/files/ghidra_projects` / `th16.exe` / `/th16.exe` |
-| **TH18** | `research/th18/th18-files/th18.exe` | **`th18`** | `research/th18/th18-files/ghidra_projects` / `th18.exe` / `/th18.exe` |
+1. **游戏 exe / .dat**：用你自己合法持有的副本，按上表哈希核对后放进对应版本目录。
+   **不要去下载。**
+2. **vendor 克隆**：各仓库上游 commit 记录在
+   [`../engine/_shared/community-sources.md`](../engine/_shared/community-sources.md)，按记录重新 clone。
+   两个 SHT 参考仓库**均无 LICENSE 文件**，正式移植/发布前需确认授权，故不直接提交其源码。
+   ExpHP `th-re-data` 上游同样无 LICENSE——它的函数名可用于本地逆向，但不擅自转发。
+3. **Ghidra 工程**：不必找回，用
+   [`../tooling/ghidra/bootstrap.py`](../tooling/ghidra/bootstrap.py) 从 exe 重建
+   （建库 → 分析 → 套 ExpHP 名 → 套结构体 → dump → 落盘）。
 
-→ 它们是**两个独立的 Ghidra 库**:`open_database` 用不同 `file_path` + 不同 `database_id`,互不影响。
-**可同时开两个库并排对照**(MCP 支持多库;`decompile_function` 指定 `database=th16` 或 `database=th18`),
-但**结论各写各的**(th16 → `../../player/` 等;th18 → `../findings/`)。
+## Ghidra 工程与 MCP
 
-## 开工(放好 th18.exe 后)
+`ghidra-re` MCP 的 `open_database` 直接指工程里的 exe：
 
-```bash
-# 1) MCP: open_database  file_path=research/th18/th18-files/th18.exe  database_id=th18  → wait_for_analysis
-# 2) 套 ExpHP th18 名字 + 结构体(headless driver,先 MCP close_database 释放锁;env 见 ../../funcs/README.md)
-python funcs/import_th_re_data.py        ecl/vendor/th-re-data/data/th18.v1.00a \
-    --project-dir research/th18/th18-files/ghidra_projects --project th18.exe --program /th18.exe
-python funcs/import_th_re_data_structs.py ecl/vendor/th-re-data/data/th18.v1.00a \
-    --project-dir research/th18/th18-files/ghidra_projects --project th18.exe --program /th18.exe
-# 3) MCP 重开 th18 → 套 zPlayer*/zEnemyData* 到全局 → 反编译即具名字段
-```
+| 版本 | `file_path` | `database_id` |
+| --- | --- | --- |
+| TH16 | `local/th16.v1.00a/th16.exe` | `th16` |
+| TH18 | `local/th18.v1.00a/th18.exe` | `th18` |
 
-> 注:首次 `open_database` 会把 th18.exe 导入并在此目录建工程;之后 import 脚本对**同一个工程**(上表 project-dir)
-> 操作。确保两者指向同一处,否则名字/结构体进了 A 工程、MCP 开的是 B 工程会"看不到"(这个坑在 th16 踩过)。
+MCP 支持多库并存，两个 `database` 可以**并排对照**同名函数（ExpHP 命名一致），
+这是把 TH16 已反清楚的逻辑映射到 TH18 的主要手法——
+但**只能参考逻辑，地址/偏移必须在目标 exe 上重取**
+（[`../games/th18.v1.00a/port-plan.md`](../games/th18.v1.00a/port-plan.md)）。

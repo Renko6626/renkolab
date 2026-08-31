@@ -6,7 +6,7 @@
 >
 > **诚实声明(谁验的)**:**主控已逐函数一手复核(2026-06-09)**:碰撞伤害链(`0x4438c0`/`0x4439e0`/`0x443f10`)、极坐标速度(`0x417510`)、显示链(`0x40e5c0`→`0x46f600`→`0x407b20`)、opcode 解码法、**全部 10 个行为 handler**、spawn(`0x412cb0`)、池 ctor(`0x411880`)、回收(`0x412670`)。复核**抓出并纠正一处 agent 错误**:`bullet_beh_add_displacement`(`0x4161f0`)完成时清的是 `c68` 的 `0x1|0x8` 位、**不是**它自己的 `0x80000`(见 §4 注)。**opcode 全表**:解码法 + ~8 条 + spawn 描述符已一手核,余下逐条 helper 用途仍单源(标注于表)。
 >
-> **★ Ghidra 已落盘**:上述 22 函数已 MCP `rename`+`plate comment`+`save`(跨会话存活);数据符号(`g_bullet_mgr` 等)+ 可复现固化见 `../sht/disasm/scripts/apply_th16_bullet_names.py`。
+> **★ Ghidra 已落盘**:上述 22 函数已 MCP `rename`+`plate comment`+`save`(跨会话存活);数据符号(`g_bullet_mgr` 等)+ 可复现固化见 `tooling/ghidra/scripts/apply_th16_bullet_names.py`。
 
 ---
 
@@ -49,7 +49,7 @@
 **判据二:池架构与敌人/自机弹判然不同** —— agent(双源互证)+ 主控抽查一致:
 - 弹对象 `0x1478` 字节,**池内嵌**:管理器 `DAT_004a6dac`(`operator_new(0x1403b28)`)里两段 `_eh_vector_constructor` 数组,各 **2001 槽 stride 0x1478**;spawn 从空闲链 `mgr+0x60` pop(`FUN_00412cb0`),**无 per-object `operator_new`**。
 - 敌人对象 `0x574c`(~22KB),独立 `operator_new`,进 `DAT_004a6dc0+0x180/+0x184` 链(`FUN_0041aa70`)。弹 opcode 能 spawn 敌人 ≠ 弹是敌人。
-- **无自机弹 vs 本池的碰撞 pass**(`FUN_0042d200`〔⚠️**更正**:ExpHP=`GameThread::destructor`,**不是主循环**;真主循环=`Window::do_frame`→`run_all_on_tick`,见 `../shared/th16-main-loop.md`〕里自机管理器 → 本管理器顺序处理,中间无交叉测试)→ 本池**不吃**自机弹伤害 = 弹,非敌(结论不依赖该函数身份,另有伤害链/池架构双证)。
+- **无自机弹 vs 本池的碰撞 pass**(`FUN_0042d200`〔⚠️**更正**:ExpHP=`GameThread::destructor`,**不是主循环**;真主循环=`Window::do_frame`→`run_all_on_tick`,见 `engine/_shared/frame-loop.md`〕里自机管理器 → 本管理器顺序处理,中间无交叉测试)→ 本池**不吃**自机弹伤害 = 弹,非敌(结论不依赖该函数身份,另有伤害链/池架构双证)。
 - spawn 时若弹出现在自机判定圈内立即取消(`FUN_00412cb0` 末尾比 `mgr+0x44`)= 经典弹幕行为。
 
 **判据三:行为词汇全是弹运动**(§4):加速/转向/变速变角/反弹/趋点/屏幕夹取;**无** HP/掉落/Boss 阶段等敌人专属逻辑。
@@ -94,7 +94,7 @@
 | `0x1000000` | **spawn 进另一管理器** `FUN_0041aa70(DAT_004a6dc0, [10], &frame)`(`[10]`=子脚本/图案 id) | — | ✅ |
 | `0x2000000` | 置 `+0xc84`(覆盖渲染桶) | — | ✅ |
 | `0x4000000` | `[4]>=1`→启用计数行为(`+0x1348`) | 0x4000000 | ✅ |
-| `0x8000000` | **EX_LASER**(社区证):`operator_new(0x1b20)/FUN_00431130`=`[4]`==0 线激光 / `0x1548/FUN_00431860`=`[4]`==1 无限激光(`flags=(instr[7]&0xfd)\|2` 与社区逐位吻合)进 `DAT_004a6ee0` 环;PC+2。激光详查→`../ecl/` | — | ✅✅ |
+| `0x8000000` | **EX_LASER**(社区证):`operator_new(0x1b20)/FUN_00431130`=`[4]`==0 线激光 / `0x1548/FUN_00431860`=`[4]`==1 无限激光(`flags=(instr[7]&0xfd)\|2` 与社区逐位吻合)进 `DAT_004a6ee0` 环;PC+2。激光详查→`engine/ecl/th16/` | — | ✅✅ |
 | `0x20000000` | **置碰撞半径**:`[0]`(<0 取类型表默认)→`+0xc40` 与 `+0xc44` | — | ✅ |
 | `0x80000000` | `[4]>=1`→启用计数行为(`+0x1108`) | 0x80000000 | ✅ |
 
@@ -154,32 +154,32 @@
 | `+0x9c`、`+0x9ffe94` | 两段池数组(各 2001 槽 stride 0x1478) | ✅(agent) |
 
 ### 相关全局
-`DAT_004a6dc0`=敌人管理器(opcode 0x1000000 spawn 进它) · `DAT_004a6ee0`=子对象环(opcode 0x8000000) · `DAT_004c0f48`=图形/特效管理器(裁剪视野/命中特效,见 `../anm/`) · `DAT_0049f3e4`=弹类型表(stride 0x114:半径/桶/anim 类/渲染 ptr) · `DAT_0049f2e0`=渲染注册描述 · `DAT_004a6ef8`=自机(判定半径/矩形) · `DAT_004a5788`=dt=1.0 · `DAT_004a6d88`=PRNG。
+`DAT_004a6dc0`=敌人管理器(opcode 0x1000000 spawn 进它) · `DAT_004a6ee0`=子对象环(opcode 0x8000000) · `DAT_004c0f48`=图形/特效管理器(裁剪视野/命中特效,见 `engine/anm/th16/`) · `DAT_0049f3e4`=弹类型表(stride 0x114:半径/桶/anim 类/渲染 ptr) · `DAT_0049f2e0`=渲染注册描述 · `DAT_004a6ef8`=自机(判定半径/矩形) · `DAT_004a5788`=dt=1.0 · `DAT_004a6d88`=PRNG。
 
 ---
 
 ## 6. provenance(对象从哪来)— agent 产出,双源互证
 
 - **管理器全局** `DAT_004a6dac` ✅:`FUN_00411880` ctor 内 `DAT_004a6dac=param_1`(@0x41191c),`FUN_00411dd0` 处 `operator_new(0x1403b28)`。
-- **每帧入口**:不是手写主循环调用,而是**优先级更新表回调**——`0x412c50`(=`BulletManager::on_tick_1c`)由 `FUN_00401730`(`UpdateFunc::operator new`)创建、`FUN_00401300`(`register__on_tick`)以**优先级 0x1c** 注册,先查暂停标志 `DAT_004a6dd4` 再 tail-JMP 到 `FUN_00412860`(body)。✅ **顶层 runner 已反**:`UpdateFuncRegistry::run_all_on_tick`(0x401460)← `Window::do_frame`(0x45a8a0)。完整主循环见 **`../shared/th16-main-loop.md`**。
+- **每帧入口**:不是手写主循环调用,而是**优先级更新表回调**——`0x412c50`(=`BulletManager::on_tick_1c`)由 `FUN_00401730`(`UpdateFunc::operator new`)创建、`FUN_00401300`(`register__on_tick`)以**优先级 0x1c** 注册,先查暂停标志 `DAT_004a6dd4` 再 tail-JMP 到 `FUN_00412860`(body)。✅ **顶层 runner 已反**:`UpdateFuncRegistry::run_all_on_tick`(0x401460)← `Window::do_frame`(0x45a8a0)。完整主循环见 **`engine/_shared/frame-loop.md`**。
 - **spawn** `bullet_pool_spawn` `0x412cb0` ✅(主控一手):从 `mgr+0x60` 空闲链 pop;**字节码**从描述符 `param_1+0x28` 复制 0xc6 dword(0x318B)进 `obj+0xc88`,初始 PC 从 `param_1[0xde]`;prepend 进 `mgr+0x70` 活动链;**spawn 取消**(弹生在自机判定圈内则 free)。
-  - **★ fire 描述符布局**(✅ 一手,= ECL 发射器结构体 `emitter+0x166`,**ECL 写入侧已确认**见 `../ecl/05-fire-interface.md` §3):`[0]`=类型、`[1]`=子类型、`[2..4]`=坐标、`[5]`=基准角、`[6]`=散布步进、`[7]`=速度、`[8]`=速度2、`[9]`=径向偏移、`[0xd9]`=数量(**低16=路数 / 高16=波数**,`desc+0x366`)、`[0xda]`=散布模式(0..0xc:等分/环/随机/sin 调制…)、`[0xdb]`=初始 `c68`(**bit 0x20=播音标志**)、`[0xdc]`=**SFX id**(订正:原误记 [0xdd];etSound 写 [0xdc],播音 `if([0xdb]&0x20) FUN_0045e1f0([0xdc])`)、`[0xde]`=初始 PC、`[10..]`=0xc6 dword 字节码。散布几何用 `prng_randf_signed/unit`。
-- **★ 上游 = ECL et* 指令**(✅,`../ecl/05` §3):描述符由 ECL 发射器指令逐字段写——etSprite→[0]/[1]、etAngle→[5]/[6]、etSpeed→[7]/[8]、etCount→[0xd9]、etAim→[0xda]、etSound→[0xdc]、etEx→字节码块 `[0x10+n*0xb]`;**etOn(op 601)= 触发**,调 `bullet_spawn_wrapper(emitter+0x166)`。ECL↔弹幕接缝**已钉死**。
+  - **★ fire 描述符布局**(✅ 一手,= ECL 发射器结构体 `emitter+0x166`,**ECL 写入侧已确认**见 `engine/ecl/th16/05-fire-interface.md` §3):`[0]`=类型、`[1]`=子类型、`[2..4]`=坐标、`[5]`=基准角、`[6]`=散布步进、`[7]`=速度、`[8]`=速度2、`[9]`=径向偏移、`[0xd9]`=数量(**低16=路数 / 高16=波数**,`desc+0x366`)、`[0xda]`=散布模式(0..0xc:等分/环/随机/sin 调制…)、`[0xdb]`=初始 `c68`(**bit 0x20=播音标志**)、`[0xdc]`=**SFX id**(订正:原误记 [0xdd];etSound 写 [0xdc],播音 `if([0xdb]&0x20) FUN_0045e1f0([0xdc])`)、`[0xde]`=初始 PC、`[10..]`=0xc6 dword 字节码。散布几何用 `prng_randf_signed/unit`。
+- **★ 上游 = ECL et* 指令**(✅,`engine/ecl/th16/05` §3):描述符由 ECL 发射器指令逐字段写——etSprite→[0]/[1]、etAngle→[5]/[6]、etSpeed→[7]/[8]、etCount→[0xd9]、etAim→[0xda]、etSound→[0xdc]、etEx→字节码块 `[0x10+n*0xb]`;**etOn(op 601)= 触发**,调 `bullet_spawn_wrapper(emitter+0x166)`。ECL↔弹幕接缝**已钉死**。
 - **字节码源头**:子弹(opcode 0x2000/0x8000000)从**父弹** `obj+0xc88` 克隆;**根弹**描述符来自 ECL etEx 写入的字节码块。🟡 类型表 `DAT_0049f2e0`/`DAT_0049f3e4` 是编译进 .data 的弹型表(半径/精灵/渲染),与"运动字节码"两回事,别混。
 
 ---
 
 ## 7. 开放问题
 
-1. **ECL 接口**(→ **`../ecl/`**,已建文件夹 + README,含起步锚点):根弹描述符(含 `obj+0xc88` 字节码)的上游开火命令——已钉到 `FUN_00412cb0`←`FUN_00414da0`←外部开火点 `FUN_0041dcb0`/`FUN_00431fe0`/`FUN_00438cb0`;ECL opcode 派发表在 `0x4921b4`(含 `FUN_00424110` random handler)。详见 `../ecl/README.md`。
-2. **ANM 显示**(→ `../anm/`):弹的精灵/动画(`DAT_0049f3e4` 类型表、`DAT_004c0f48` 对象、疑 `0x491b0c` anm VM)——独立工程。
+1. **ECL 接口**(→ **`engine/ecl/th16/`**,已建文件夹 + README,含起步锚点):根弹描述符(含 `obj+0xc88` 字节码)的上游开火命令——已钉到 `FUN_00412cb0`←`FUN_00414da0`←外部开火点 `FUN_0041dcb0`/`FUN_00431fe0`/`FUN_00438cb0`;ECL opcode 派发表在 `0x4921b4`(含 `FUN_00424110` random handler)。详见 `engine/ecl/th16/README.md`。
+2. **ANM 显示**(→ `engine/anm/th16/`):弹的精灵/动画(`DAT_0049f3e4` 类型表、`DAT_004c0f48` 对象、疑 `0x491b0c` anm VM)——独立工程。
 3. ✅ **handler 复核已完成**(10/10 一手过)。**遗留 TODO**:`bullet_beh_add_displacement`(`0x4161f0`)自身 `0x80000` 位在何处被清(它自己只清 `0x1|0x8`)——可能由 spawn 重置或对象死亡时清,待查。
 4. **🟡 opcode**:`0x800`(`0045e1f0` SFX?)、`0x100000`(混合模式)的 helper 用途待亲反;opcode 全表的逐条 helper 调用未全部亲反(结构/解码法已确认)。
 5. **量纲/真值关**:在真机 dump 几颗弹的字节码,对 opcode 表做 ground-truth(Linux headless 跑不了 exe,留 Windows)。
 
 ---
 
-## 8. ★★ 社区交叉验证(etEx / `../ecl/ECL-info.md`)— 2026-06-09
+## 8. ★★ 社区交叉验证(etEx / `engine/ecl/th16/ECL-info.md`)— 2026-06-09
 
 > **验证序正确**:VM 由本研究**从零一手反编译**(中立、未看社区表)得出;**之后**用 thcrap 社区的 `ECL-info.md`(etEx 子弹效果表)对照——**不是 priming,是独立外部佐证**(最强一档)。
 > 结论:**`obj+0xc68` 就是 etEx 的效果位场**;社区"旧 etEx"的**位值** = 我反出的 **opcode 整数 / c68 位**,且**语义逐条吻合**,~28 项**全中**,连**空位也对齐**(社区标 `32`/`0x10000000`/`0x40000000` unused,我的 VM 在这些位上正好无 opcode)。这是对 §3/§4 整张表的**独立确认**。
@@ -189,7 +189,7 @@
 **被它解开/修正的点**:
 - **解开 🟡**:`0x800`=**EX_PLAYSOUND**(`0x45e1f0`=播音,确)、`0x100000`=**EX_BRIGHT**(`+0x558`=混合模式,确)。
 - **解开未知字段**:`+0x141c`=**EX_SIZE 的尺寸标量**(原标"半径缩放🟡")、`+0x24`=**EX_INVULN 时长**(原标"计时器")、`+0xc4c`=**EX_REACT 回调**。
-- **重大发现**:`0x8000000`(`operator_new(0x1b20)/0x1548` 子对象)= **EX_LASER**——这些子对象是**激光**(`a=0` 线激光 / `a=1` 无限激光);我一手读到的 `(instr[7]&0xfd)|2` 子分支与社区无限激光 `flags=(d&0xFD)|0x02` **逐位吻合**。激光详查移交 `../ecl/`。
+- **重大发现**:`0x8000000`(`operator_new(0x1b20)/0x1548` 子对象)= **EX_LASER**——这些子对象是**激光**(`a=0` 线激光 / `a=1` 无限激光);我一手读到的 `(instr[7]&0xfd)|2` 子分支与社区无限激光 `flags=(d&0xFD)|0x02` **逐位吻合**。激光详查移交 `engine/ecl/th16/`。
 - **命名校正(冲突→从社区)**:`screen_clamp`→应为 **EX_WRAP**(环绕,参数 walls `+0x118c`/count `+0x1188` 与社区吻合);`timed_visibility`→**EX_OFFSCREEN**。Ghidra 已据此改名。
 - **`0x4161f0` 的 0x1|0x8 清位**有了解释:EX_VELADD 直接控速度,故关掉会冲突的 EX_SPEEDUP(0x1)/EX_ANGLE_ACCEL(0x8)。
 - **ECL→弹桥梁定性**:**一颗弹的字节码程序(`obj+0xc88`)= 发射器编译好的一串 etEx 效果**;`etEx(id,...,type,a,b,r,s)` 的 `type` = 哪个 EX_ = 哪个 opcode = 哪个 c68 位。参数 `a/b/r/s` → opcode 指令字段(见 §3 与 ECL-info 的逐效果参数表)。
@@ -224,15 +224,15 @@
 | **EX_HOMING/EX_ACCEL_2/EX_NO_GRAZE**(社区新表 31/32/33) | **TH16 无**:枚举了 `bullet_vm_exec` 全部 opcode + `bullet_tick` 全部位,只有旧位场那套(29 个),无这三者。TH16 的"追踪"靠 EX_MOVE + 朝玩家阈值实现。 | ✅ |
 | **擦弹环**(`player_collide_circle`) | `graze_ring = max(40.0, 弹半径/2.5)`(`DAT_00494604=40`、`DAT_00494570=2.5` PE 实测);命中 `dist²<(自机+弹)²`、擦弹 `dist²<(自机+环)²+弹²`、否则未中。 | ✅ |
 | **擦弹处理**(`FUN_00444cf0`) | 累计 `DAT_004a57c0`(HUD 擦弹数,cap 99999999)+ `DAT_004a57c4`(副计数,出分数弹);SFX `0x2a`(42);`obj+0x20` 位 `0x4`=已擦弹防重入;生擦弹粒子 + 分数弹。 | ✅ |
-| **EX_REACT**(0x8000) | opcode 把 `instr[4]` 写 `+0xc4c`、不置 c68 位、`free` 时清 0;**但全弹路径未发现读取点** → 消费者疑在 ECL opcode 派发(`0x4921b4`)或敌人 tick,**待 `../ecl/` 查**。 | ✅写/❓消费 |
+| **EX_REACT**(0x8000) | opcode 把 `instr[4]` 写 `+0xc4c`、不置 c68 位、`free` 时清 0;**但全弹路径未发现读取点** → 消费者疑在 ECL opcode 派发(`0x4921b4`)或敌人 tick,**待 `engine/ecl/th16/` 查**。 | ✅写/❓消费 |
 | **EX_VELADD 终止**(`0x4161f0` TODO 已结) | `c68` 的 `0x80000` **只在 spawn 清**(`bullet_pool_spawn` 把 `c68=0` 再由 VM 重灌);handler 自身不清该位、`free` 也不清 → **该效果一旦开启就跑到弹死**。handler 完成时清 `0x1\|0x8` 是为压掉会冲突的 EX_SPEEDUP/EX_ANGLE_ACCEL。 | ✅ |
 
 > **激光(EX_LASER)** 整片已单独成文 → **`03-lasers.md`**(5 个 RTTI 激光类、旋转 OBB 碰撞主控亲验、线/无限差异、参数交叉验证)。
 
 ## 关联
-- **ECL 接口/VM**(本弹幕引擎的上游,开火命令来源):`../ecl/README.md` + **`../ecl/ECL-info.md`**(社区 etEx 速查,已与本 VM 交叉验证)。接缝 `FUN_00414da0`/opcode 表 `0x4921b4`。
-- **ANM 显示系统**(与本 gameplay VM 是两套独立 VM):`../anm/README.md`(创建链 `0x40e5c0`→`0x46f600`→`0x407b20` 已转那边锚点)。
-- README(本目录)§A/§B 锚点与证伪;同构模板 `../sht/findings/04`(自机弹)、敌人 `../sht/findings/06 §4`(注意 `DAT_004a6dc0` vs 本文 `DAT_004a6dac`)。
-- 数学原语 `../shared/th16-engine-math.md`(dt、PRNG、角度归一化、极坐标速度 `0x430df0`/`0x417510`)。
-- 纪律 `../sht/findings/00-METHOD-逆向记录纪律.md`;memory `re-overclaim-guard`/`re-agent-no-hypothesis-priming`/`re-evidence-chain-discipline`/`re-workflow-fanout-cost`。
+- **ECL 接口/VM**(本弹幕引擎的上游,开火命令来源):`engine/ecl/th16/README.md` + **`engine/ecl/th16/ECL-info.md`**(社区 etEx 速查,已与本 VM 交叉验证)。接缝 `FUN_00414da0`/opcode 表 `0x4921b4`。
+- **ANM 显示系统**(与本 gameplay VM 是两套独立 VM):`engine/anm/th16/README.md`(创建链 `0x40e5c0`→`0x46f600`→`0x407b20` 已转那边锚点)。
+- README(本目录)§A/§B 锚点与证伪;同构模板 `engine/sht/th16/04`(自机弹)、敌人 `engine/sht/th16/06 §4`(注意 `DAT_004a6dc0` vs 本文 `DAT_004a6dac`)。
+- 数学原语 `engine/_shared/math-and-prng.md`(dt、PRNG、角度归一化、极坐标速度 `0x430df0`/`0x417510`)。
+- 纪律 `METHOD.md`;memory `re-overclaim-guard`/`re-agent-no-hypothesis-priming`/`re-evidence-chain-discipline`/`re-workflow-fanout-cost`。
 </content>

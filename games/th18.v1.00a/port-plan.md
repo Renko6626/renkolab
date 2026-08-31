@@ -21,7 +21,7 @@
 
 ## 1. 共通引擎(大概率同形,逐条**验证**,非假设成立)
 
-### 1a. 自机 中弹/生命(源:`../player/01`)
+### 1a. 自机 中弹/生命(源:`engine/player/th16/01`)
 - **可复用概念(TH18 待测)**:5 态状态机(出场/存活/死亡结算/决死窗口/…);中弹经碰撞判定族→死亡入口;
   无敌帧门控;commit 死亡=扣命+miss+掉资源+重置;复活有无敌期;命<0→GameOver/续关。
 - **TH18 锚点**:`zPlayerInner.state / .iframes / .flags`(ExpHP 已命名,偏移按 th18 取);碰撞函数到 th18.exe 按
@@ -32,41 +32,41 @@
   决死窗口同时支持"X 炸救命"与"救命卡"两条路。证据/详见 `findings/cards-01-system-architecture.md` §4B/§7。
   教训:别把 "ExpHP 未命名某结构" 当 "该机制不存在"。
 
-### 1b. 火力/输入/移动/聚焦(源:`../player/03`)
+### 1b. 火力/输入/移动/聚焦(源:`engine/player/th16/03`)
 - **可复用概念(待测)**:开火门控状态机(射击键→cadence)、9 向移动 + 4 档移速(直/聚直/斜/聚斜,√2 对角)、
   **聚焦=输入位**驱动。
 - **TH18 锚点**:`zPlayerInner.is_focused / .shoot_key_*_timer / .regular_speed.. / .attempted_direction`;输入位掩码到
   `Supervisor::read_keyboard_input` 重解(位值由消费侧定;**TH16 聚焦=INPUT bit3,TH18 重验**)。
 
-### 1c. option/子机(源:`../player/04`)
+### 1c. option/子机(源:`engine/player/th16/04`)
 - **可复用概念(待测)**:本体 option 数=火力档;option 位置取自 .sht option_pos(聚焦/非聚焦两段);option 既是显示也是发射点。
 - **TH18 锚点**:`zPlayerOption`、`zPlayerInner.main_options[]`、`zShtRawOptionPos`(若 th18 有)。
   **TH16 的"季节子机"= TH18 无**(季节机制不存在)→ 第二组 option 在 TH18 是什么(卡牌相关?)需新查。
 
-### 1d. 字段总账(源:`../player/05`)
+### 1d. 字段总账(源:`engine/player/th16/05`)
 - **直接用 ExpHP th18 结构体**:`zPlayer/zPlayerInner/zBomb(无)/zPlayerOption/zPlayerDamageSource94?`——
   **偏移全部以 th18 struct 为准**,TH16 的字段图只作"该有哪些字段"的清单。
 - 伤害源池、判定盒(hurtbox/attractbox)等概念同;**偏移/数值重取**。
 
-### 1e. 资源经济(源:`../player/06`)
+### 1e. 资源经济(源:`engine/player/th16/06`)
 - **可复用概念(待测)**:道具按 type switch 分派到 collect_*;命=满命道具+分数续命(档表);power 多档;
   **5 炸碎=1 炸(TH18 无炸→不适用)**;分数续命有 per-难度档表。
 - **TH18 锚点**:`ItemManager` 的 item-tick dispatch、`Globals__collect_*`(th18 funcs.json 里找)、
   `SCORE_EXTEND_QUOTAS_*`(**th18 自己的档值,重读**)、`zItem`、卡牌购买可能用"金钱"资源(查 `zAbility*`/money 全局)。
 - **不适用/换形**:炸弹碎片;季节道具(type0x10)→ TH18 换成卡牌/金钱掉落。
 
-### 1f. SHT 格式 + 自机弹语义(源:`../sht/findings/03,05,07,08`)
+### 1f. SHT 格式 + 自机弹语义(源:`engine/sht/th16/03,05,07,08`)
 - **★ 这是最该先验的"共通假设"**:`zShtShooter` th18 在(同 0x58),字段名同。
 - **待验假设(TH16→TH18)**:func_* 跳转表机制(load-time 索引→指针)、**flags 段运行时是否仍不读**、
   shooterset 组织(火力×聚焦)、自机弹伤害管线(spawn→伤害源→敌人)。
-  → 正是 `../sht/findings/01` / `../README` 标的开放问题 **"TH16↔TH18/19 func_* 编号是否共用"**。
+  → 正是 `engine/sht/th16/01` / `../README` 标的开放问题 **"TH16↔TH18/19 func_* 编号是否共用"**。
 - **重取**:func 表地址与内容、各 idx 行为、`flags` 分布、`max_dmg` 等数值。
 
 ---
 
 ## 2. TH18 特有机制(不适用 TH16 结论,**从零反**,有 ExpHP 锚点)
 
-| TH16 机制(`../player/02,04`)| TH18 对应 | 起手锚点(ExpHP th18)|
+| TH16 机制(`engine/player/th16/02,04`)| TH18 对应 | 起手锚点(ExpHP th18)|
 | --- | --- | --- |
 | 季节释放(按键技能)+ 双炸弹 | **卡牌/能力系统**(完全不同)| `zCardBaseClass / zVTableCard / zTableCardData / zCardEquipmentSingle / zCardList / zCardMomoyo` |
 | 季节槽充能 + 档位 | **能力/金钱 经济**(疑)| `zAbilityManager / zAbilityMenu / zAbilityText`;商店/金钱全局待查 |
@@ -84,7 +84,7 @@
 - **数值表**:分数续命档(TH16 STANDARD `{500k..}`)、伤害上限、决死/无敌帧数、POC 线、power 档数——**逐个重读 th18**。
 - **func_* 表**:地址 + 内容 + idx→行为,全可能不同(连"共用编号"都是待验假设,不是已知)。
 - **输入位**:键→位映射可能变;位值由消费侧重定。
-- **特有机制**:季节/炸弹相关结论(`../player/02`、`../player/04` 季节子机、`../player/06` 炸碎)在 TH18 **不适用**。
+- **特有机制**:季节/炸弹相关结论(`engine/player/th16/02`、`engine/player/th16/04` 季节子机、`engine/player/th16/06` 炸碎)在 TH18 **不适用**。
 
 ---
 

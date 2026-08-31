@@ -1,35 +1,49 @@
 #!/usr/bin/env python3
-# Dump ALL functions (addr, name, size, xref-count) from the MCP-shared th16 Ghidra project
-# to funcs/th16-funcs.json. Snapshot of "our current naming state" for the unexplored-function worklist.
-#
-# 运行前先 MCP close_database 释放 ghidra_projects/th16.exe 锁!(见 memory ghidra-mcp-save-broken)
-# 用法:GHIDRA_INSTALL_DIR=... JAVA_HOME=... <conda ghidra>/bin/python funcs/dump_funcs.py
-import json
+"""Dump 一个 Ghidra 工程里的全部函数（addr / name / size / xref 数）到 JSON。
+
+这是「我们当前命名状态」的快照，喂给 build_worklist.py 算出待挖清单。
+被 bootstrap.py 调用，也可单独跑：
+
+    P=/data/sunyunbo/miniconda3/envs/ghidra
+    JAVA_HOME=$P GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC \
+      $P/bin/python tooling/ghidra/dump_funcs.py \
+        --project-dir "$(pwd)/local/th16.v1.00a/ghidra_projects" \
+        --project th16.exe --program /th16.exe \
+        --out local/th16.v1.00a/th16-funcs.json
+
+⚠️ 运行前先让 MCP `close_database` 释放工程锁，否则会撞锁。
+⚠️ 工程目录必须是绝对路径。
+"""
+import argparse, json, os
+
+ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+ap.add_argument("--project-dir", required=True, help="工程目录（绝对路径）")
+ap.add_argument("--project", required=True, help="工程名，如 th16.exe")
+ap.add_argument("--program", required=True, help="工程内程序路径，如 /th16.exe")
+ap.add_argument("--out", required=True, help="输出 JSON 路径")
+a = ap.parse_args()
+
 import pyghidra
 pyghidra.start()
 from ghidra.base.project import GhidraProject
 
-PROJ_DIR = "/data/sunyunbo/www/THTK-Studio-2/research/files/ghidra_projects"
-OUT = "/data/sunyunbo/www/THTK-Studio-2/research/funcs/th16-funcs.json"
-
-proj = GhidraProject.openProject(PROJ_DIR, "th16.exe", False)
-prog = proj.openProgram("/", "th16.exe", False)
-fm = prog.getFunctionManager()
-
-out = []
-for f in fm.getFunctions(True):
-    ep = f.getEntryPoint()
-    sym = f.getSymbol()
-    xrefs = sym.getReferenceCount() if sym is not None else 0
-    out.append({
-        "addr": "0x%08x" % ep.getOffset(),
-        "name": f.getName(),
-        "size": f.getBody().getNumAddresses(),
-        "xrefs": int(xrefs),
-        "thunk": bool(f.isThunk()),
-        "external": bool(f.isExternal()),
-    })
-
-json.dump(out, open(OUT, "w"), indent=0)
-print("[dump_funcs] wrote %d functions -> %s" % (len(out), OUT))
-proj.close()
+folder, _, name = a.program.rpartition("/")
+proj = GhidraProject.openProject(os.path.abspath(a.project_dir), a.project, False)
+prog = proj.openProgram(folder or "/", name, False)
+try:
+    out = []
+    for f in prog.getFunctionManager().getFunctions(True):
+        sym = f.getSymbol()
+        out.append({
+            "addr": "0x%08x" % f.getEntryPoint().getOffset(),
+            "name": f.getName(),
+            "size": f.getBody().getNumAddresses(),
+            "xrefs": int(sym.getReferenceCount()) if sym is not None else 0,
+            "thunk": bool(f.isThunk()),
+            "external": bool(f.isExternal()),
+        })
+    os.makedirs(os.path.dirname(os.path.abspath(a.out)) or ".", exist_ok=True)
+    json.dump(out, open(a.out, "w"), indent=0)
+    print("[dump_funcs] wrote %d functions -> %s" % (len(out), a.out))
+finally:
+    proj.close()

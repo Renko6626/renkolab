@@ -85,4 +85,4 @@ sht_parse_resolve_funcptrs(player+0x2c78c, PTR_s_pl00sub_sht_00492cb8[a57ac]);  
 ## 落盘
 - 本篇纯追踪,无新 rename(player_shot_init / sht_parse_resolve_funcptrs 已命名)。
 - 全局配置块 `DAT_004a57a4/a8/ac/b4`、4 张表符号 → 建议在 `apply_th16_mainmenu_names.py` 里给数据符号改名 + 注释(数据符号须 driver 脚本落盘,见 memory `ghidra-mcp-save-broken`)。
-- 稳定后回填 `../../docs/`(SHT 选择/加载链)。
+- 稳定后回填 THTK-Studio 仓库的 `docs/`(SHT 选择/加载链)。

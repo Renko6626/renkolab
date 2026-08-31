@@ -4,7 +4,7 @@
 > **来源**:deep research(2026-06-09,5 角度→17 源→25 claim 3 票对抗验证,24 confirmed/1 killed)。最强 TH16 一手证据 = **ExpHP `exphp-share/th-re-data`**(`data/th16.v1.00a/`,版本钉死 = HSiFS),含结构体布局 + **命名的 VM 函数地址表**;运行模型来自 **Priw8** 教程;变量模型 thecl/truth/Mddass。
 > **可信度**:结构体/函数地址 = ✅✅(ExpHP 一手 RE,且与本仓库 exe 独立吻合,见 §5);运行控制流 = 🟡(ExpHP 给的是**数据布局 + 函数名**,**per-frame 派发循环/CALL 调度细节尚未反编译**——本仓库待自证);pytouhou 帧门控 = 概念可借鉴但**仅老引擎(TH06)**,勿外推。仅 TH16。
 
-> **★ 已落 Ghidra(2026-06-10)**:`zEclLocation/zEclStack/zEclSubroutinePtrs/zEclRawInstructionHeader/zEclFileManager/zEclVm/zEclRunContext` 7 个结构体已建进 th16 DB(偏移逐字段对齐 ExpHP),并把 9 个 ECL 函数首参 retype 为 `zEclRunContext*`/`zEclStack*`/`zEclFileManager*`(`ecl_run` 等的反编译已用字段名)。4 个 __thiscall 函数首参待 headless driver 补(MCP 改不了 auto-param)。可复现:`../sht/disasm/scripts/apply_th16_ecl_names.py`。
+> **★ 已落 Ghidra(2026-06-10)**:`zEclLocation/zEclStack/zEclSubroutinePtrs/zEclRawInstructionHeader/zEclFileManager/zEclVm/zEclRunContext` 7 个结构体已建进 th16 DB(偏移逐字段对齐 ExpHP),并把 9 个 ECL 函数首参 retype 为 `zEclRunContext*`/`zEclStack*`/`zEclFileManager*`(`ecl_run` 等的反编译已用字段名)。4 个 __thiscall 函数首参待 headless driver 补(MCP 改不了 auto-param)。可复现:`tooling/ghidra/scripts/apply_th16_ecl_names.py`。
 
 ---
 
@@ -124,7 +124,7 @@
 ## 6. 变量/寄存器模型(thecl/truth/Priw8/Mddass)
 
 - 变量按**数字 id**寻址,truth 记 `REG[<n>]`,sigil `$`=int / `%`=float(与 thecl 一致)。
-- **I3=-9982 / F3=-9978 不是专用硬件寄存器**,而是**普通局部变量 EI3/EF3**,被 thecl **按约定**借作返回寄存器(非 inline 调用才用)。连续块:**EI0..EI3 = -9985..-9982**(int)、**EF0..EF3 = -9981..-9978**(float)。(thecl.h `TH10_VAR_I3/F3`;truth;Priw8 教程 05/06;父仓库 `../../tools/th20.eclm` 有 EI/EF 名。)
+- **I3=-9982 / F3=-9978 不是专用硬件寄存器**,而是**普通局部变量 EI3/EF3**,被 thecl **按约定**借作返回寄存器(非 inline 调用才用)。连续块:**EI0..EI3 = -9985..-9982**(int)、**EF0..EF3 = -9981..-9978**(float)。(thecl.h `TH10_VAR_I3/F3`;truth;Priw8 教程 05/06;父仓库 THTK-Studio 仓库的 `tools/th20.eclm` 有 EI/EF 名。)
 - 难度/rank(Mddass,🟡 单二手源,待 exe 复核):`-9960`=难度、`-9959`=rank(E0/N1/H2/L3/X4/O5)、`-9953..-9950`=各难度 bool。注意这与 §2 的**每栈 `difficulty_mask`@0x1020 是不同机制**(后者 ExpHP 一手确认,前者全局寄存器待证)。
 
 ---
@@ -143,19 +143,19 @@
 
 1. **反 `EclRunContext::ecl_run`(0x472030)** = 真实 per-frame 派发循环:确认 opcode switch/表形态、读 `cur_location`、time 门控推进 PC。← 最高优先,解决"派发器形态"。
 2. **反 `call_sub`(0x471db0)** + RET(0x474860):CALL(11) 往 zEclStack 压什么(stack_offset/base_offset 互动);**CALL_ASYNC(15)** 如何 new + 链入 `async_list_head`;`async_id` 与 CALL_ASYNC_ID(16) 的 kill-by-id。
-3. **反 `ecl_run_over_300`(0x41dcb0)**:≥300 游戏 opcode 的 switch → 逐个对 `00-*` 的格式 id + `ECL-info` 名;尤其 **fire/enmCreate(`ecl_enm_create` 0x423050)→ 弹幕引擎 handoff**(接 `../bullets/01` §6 fire 描述符 / README §A 三开火点 0x41dcb0/0x431fe0/0x438cb0)。
+3. **反 `ecl_run_over_300`(0x41dcb0)**:≥300 游戏 opcode 的 switch → 逐个对 `00-*` 的格式 id + `ECL-info` 名;尤其 **fire/enmCreate(`ecl_enm_create` 0x423050)→ 弹幕引擎 handoff**(接 `engine/bullet/th16/01` §6 fire 描述符 / README §A 三开火点 0x41dcb0/0x431fe0/0x438cb0)。
 4. 难度过滤实现:`difficulty_mask`@0x1020 在循环里怎么用,vs 全局 rank 寄存器。
 
 ---
 
 ## 9. 来源(质量分级)
 - **一手 / TH16**:`exphp-share/th-re-data`(`th16.v1.00a` 结构+函数,✅✅)— 已克隆 `vendor/th-re-data`(gitignore)。
-- **一手 / 现代引擎**:Priw8 `priw8.github.io`(教程+vars+eclmap-16)、ExpHP `truth`(REG 模型)、thtk `thecl.h`(I3/F3)、Priw8 `ECLjs`/`ECLplus`、父仓库 `../../tools/th20.eclm`。
+- **一手 / 现代引擎**:Priw8 `priw8.github.io`(教程+vars+eclmap-16)、ExpHP `truth`(REG 模型)、thtk `thecl.h`(I3/F3)、Priw8 `ECLjs`/`ECLplus`、父仓库 THTK-Studio 仓库的 `tools/th20.eclm`。
 - **二手**:Mddass touhouwiki `.../ECL/V2`(V2 综述、rank 寄存器 🟡)。
 - **仅老引擎(勿外推 TH16)**:pytouhou `eclrunner.py`/`ecl.py`(TH06)、pytouhou TH06 doc、ExpHP anm gist。
 
 ## 关联
 - 格式侧 opcode 表 / 二进制:`00-thecl-format-reference.md`。
 - 变量/上下文一手反编译:`01-ecl-context-and-variables.md`(本文 §5 衔接)。
-- 弹幕引擎(fire 下游):`../bullets/01-core-engine.md` §6;README §A 三开火点。
-- 纪律:`../sht/findings/00-METHOD-逆向记录纪律.md`;memory `re-overclaim-guard`/`re-evidence-chain-discipline`/`re-workflow-fanout-cost`。
+- 弹幕引擎(fire 下游):`engine/bullet/th16/01-core-engine.md` §6;README §A 三开火点。
+- 纪律:`METHOD.md`;memory `re-overclaim-guard`/`re-evidence-chain-discipline`/`re-workflow-fanout-cost`。

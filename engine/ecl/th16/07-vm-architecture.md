@@ -1,6 +1,6 @@
 # 07 — ECL 虚拟机整体机制(宏观总览 + 核心机制确定)
 
-> **定位**:这是 ECL VM 的**capstone 总览**——把 `00`–`06` + `../shared/th16-main-loop.md` 的细节收束成一张宏观图,并把**核心机制逐条标注确定性**。要细节查对应专题文档;要全局看这篇。
+> **定位**:这是 ECL VM 的**capstone 总览**——把 `00`–`06` + `engine/_shared/frame-loop.md` 的细节收束成一张宏观图,并把**核心机制逐条标注确定性**。要细节查对应专题文档;要全局看这篇。
 > **对象**:TH16 `th16.exe`,imagebase 0x400000。日期 2026-06-10。
 > **可信度**:本文骨架机制均 ✅**一手反编译**(`ecl_run` 0x472030 / `Enemy::ecl_run` 0x473bc0 / `call_sub` 0x471db0 / `ecl_run_over_300` 0x41dcb0 / `run_all_on_tick` 0x401460),并与 thecl 指令号、ExpHP 结构体、Priw8 eclmap **四源交叉印证**。仅 TH16。
 
@@ -15,7 +15,7 @@
 ## 1. 五层全景图
 
 ```
-[主循环] Window::do_frame (0x45a8a0) ──每帧──▶ UpdateFuncRegistry::run_all_on_tick (0x401460)   〔../shared/th16-main-loop〕
+[主循环] Window::do_frame (0x45a8a0) ──每帧──▶ UpdateFuncRegistry::run_all_on_tick (0x401460)   〔engine/_shared/th16-main-loop〕
             按优先级遍历子系统 on_tick:Stage(0x11) · EnemyManager(0x1a) · BulletManager(0x1c) · Effect(0x1f) · …
                                               │
 [宿主] EnemyManager::on_tick_1a (0x41b3d0) ──┘ 遍历敌人链表 mgr+0x180,逐敌机:
@@ -27,7 +27,7 @@
                                               │
 [引擎子系统] enmCreate→敌人管理器 · move→运动 · et*/etOn→─┐
                                               │           ▼
-[下游 VM] 弹幕池 bullet_pool_spawn ◀── 发射器描述符 ◀── etOn 触发           〔开火接缝 / 05 §3,../bullets/01 §6〕
+[下游 VM] 弹幕池 bullet_pool_spawn ◀── 发射器描述符 ◀── etOn 触发           〔开火接缝 / 05 §3,engine/bullet/th16/01 §6〕
             每弹再跑弹运动 VM Bullet::run_ex (0x413860)
 ```
 
@@ -89,9 +89,9 @@
 | ≥300 经 vtable 虚派发 / 字节跳转表 | ✅一手 | `ecl_run_over_300` 0x41dcb0(`05`) |
 | CALL 压帧(time/PC/sub)+ 按名解析 sub | ✅一手 | `call_sub` 0x471db0(§5) |
 | 变量三分支(字面/栈/全局) | ✅一手 | `ecl_get_int_arg` 0x473c90(`04` §4) |
-| 主循环 → 敌机 → ecl 驱动链 | ✅一手 | `run_all_on_tick` 0x401460 + 敌机 body(`../shared/th16-main-loop`) |
+| 主循环 → 敌机 → ecl 驱动链 | ✅一手 | `run_all_on_tick` 0x401460 + 敌机 body(`engine/_shared/th16-main-loop`) |
 | 开火接缝(et*→描述符→弹池) | ✅一手(写/读双向) | `05` §3 |
-| RNG / 数学原语(确定性回放) | ✅一手 | `../shared/th16-engine-math` |
+| RNG / 数学原语(确定性回放) | ✅一手 | `engine/_shared/th16-engine-math` |
 
 ---
 
@@ -103,5 +103,5 @@
 - ≥300 各 handler 行为多数未逐条反(Priw8 eclmap 命名 + ECL-info 行为已覆盖,故意取舍,`05` §2)。
 
 ## 关联
-- 格式/opcode 表 `00` · 变量/上下文 `01` · 运行时结构/函数地图 `02` · ExpHP 对照 `03` · **解释循环 `04`** · **游戏派发+开火 `05`** · 自定义指令 `06` · 主循环 `../shared/th16-main-loop.md` · 数学/RNG `../shared/th16-engine-math.md` · 弹幕 `../bullets/01`。
-- 纪律 `../sht/findings/00-METHOD-逆向记录纪律.md`。
+- 格式/opcode 表 `00` · 变量/上下文 `01` · 运行时结构/函数地图 `02` · ExpHP 对照 `03` · **解释循环 `04`** · **游戏派发+开火 `05`** · 自定义指令 `06` · 主循环 `engine/_shared/frame-loop.md` · 数学/RNG `engine/_shared/math-and-prng.md` · 弹幕 `engine/bullet/th16/01`。
+- 纪律 `METHOD.md`。

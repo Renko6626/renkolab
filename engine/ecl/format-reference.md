@@ -206,7 +206,7 @@
 
 ## 关联
 - exe 侧锚点 / 派发表 `0x4921b4` / 开火点:`README.md` §A/§B/§C。
-- 高层命名 + etEx 效果:`ECL-info.md`(已与弹运动 VM 交叉验证,见 `../bullets/01` §8)。
-- 弹运动 VM(ECL 下游,opcode 0x2000/EX_SHOOT 创建):`../bullets/01-core-engine.md` §3/§6。
+- 高层命名 + etEx 效果:`ECL-info.md`(已与弹运动 VM 交叉验证,见 `engine/bullet/th16/01` §8)。
+- 弹运动 VM(ECL 下游,opcode 0x2000/EX_SHOOT 创建):`engine/bullet/th16/01-core-engine.md` §3/§6。
 - 来源 commit:thtk `892114a0`(`vendor/` 已 gitignore,按本记录可重克隆)。
-- 纪律:`../sht/findings/00-METHOD-逆向记录纪律.md`。**本文件 = 格式侧(thecl 权威);运行时语义已在 `04`/`05` 反编译完成(系统 opcode + 游戏 opcode 派发 + 开火接缝)。**
+- 纪律:`METHOD.md`。**本文件 = 格式侧(thecl 权威);运行时语义已在 `04`/`05` 反编译完成(系统 opcode + 游戏 opcode 派发 + 开火接缝)。**

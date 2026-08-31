@@ -1,8 +1,8 @@
 # TH16 资产管线 —— THA1 归档 + ZUN 加密 + LZSS(游戏全格式通用)
 
-> 方法:Ghidra(ghidra-re MCP)一手反编译 th16.exe(用户自有)。日期 2026-06-11。原 `sht/findings/09`,
+> 方法:Ghidra(ghidra-re MCP)一手反编译 th16.exe(用户自有)。日期 2026-06-11。原 `engine/sht/th16/09`〔旧布局〕,
 > 因 `.dat` 归档承载 SHT/ANM/MSG/STD/ECL **全部格式、非 SHT 专属**,移入 `shared/`(可引用的格式事实)。
-> 分级:✅高 / 🟡中。**仅 TH16 v1.00a**。来源:`funcs/unexplored.md` 的 "Arcfile" 子系统(ExpHP 未命名)。
+> 分级:✅高 / 🟡中。**仅 TH16 v1.00a**。来源:`games/th16.v1.00a/unexplored.md` 的 "Arcfile" 子系统(ExpHP 未命名)。
 > 意义:把游戏读资产的整条链(`.dat` 归档 → 查名 → 解密 → 解压)反清楚,为 IDE 资产管线铺路。
 > 与社区:这是 ZUN 的 **THA1** 归档格式,thtk/thdat 已支持;本篇是**在 TH16 exe 内一手确认**(非新发现,
 > 但把 exe 内的函数/数据精确定位命名了)。
@@ -79,7 +79,7 @@ Arcfile::read_entry @0x457120
 
 ## 4. ★ 一处 hint 误导(已澄清,防后人再追)
 
-`funcs/unexplored.md` 把 **`0x458730`** 标了 "Arcfile" 线索(nearest-named 邻居),但它**不是归档代码**:
+`games/th16.v1.00a/unexplored.md` 把 **`0x458730`** 标了 "Arcfile" 线索(nearest-named 邻居),但它**不是归档代码**:
 **唯一调用方 = `draw_text`(0x459240)**,处理喂给 `D3DXLoadSurfaceFromMemory` 的 GDI 文本渲染表面
 `DAT_004a5d80`(先 memset + `TextOutA`)。对相邻像素做 RGB 半字节(`&0xf`/`>>4`/`>>8`)平均再 `>>1`,
 format 0x15/0x1a → **文本字形表面的平滑/抗锯齿 pass**(★审计修正:**不是 mipmap/降采样**,我先前措辞过头了)。已加 DB 注释。

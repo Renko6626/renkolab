@@ -2,7 +2,7 @@
 
 > 方法:Ghidra(ghidra-re MCP)一手反编译 th16.exe(用户自有,ExpHP th-re-data 符号已套)。
 > 日期 2026-06-12。分级 ✅高 / 🟡中 / ❓未解。**仅 TH16 v1.00a**。
-> 承接 `../sht/findings/05`(判定半径=hitbox header+0x04,擦弹)、`04`(player 状态机切口)。
+> 承接 `engine/sht/th16/05`(判定半径=hitbox header+0x04,擦弹)、`04`(player 状态机切口)。
 
 ## 0. 一句话结论
 
@@ -25,7 +25,7 @@
 | **3** | (过场)| 帧==0xf 时 `et_clear_all_special(1)`;零售极少见,🟡 |
 | **4** | **决死窗口(deathbomb)** | 帧>7 → `FUN_00443cd0`(commit 死亡,§4)然后落到状态 2 逻辑;否则按炸(`INPUT_RISING_EDGE&2`/`&0x800`)+`can_bomb` → `Bomb__activate_bomb` + `player_set_alive_after_bomb`(决死成功) |
 
-> 状态切换后,函数下半段(与状态无关)每帧还做:256 个伤害源运动/寿命更新(见 `../sht/findings/08`)、
+> 状态切换后,函数下半段(与状态无关)每帧还做:256 个伤害源运动/寿命更新(见 `engine/sht/th16/08`)、
 > **无敌帧渲染 + 倒计时**(`+0x1663c`,§3)、自机判定矩形世界角点重算(`+0x2c730..`)、聚焦缩放、
 > 帧计数器自增、**开火大门**(满足条件才调 `Player__tick_shooting_state`,见 `03`)、`Player__tick_bullets`。
 
@@ -39,7 +39,7 @@
         └─ player_collide_laser_obb @0x443af0    // 激光 OBB
               ↓ 返回 1=命中 / 2=擦弹 / 0=未中
         ret 1 → 弹标记消亡(+0xc72=3)+ 命中特效;判定内部已调 player_on_death
-        ret 2 → player_graze(擦弹,见 ../sht/findings/05 §4b:计数 +音效0x2a)+ 弹置"已擦"位(bit2)防重复
+        ret 2 → player_graze(擦弹,见 engine/sht/th16/05 §4b:计数 +音效0x2a)+ 弹置"已擦"位(bit2)防重复
 ```
 
 **`player_collide_circle` @0x4439e0(一手,补 `../sht/05` §4b)**:
@@ -64,8 +64,8 @@
 | `player_collide_laser_obb` @0x443af0 | 激光(旋转 OBB)| 把(自机−激光起点)用 `crt_sinf/crt_cosf(−激光角)` **旋进激光本地系**,测盒 `[0,半长]×[−宽,+宽]`,再按自机 hitbox(`+0x2c748/+0x2c74c`×16)膨胀;擦弹=膨胀环 |
 
 > `player_collide_rect/laser_obb` 与 circle **完全同构的致死逻辑**(状态/无敌闸门一致)——交叉印证 §2 的判定模型。
-> 自机判定矩形角点 `PLAYER+0x2c730..` 每帧由半径 `+0x2c748..` 在 `player_update_perframe` 末尾重算(`../player/01` §1)。
-> (laser_obb 在 2026-06-09 `../bullets/` 工作中已反并加注释,本篇仅纳入生命系统视角,结论一致。)
+> 自机判定矩形角点 `PLAYER+0x2c730..` 每帧由半径 `+0x2c748..` 在 `player_update_perframe` 末尾重算(`engine/player/th16/01` §1)。
+> (laser_obb 在 2026-06-09 `engine/bullet/th16/` 工作中已反并加注释,本篇仅纳入生命系统视角,结论一致。)
 
 ### 2c. 擦弹 `player_graze` @0x444cf0(本会话亲验,补 `../sht/05`)✅
 

@@ -12,7 +12,7 @@
 > 0x488a00 初判 `trunc`,对抗 agent 改判 `floor`,经我反汇编负数分支(`x<trunc 时 SUBSD 1.0`)证实=**floor**(见 §1.3)。
 > 另有两 agent 对 sin/cos 对名**互相矛盾**,由我看旋转式 `X'=X·cos−Y·sin` 一手裁定(§1.4)。
 > 浮点常量值与关键 x87 指令(FPREM/FPATAN)由**直接读取 th16.exe 的 PE 字节**确认(见 §1.6、§4),非反编译器推断。
-> 纪律来源:`../sht/findings/00-METHOD-逆向记录纪律.md`、memory `re-overclaim-guard` / `re-agent-no-hypothesis-priming`。
+> 纪律来源:`METHOD.md`、memory `re-overclaim-guard` / `re-agent-no-hypothesis-priming`。
 
 ---
 
@@ -103,7 +103,7 @@
 
 ## 3. PRNG(ZUN 16 位生成器)★ 已算法级完整解出
 
-> 这是东方招牌的**确定性回放**核心:**整局随机性由一个 16 位种子决定**。模型脚本 `../sht/disasm/scripts/th16_prng_model.py`(可复现,已跑通)。
+> 这是东方招牌的**确定性回放**核心:**整局随机性由一个 16 位种子决定**。模型脚本 `tooling/ghidra/scripts/th16_prng_model.py`(可复现,已跑通)。
 
 ### 3.0 状态结构 / 两条流
 - **状态只有 16 位**(`XOR AX, word[ESI]` 等全是 16 位操作;高位 `MOVZX AX` 丢弃)。状态对象 = `{ +0: u16 state, +4: u32 draw_counter }`。
@@ -155,7 +155,7 @@ s' = ((t << 2) | (t >> 14)) & 0xFFFF      ; = ROL16(t, 2)   状态前进
 
 ## 4. 数学常量(★ 直接读 th16.exe PE 字节实测,✅)
 
-> 读法:解析 PE 节表(`.rdata` VA=0x8b000/Ptr=0x8a200、`.data` VA=0x9d000/Ptr=0x9c000),VA−imagebase→文件偏移,`struct.unpack('<f'/'<d')`。脚本见 `../sht/disasm/scripts/`(可复现)。
+> 读法:解析 PE 节表(`.rdata` VA=0x8b000/Ptr=0x8a200、`.data` VA=0x9d000/Ptr=0x9c000),VA−imagebase→文件偏移,`struct.unpack('<f'/'<d')`。脚本见 `tooling/ghidra/scripts/`(可复现)。
 
 | 符号(建议名) | VA | 实测值 | = |
 | --- | --- | --- | --- |
@@ -193,8 +193,8 @@ s' = ((t << 2) | (t >> 14)) & 0xFFFF      ; = ROL16(t, 2)   状态前进
 ---
 
 ## 关联
-- 入口锚点:`../sht/findings/06-th16-engine-incisions.md` §9(本表是其「数学起步包」的兑现 + 纠错)。
-- 一手 SHT 上下文(homing/atan2 调用方):`../sht/findings/03-th16-funcstar-jumptables.md`。
-- 落盘脚本:`../sht/disasm/scripts/apply_th16_math_names.py`(函数名+数据符号名+证据注释,headless 可复现,**唯一能给数据符号真改名**的途径);`../sht/disasm/scripts/th16_prng_model.py`(PRNG 参考模型 + 周期证明,跑通)。
+- 入口锚点:`engine/sht/th16/06-th16-engine-incisions.md` §9(本表是其「数学起步包」的兑现 + 纠错)。
+- 一手 SHT 上下文(homing/atan2 调用方):`engine/sht/th16/03-th16-funcstar-jumptables.md`。
+- 落盘脚本:`tooling/ghidra/scripts/apply_th16_math_names.py`(函数名+数据符号名+证据注释,headless 可复现,**唯一能给数据符号真改名**的途径);`tooling/ghidra/scripts/th16_prng_model.py`(PRNG 参考模型 + 周期证明,跑通)。
 - **Ghidra 工程状态**:24 个函数名 + 48 条证据注释已通过(已修复的)`ghidra-re` MCP **落盘**(跨 close/重开验证存活);数据全局因 MCP 无改名工具,DB 内为注释、符号名仍 `DAT_xxxx`(真改名走上面脚本)。
-- 纪律:`../sht/findings/00-METHOD-逆向记录纪律.md`;memory `re-overclaim-guard` / `re-evidence-chain-discipline` / `ghidra-mcp-save-broken`。
+- 纪律:`METHOD.md`;memory `re-overclaim-guard` / `re-evidence-chain-discipline` / `ghidra-mcp-save-broken`。

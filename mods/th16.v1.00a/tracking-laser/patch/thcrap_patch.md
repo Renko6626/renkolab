@@ -1,7 +1,7 @@
 # thcrap patch:注入「追踪+爆发激光」(重指 tick idx4)
 
 > 把 `tick_tracking_burst_starter.asm` 编成 code cave,并用 binhack **重指 TH16 tick 表 idx4 槽**
-> (`0x4919b0`,现 = `0x004470f0`)指向 cave。配套 `files/pl02_tracklaser.sht`(已生成)。
+> (`0x4919b0`,现 = `0x004470f0`)指向 cave。配套 `local/th16.v1.00a/pl02_tracklaser.sht`(已生成)。
 > ⚠️ thcrap 分发的是**补丁(二进制 diff + cave)**,不含版权 exe —— 合规。
 >
 > **★ 已对 thcrap 一手源码 + ExpHP 真实 th16.v1.00a 补丁核实(2026-06-11)**,见 §0/§7。
@@ -71,7 +71,7 @@ xxd -p cave.bin                       # 取 hex,贴进 codecave.code
 
 ## 4. .sht 侧(配套)—— 起步版已生成 ✅
 
-- **`files/pl02_tracklaser.sht`(已生成)**:子机弹 `func_on_init=3, func_on_tick=4, func_on_hit=0`,dmg=30;主弹保留直线。
+- **`local/th16.v1.00a/pl02_tracklaser.sht`(已生成)**:子机弹 `func_on_init=3, func_on_tick=4, func_on_hit=0`,dmg=30;主弹保留直线。
   (起步版用 init=3:清 +0x90 目标槽 + flag&0x3c,正是 targeting 前置。完整激光版才需 init=2。)
 - 打包进 `th16.dat`(thdat)或用散文件覆盖让游戏读到 pl02.sht。
 

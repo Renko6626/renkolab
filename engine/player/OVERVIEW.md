@@ -1,0 +1,41 @@
+# player — 自机运行时对象
+
+自机不是一个对象，是**三个**：`player`（本体：状态机、输入、碰撞、资源）、
+`PlayerInner`（射击侧：shooterset 选择、option 重建）、以及从 `PLAYER+0xd080` 池里
+按需分配的**伤害源对象**（自机弹命中敌人时的载体）。每帧由主循环的优先级表调度
+（[`../_shared/frame-loop.md`](../_shared/frame-loop.md)）。
+
+生命周期是一个显式状态机；「炸弹」在 TH16 其实是**两套并行机制**——主炸消耗角色库存，
+季节释放（C 键）消耗季节槽——它们走同一个 `Bomb` 对象但计费不同。这个区分在别的作品里
+未必成立（TH18 用卡牌取代了季节系统），是矩阵里最需要逐版本重验的一行。
+
+## 断言 × 版本矩阵
+
+| 断言 | th16 | th18 | 证据 |
+| --- | :---: | :---: | --- |
+| 生命是 5 态状态机，`player_update_perframe` @0x442560 按 `+0x165a8` switch | ✅ | 🟡 | [th16/01 §1](th16/01-hit-life-system.md) |
+| 无敌帧计数在 `+0x1663c` | ✅ | 🟡 | [th16/01 §3](th16/01-hit-life-system.md) |
+| 死亡 commit 与复活是分离的两步（复活在状态 2、帧 >0x1d） | ✅ | 🟡 | [th16/01 §4–5](th16/01-hit-life-system.md) |
+| 聚焦 = INPUT bit3，读 `+0x165c8`（**订正**了早期把它当 SHT 字段的说法） | ✅ | 🟡 | [th16/03 §3](th16/03-fire-input-movement.md) |
+| 开火门控在 `Player__tick_shooting_state` @0x4455d0 | ✅ | 🟡 | [th16/03 §2](th16/03-fire-input-movement.md) |
+| 炸弹由独立 `Bomb` 对象承载（0x108 字节，`Bomb__operator_new` @0x40d890） | ✅ | ❓ | [th16/02 §1](th16/02-season-release-and-bombs.md)、[th16/05 §2](th16/05-object-field-maps.md) |
+| **主炸与季节释放是两套计费**：主炸耗角色库存，季节释放耗季节槽 | ✅ | ❌ | [th16/02 §2–5](th16/02-season-release-and-bombs.md)；th18 见 [card/](../card/OVERVIEW.md) |
+| option/子机由 `PlayerInner__repopulate_options` @0x4440e0 整体重建 | ✅ | 🟡 | [th16/04 §1](th16/04-options-subshot-system.md) |
+| 本体子机挂火力档、季节子机挂季节档，是两条独立链 | ✅ | ❌ | [th16/04 §2–3](th16/04-options-subshot-system.md) |
+| 伤害源从 `PLAYER+0xd080` 池分配（stride 0x94，256 个） | ✅ | 🟡 | [th16/05 §3](th16/05-object-field-maps.md)、[sht/th16/08 §2](../sht/th16/08-th16-player-damage-pipeline.md) |
+| 命碎片**没有任何拾取来源**（负结论，evidence-complete） | ✅ | 🟡 | [th16/06 §4](th16/06-resource-economy.md) |
+
+> **图例**：✅ 该版本一手验过（证据列给地址/出处） · 🟡 待验（从别的版本借来的假设，或单源） · ❌ 已知不同/不存在 · ❓ 存疑 · — 未看
+>
+> **本页不许出现没有出处的断言。** 从某作借到另一作的判断一律 🟡，在该版本 exe 上验过才能改 ✅（[`METHOD.md`](../../METHOD.md)）。
+
+## th18 待验清单
+
+上表 🟡 全部是「TH16 如此，th18 待验」。TH18 的 `zPlayer` 已从 th16 的 0x2c828 长到
+**0x479d4**，所以**每一个偏移都必须重取**——只有字段的*语义*可以借
+（[`../../games/th18.v1.00a/port-plan.md`](../../games/th18.v1.00a/port-plan.md)）。
+
+## 开放
+
+- TH16 的 Spellcard / 各角色 Bomb 具体行为仍是语义空白（有名字，没反）。
+- 擦弹（graze）判定与 `sht/` 的 header +0x04 哑弹结论有交叉，见 [sht/th16/99-QUIRK](../sht/th16/99-QUIRK-可配置判定半径其实是哑弹.md)。

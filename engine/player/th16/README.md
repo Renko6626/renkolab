@@ -1,11 +1,11 @@
 # player/ — TH16 自机系统逆向(火力 / 生命 / 季节释放)
 
-> 本目录承接 `../sht/`(SHT 字节布局 + func_* 行为 + 伤害管线)与 `../funcs/`(ExpHP th-re-data
+> 本目录承接 `../sht/`(SHT 字节布局 + func_* 行为 + 伤害管线)与 `tooling/ghidra/`(ExpHP th-re-data
 > 符号),从**player 对象 + 引擎调度**的角度,把"自机作为一个运行时子系统"反完:它怎么动、怎么开火、
 > 怎么中弹/死/复活,以及 TH16 招牌的**季节释放(按 C)**怎么工作。
 >
 > 仅 **TH16(天空璋)th16.exe v1.00a,imagebase 0x400000**。一手反编译用户自有 exe(版权不入库)。
-> 可信度分级:✅一手实证 / 🟡推断或单点 / ❓未解。记录纪律见 `../sht/findings/00-METHOD-逆向记录纪律.md`。
+> 可信度分级:✅一手实证 / 🟡推断或单点 / ❓未解。记录纪律见 `METHOD.md`。
 
 ## 这是什么 / 与 sht 的分工
 
@@ -15,7 +15,7 @@
 | **`player/`(本目录)** | **player 运行时对象**:状态机、输入/移动/聚焦、开火门控、**中弹/生命/死亡/复活**、**炸弹 & 季节释放(C)** |
 
 两者互补:sht 解决"一发弹长什么样、怎么飞、怎么扣血";player 解决"自机这个对象每帧在干什么、玩家三大
-资源(命/炸/季节)怎么涨怎么消耗"。**开火的下半段(do_shooting→spawn→伤害)在 `../sht/findings/07,08`,
+资源(命/炸/季节)怎么涨怎么消耗"。**开火的下半段(do_shooting→spawn→伤害)在 `engine/sht/th16/07,08`,
 本目录的 `03` 只补它的上半段(输入→门控)并交叉引用,不重复。**
 
 ## 文档索引
@@ -30,7 +30,7 @@
    - 季节槽机制、`Bomb::can_bomb`/`activate_bomb`、释放冷却、释放=半径式清弹屏障 + 短无敌。
 3. **`03-fire-input-movement.md`** — 开火/输入/移动:`tick_shooting_state`(射击键→cadence 门控)、
    `player_input_move`(9 向移动 + 4 档移速 + **聚焦 `+0x165c8`=输入 bit3**)、开火大门的前置条件;
-   与 `../sht/findings/07,08` 的衔接。
+   与 `engine/sht/th16/07,08` 的衔接。
 4. **`04-options-subshot-system.md`** — ★ option/子机系统:`repopulate_options`——**本体子机**(数=火力档,≤4,
    主 .sht option_pos)+ **★季节子机**(数=季节槽档,≤8,副 .sht option_pos,精灵按 SUBSEASON);
    option_pos 拆 **非聚焦@+0x40 / 聚焦@+0xe8** 两段;与 shooterset `opt` 的关系。
@@ -72,4 +72,4 @@
 
 - Ghidra DB **`th16`**(MCP `ghidra-re`):`open_database files/th16.exe` 即复用已套 ExpHP 符号 + struct 的工程。
 - 所有地址可在 DB `th16` 复核;常量/数据值多为**运行时填充**(静态镜像里是 0,见 02 季节槽注)。
-- 纪律:`../sht/findings/00-METHOD-*`;memory `re-overclaim-guard` / `re-evidence-chain-discipline`。
+- 纪律:`engine/sht/th16/00-METHOD-*`;memory `re-overclaim-guard` / `re-evidence-chain-discipline`。

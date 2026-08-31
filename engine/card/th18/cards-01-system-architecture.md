@@ -1,7 +1,7 @@
 # TH18 卡牌/能力系统 — 核心架构(一手反)
 
 > 适用:TH18(東方虹龍洞)v1.00a,`th18.exe`(database_id `th18`)。证据链纪律见
-> `../../sht/findings/00-METHOD-逆向记录纪律.md`。引用 TH16 处显式标 `(TH16)`。
+> `../METHOD.md`。引用 TH16 处显式标 `(TH16)`。
 > 关联:`cards-OPEN-passive-shooter-data.md`(搁置的开放问题:被动卡 shooter 数据存储)。
 
 ## 0. 总览(可信度 ✅ 一手,除标注外)

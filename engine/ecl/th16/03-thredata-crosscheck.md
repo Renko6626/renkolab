@@ -61,7 +61,7 @@
 **① `0x4313B0`:我们错了,ExpHP 对。**
 - 我们:`laser_mgr_tick`(每帧 tick);ExpHP:`LaserManager::destructor`。
 - 反编译裁决:函数释放 `mgr+4`/`mgr+8` 两个子对象、调 `FUN_0042cb00`、**末尾 `g_laser_mgr = 0`** + SEH 框架 → **析构无疑**(每帧 tick 不会把全局管理器置 0)。
-- **行动**:已修 `../bullets/03-lasers.md`(0x4313B0 改注为析构;真正的激光每帧 tick 待重新定位)。
+- **行动**:已修 `engine/bullet/th16/03-lasers.md`(0x4313B0 改注为析构;真正的激光每帧 tick 待重新定位)。
 
 **② `0x445E20`:ExpHP 猜错(它自己标了 `i_think`),我们更靠谱。**
 - 我们:`playershot_launch_shared`(shot 发射/特效收尾);ExpHP:`PlayerBullet::sub_445e20__collide__i_think`。
@@ -112,7 +112,7 @@ statics.json 仅 **209/424 有意义命名**(其余是 `float(...)` 自动标签
 
 **ExpHP 完全没有 8(纯原创)**:`g_bullet_type_table`、`g_bullet_render_desc`、RNG 内部(`g_rng_counter_a/b`、`g_rng_threadsafe_flag`、`g_rng_in_critsec_depth`、`g_rng_seed_timeGetTime`)、`d_rng_unsigned_fixup_tbl`。
 
-**✅ 已结案(原待复核 1 处)**:`0x491b0c` —— **ExpHP 对,我们错了**。dump 表项 + 反编译裁决:它是 **`ANM_ON_SWITCH_FUNCS`**,`void*[4]`={null, `0x407900`, `0x405f20`, `0x406920`} = `AnmVm::on_switch__1/2/3`(操作 AnmVm 顶点数组 `+0x5b8`、设渲染/混合模式 `+0x534`/`+0x18`)——**ANM VM 的 on-switch 渲染状态切换回调,归 `../anm/`,不是 SHT 特效/敌弹派发**。属一整族 ANM 事件表(`0x491b0c`..`0x491b58`:on_switch/sprite_set/draw/copy/delete)。我们的 `effect_behavior_dispatch_table` 命名**作废** → 改 `anm_on_switch_funcs`。`playershot_launch_shared`(0x445e20)那处 = 发射时触发 shot 的 ANM 对象切换渲染态(仍非碰撞,ExpHP 的 collide 猜测依旧不成立)。已修:sht 脚本、`sht/findings/04`/`06`、`anm/README`。
+**✅ 已结案(原待复核 1 处)**:`0x491b0c` —— **ExpHP 对,我们错了**。dump 表项 + 反编译裁决:它是 **`ANM_ON_SWITCH_FUNCS`**,`void*[4]`={null, `0x407900`, `0x405f20`, `0x406920`} = `AnmVm::on_switch__1/2/3`(操作 AnmVm 顶点数组 `+0x5b8`、设渲染/混合模式 `+0x534`/`+0x18`)——**ANM VM 的 on-switch 渲染状态切换回调,归 `engine/anm/th16/`,不是 SHT 特效/敌弹派发**。属一整族 ANM 事件表(`0x491b0c`..`0x491b58`:on_switch/sprite_set/draw/copy/delete)。我们的 `effect_behavior_dispatch_table` 命名**作废** → 改 `anm_on_switch_funcs`。`playershot_launch_shared`(0x445e20)那处 = 发射时触发 shot 的 ANM 对象切换渲染态(仍非碰撞,ExpHP 的 collide 猜测依旧不成立)。已修:sht 脚本、`engine/sht/th16/04`/`06`、`anm/README`。
 
 ## 5. 命名差异备记(非冲突,供统一口径时参考)
 
@@ -128,7 +128,7 @@ ExpHP 用 `Class::method` C++ 风格 + 偏程序员(constructor/on_tick/step);�
 **我们靠谱。** 在 68 个可比对函数上与社区一手 RE **绝大多数语义吻合**,且多处独立体系(c68 位 vs EX 索引、PRNG 命名)精确对齐 = 强互证。真冲突仅 2 处,各打一手(我们 1 错、ExpHP 1 猜错),已就地裁决并修正。**把 th-re-data 当命名底图白嫖,语义层与 SHT 仍是我们的原创价值。**
 
 ## 关联
-- ECL 函数已导入(本会话 MCP rename+save):脚本 `../sht/disasm/scripts/apply_th16_ecl_names.py`。
+- ECL 函数已导入(本会话 MCP rename+save):脚本 `tooling/ghidra/scripts/apply_th16_ecl_names.py`。
 - 运行时 VM 结构/函数地图:`02-runtime-vm.md`。变量/上下文:`01-*`。
-- 弹幕(含已修的 0x4313B0):`../bullets/01`/`03`。数学/PRNG:`../shared/th16-engine-math.md`。
-- 纪律:`../sht/findings/00-METHOD-逆向记录纪律.md`;memory `re-overclaim-guard`。
+- 弹幕(含已修的 0x4313B0):`engine/bullet/th16/01`/`03`。数学/PRNG:`engine/_shared/math-and-prng.md`。
+- 纪律:`METHOD.md`;memory `re-overclaim-guard`。

@@ -121,4 +121,4 @@
   player.py/.pyx
 - Mddass touhouwiki 规范(仅 TH07/12/13):
   <https://en.touhouwiki.net/wiki/User:Mddass/Touhou_File_Format_Specification/SHT>
-- 本地一手核对:`research/sht/vendor/shmupcc-sht/src/shmupcc.ts`(大端/float64 已证实)
+- 本地一手核对:`local/vendor/shmupcc-sht/src/shmupcc.ts`(大端/float64 已证实)

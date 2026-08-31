@@ -170,5 +170,5 @@ return 0;
 
 ## 关联
 - 格式表 `00-thecl-format-reference.md`;运行时结构/函数地图 `02-runtime-vm.md`;变量/上下文 `01-*`。
-- 命名脚本:`../sht/disasm/scripts/apply_th16_ecl_names.py`(已加本轮 helper)。
-- 纪律 `../sht/findings/00-METHOD-逆向记录纪律.md`;memory `re-overclaim-guard`/`re-evidence-chain-discipline`。
+- 命名脚本:`tooling/ghidra/scripts/apply_th16_ecl_names.py`(已加本轮 helper)。
+- 纪律 `METHOD.md`;memory `re-overclaim-guard`/`re-evidence-chain-discipline`。

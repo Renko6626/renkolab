@@ -32,33 +32,33 @@
 5. **ending `case 7` 异步线程(`LAB_0041a310`)** 未细反 🟡:`op7 load_anm_present` 起的那个演出/滚动线程内部没展开。
 6. **文件头未明字段** ❓:ending 头 `@8 = 0x100` 用途未知;stage/ending 头每条 8 字节项除 `+4=偏移` 外其余字段未验。(`04` §1.5)
 7. **stage-MSG 解析器未实现**:`tools/parse_th16_msg.py` 只做 ending/staff;stage `.msg` 解析可照 `02` 表补上(IDE 需要时再做)。
-8. **回填 `../../docs/` 未做**:四篇结论尚未蒸馏进父仓库 `docs/`(IDE 的 MSG 支持:stage/ending 两套结构化 opcode 编辑 + 文本编解码 + 对 thmsg)。
+8. **回填 THTK-Studio 仓库的 `docs/` 未做**:四篇结论尚未蒸馏进父仓库 `docs/`(IDE 的 MSG 支持:stage/ending 两套结构化 opcode 编辑 + 文本编解码 + 对 thmsg)。
 9. **命名落盘脚本未建**:`apply_th16_msg_names.py`(建议但未做);因 th-re-data 已命名 GuiMsgVm/Ending 全簇,边际价值低。
 
 ## 规范(与父工作区一致)
 
-- **五段证据链** + **可信度** ✅一手 / 🟡单源推断 / ❓存疑;**结论必注版本(仅 TH16,勿外推)**。见 `../sht/findings/00-METHOD-逆向记录纪律.md`。
+- **五段证据链** + **可信度** ✅一手 / 🟡单源推断 / ❓存疑;**结论必注版本(仅 TH16,勿外推)**。见 `METHOD.md`。
 - **防过拟合**:派子 agent 命名给中立判据、不喂标签;"反超社区"自创结论按四闸门复核(`04` 即此类,已守)。
   memory `re-overclaim-guard` / `re-agent-no-hypothesis-priming` / `re-evidence-chain-discipline` / `re-workflow-fanout-cost`。
-- **主仓库不留版权字节**:游戏 exe / `.msg` 资产 / 大段反编译原文一律 gitignore;只提交脚本 + markdown。(`files/*.msg` 已确认 gitignore。)
+- **主仓库不留版权字节**:游戏 exe / `.msg` 资产 / 大段反编译原文一律 gitignore;只提交脚本 + markdown。(`local/th16.v1.00a/*.msg` 已确认 gitignore。)
 
 ## 环境(与父工作区共用)
 
-- **ghidra-re MCP**,database `th16`(已分析 + th-re-data 命名)。落盘 `save_database`;隐藏工具走 `batch`/`call`(`../shared/ghidra-mcp-tools.md`)。
-- **符号金矿** `../ecl/vendor/th-re-data`(ExpHP,gitignored):已命名 `GuiMsgVm`/`Ending` 全簇 + `zMsgRawInstr`/`zGuiMsgVm`/`zEndingChildF0` 结构。
-- 样本:`../files/*.msg`(版权,gitignore,用户本地放)。
+- **ghidra-re MCP**,database `th16`(已分析 + th-re-data 命名)。落盘 `save_database`;隐藏工具走 `batch`/`call`(`tooling/ghidra/mcp-tools.md`)。
+- **符号金矿** `local/vendor/th-re-data`(ExpHP,gitignored):已命名 `GuiMsgVm`/`Ending` 全簇 + `zMsgRawInstr`/`zGuiMsgVm`/`zEndingChildF0` 结构。
+- 样本:`local/th16.v1.00a/*.msg`(版权,gitignore,用户本地放)。
 
 ## 社区对照(交叉印证来源)
 
-- **thtk `thmsg`**(`thpatch/thtk`,本地 `../ecl/vendor/thtk/thmsg`):格式权威。`thmsg06.c` 的 `th06_msg_t` = 我们的 `zMsgRawInstr`;
+- **thtk `thmsg`**(`thpatch/thtk`,本地 `engine/ecl/th16/vendor/thtk/thmsg`):格式权威。`thmsg06.c` 的 `th06_msg_t` = 我们的 `zMsgRawInstr`;
   `util_xor(...,0x77,7,16)` = 文本解密;**`th10_msg_ed_fmts`(`-e` 选用)= ending 签名表**(`04` §2.5 已逐条对上)。解包:`thmsg -e -d 16 e01.msg`。
 - **ExpHP truth / thpages**:stage opcode 签名(`core_mapfiles/msg.rs`)+ 名/行为(`tables/reference/msg.ts`)。thpages 把 ending 行为列为 "to be documented"(我们已补,见 `04` §2.6)。
 - **ExpHP th-re-data**:符号/结构体(只给"叫什么/在哪",不给"干什么")。
-- 速查 `../shared/touhou-modding-sources.md`。
+- 速查 `engine/_shared/community-sources.md`。
 
 ## 关联
 
 - 文本渲染端:文本经 `FUN_0046d990`(文本转 anm)走 **ANM**,**非** GDI `draw_text`(起步期锚点 B 已证否)。
-- VM 范式参考:`../ecl/07-vm-architecture.md`(ECL 取指-门控-派发,MSG VM 同构)。
-- 主循环:`../shared/th16-main-loop.md`(Gui::on_tick_20 优先级 0x20 / Ending::on_tick_23 优先级 0x23)。
-- 纪律:`../sht/findings/00-METHOD-逆向记录纪律.md`;memory `msg-architecture-th16` 等。
+- VM 范式参考:`engine/ecl/th16/07-vm-architecture.md`(ECL 取指-门控-派发,MSG VM 同构)。
+- 主循环:`engine/_shared/frame-loop.md`(Gui::on_tick_20 优先级 0x20 / Ending::on_tick_23 优先级 0x23)。
+- 纪律:`METHOD.md`;memory `msg-architecture-th16` 等。

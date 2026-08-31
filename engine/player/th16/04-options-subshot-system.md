@@ -12,14 +12,14 @@ TH16 自机有**两组 option(子机)**,由 `PlayerInner__repopulate_options` �
 2. **★季节子机(season options)**:数量 = **季节槽档位**(`get_season_gauge_fill_ratio`,0..5,≤8),位置取自
    **副 .sht**(`PLAYER+0x2c78c`)的 option_pos 表,精灵按 `SUBSEASON`(`DAT_00492be0[SUBSEASON]`)。
 
-两组都是 stride **0xe4** 的运行时槽(与 `../sht/findings/04` 的自机弹槽同 stride);**子机既是"显示的小球"也是
+两组都是 stride **0xe4** 的运行时槽(与 `engine/sht/th16/04` 的自机弹槽同 stride);**子机既是"显示的小球"也是
 "副火力发射点"**——shooterset 的 `opt` 字段(`../sht/05` §2、`07` §2)就是选第几个子机当发射点。
 
 ## 1. 触发与流程:`PlayerInner__repopulate_options` @0x4440e0 ✅
 
 **何时调**(一手):
-- `player_update_perframe` 状态2 帧==3(死亡掉 power 后,`../player/01` §4);
-- `Bomb__activate_bomb`(炸/季节释放后,`../player/02` §3);
+- `player_update_perframe` 状态2 帧==3(死亡掉 power 后,`engine/player/th16/01` §4);
+- `Bomb__activate_bomb`(炸/季节释放后,`engine/player/th16/02` §3);
 - 自机 init。
 即**火力档或季节槽档发生变化**时重建子机布局。函数内分两段(本体 / 季节),各自比对"上次档位"
 (本体 `param+0x165f4`、季节 `param+0x1608c`),不变则跳过。`param = PLAYER+0x610`。
@@ -44,8 +44,8 @@ for (i = 0; i < power_lvl; i++) {
   下子机在 option_pos 表里的**起始下标**,再 + 子机序号 `i`。
 - **位置 = 主 .sht 的 option_pos 表**:`sht_base+0x40 + idx*8`(x,y float,×128 转定点)。
 - **聚焦/非聚焦两套位置**:`+0x40`(非聚焦)与 **`+0xe8`(聚焦)** 是**两张并列的 option_pos 子表**——
-  `+0x165c8`(聚焦,`../player/03`)选用哪套 → 聚焦时子机收拢、非聚焦时散开(经典表现)。
-  这**细化了 `../sht/findings/05/07` 的 option_pos**:它不是一张表,而是 unfocus(@+0x40)/ focus(@+0xe8)两段。
+  `+0x165c8`(聚焦,`engine/player/th16/03`)选用哪套 → 聚焦时子机收拢、非聚焦时散开(经典表现)。
+  这**细化了 `engine/sht/th16/05/07` 的 option_pos**:它不是一张表,而是 unfocus(@+0x40)/ focus(@+0xe8)两段。
 
 ## 3. ★季节子机(season options)✅
 
@@ -63,20 +63,20 @@ for (i = 0; i < season_lvl; i++) {
 ```
 
 要点 ✅:
-- **季节子机数量 = 季节槽档位**(捡季节道具充能 → 档涨 → 子机增多,见 `../player/02` §2);最多 8 个。
-- **位置来自副 .sht**(`PLAYER+0x2c78c`,= plXsub,按 `SUBSEASON` 选,见 `../sht/findings/03` §6.1)。
+- **季节子机数量 = 季节槽档位**(捡季节道具充能 → 档涨 → 子机增多,见 `engine/player/th16/02` §2);最多 8 个。
+- **位置来自副 .sht**(`PLAYER+0x2c78c`,= plXsub,按 `SUBSEASON` 选,见 `engine/sht/th16/03` §6.1)。
 - **精灵按 `SUBSEASON`**(`DAT_00492be0[SUBSEASON]`)→ 不同副季节的子机长相不同(春/夏/秋/冬/土用)。
 - 布局索引表 **`0x4a5dac`** = 二维 `[SUBSEASON][season_lvl]`。
 - → **这就是"季节子机"的来历**:它们随**季节槽**长出来、跟随自机、按副季节火力开火,并在按 C 季节释放
-  (`../player/02`)时仍在场。
+  (`engine/player/th16/02`)时仍在场。
 
 ## 4. 与运行时槽 / shooterset 的关系 🟡
 
 - 两组 option 槽:本体在 `param+0x104`(=PLAYER+0x714)起、季节在 `param+0x3e0`(=PLAYER+0x9f0)起,stride **0xe4**。
-  **`PLAYER+0x9f0`(×8)与 `../sht/findings/04` 的"shot 组 B(option)"基址吻合** → 季节子机槽 = 那组 ×8 槽。
+  **`PLAYER+0x9f0`(×8)与 `engine/sht/th16/04` 的"shot 组 B(option)"基址吻合** → 季节子机槽 = 那组 ×8 槽。
   本体子机槽与 `../sht/04` 的 `+0x660`(×4)组的精确字段对应**未逐偏移核实**(同一 0xe4 记录里"发射字段"
   与"option 位置/anm 字段"分处不同子偏移),标 🟡。
-- **子机 = 发射点**:`../sht/findings/07` 里 shooter 的 `opt`(+0x20)字节选"从第几个子机发";本篇给出"这些
+- **子机 = 发射点**:`engine/sht/th16/07` 里 shooter 的 `opt`(+0x20)字节选"从第几个子机发";本篇给出"这些
   子机实际站在哪、有几个"。两篇拼起来 = 完整的"火力随档增长 → 子机增多 → 每个子机按 opt 发它那簇弹"。
 
 ## 4b. 布局索引表数值(本会话 dump,静态 .data,✅值)
@@ -117,7 +117,7 @@ for (i = 0; i < season_lvl; i++) {
 > 组基址:A(本体)`PLAYER+0x660`×4、B(季节)`PLAYER+0x9f0`×8,stride 0xe4(均来自 `player_input_move`
 > 显式调用 `playershot_tick_dispatch(player, +0x660, 4)` / `(+0x9f0, 8)`)。
 >
-> ⚠️ **与 `../sht/findings/04` 的偏移冲突(诚实留白,❓)**:sht/04 把 **`+0x60`=速度、`+0x64`=角度、`+0xb0`=
+> ⚠️ **与 `engine/sht/th16/04` 的偏移冲突(诚实留白,❓)**:sht/04 把 **`+0x60`=速度、`+0x64`=角度、`+0xb0`=
 > 子弹链接**(自机弹运动学字段),而本组(option 路径)里 `+0x60`=显示 y、`+0x64`=非聚焦 x 偏移、`+0xb0`=anm
 > vm id。同字节、两套语义。**两种可能**:(a)记录**双用**——作"已发射子弹"时走运动学字段、作"option"时走位置/anm
 > 字段,由 active 值(1 vs 2)区分;(b)sht/04 当时看的是**子弹池对象**(`+0xd080`)而非 option 记录,偏移恰好撞。
@@ -153,7 +153,7 @@ for (i = 0; i < season_lvl; i++) {
 - ✅ 一手:`PlayerInner__repopulate_options`(0x4440e0)本会话反编译;两组结构、数量来源(火力档/季节档)、
   位置表(主/副 .sht option_pos +0x40/+0xe8)、按 CHARACTER/SUBSEASON 选精灵——全来自代码读写点。
 - 🟡 索引表数值、槽字段精确对应未取;option_pos 条目数为算术推断。
-- 复核入口:Ghidra DB `th16`,地址见上。交叉:`../sht/findings/05`(option_pos)、`07`(opt/shooterset)、
-  `04`(运行时槽 stride 0xe4)、`../player/02`(季节槽档位)、`03`(聚焦 +0x165c8)。
+- 复核入口:Ghidra DB `th16`,地址见上。交叉:`engine/sht/th16/05`(option_pos)、`07`(opt/shooterset)、
+  `04`(运行时槽 stride 0xe4)、`engine/player/th16/02`(季节槽档位)、`03`(聚焦 +0x165c8)。
 - ❗ 纪律:本篇"option_pos 拆 unfocus/focus 两段""季节子机数=季节档"是**比社区/既有 sht 文档更细**的结论,
   已落到具体读点;表**数值未 dump**、槽字段对应**未逐偏移核**,相应标 🟡,未当定论。

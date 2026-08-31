@@ -1,7 +1,7 @@
 # TH18 卡片商店 AbilityShop — 获得卡的手段(一手反)
 
 > 适用:TH18 v1.00a,`th18.exe`(`th18`)。前置:`cards-01-system-architecture.md`(架构)、
-> `cards-02-...resource-economy.md`(库存)。证据链纪律见 `../../sht/findings/00-METHOD-逆向记录纪律.md`。
+> `cards-02-...resource-economy.md`(库存)。证据链纪律见 `../METHOD.md`。
 > ExpHP 命名:仅 6 个 `AbilityShop::` 方法,**无 money/shop 全局、无 zAbilityShop 结构**;语义全为一手。
 
 ## 0. 一句话

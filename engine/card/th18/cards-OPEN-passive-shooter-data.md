@@ -1,7 +1,7 @@
 # 【开放问题·搁置】被动/装备卡的支援射击 shooter 数据存在哪?
 
 > 状态:🟡 **搁置(park)**,留给后续独立 deep research(社区结果 + 一手反)。
-> 本文只钉住"问题 + 已知一手线索 + 假设",**不下结论**。证据链纪律见 `../../sht/findings/00-METHOD-逆向记录纪律.md`。
+> 本文只钉住"问题 + 已知一手线索 + 假设",**不下结论**。证据链纪律见 `../METHOD.md`。
 > 适用版本:TH18(東方虹龍洞)v1.00a,`th18.exe`(database_id `th18`)。
 
 ## 问题(为什么要留口子)
@@ -22,7 +22,7 @@ TH18 的**装备/射击卡**(`CardReimu1/2`、`CardMarisa1/2`、`CardSakuya1/2`�
   shooter_table = *(char**)( *(int*)(PLAYER_PTR + 0x47940) + 0xe0 + index*4 );
   ```
   取一张 shooter 表;表项 stride **0x5c**,符号位(`*ptr < 0`)终止 —— 与 TH16 SHT shooterset 同形
-  (TH16 stride 0x58,见 `../../sht/findings/07`)。
+  (TH16 stride 0x58,见 `../engine/sht/th16/07`)。
 - **逐卡索引(一手,`*__on_shoot`/vtable 0x1c 的 override)**:
   | 卡 | index(传给 `tick_shooters_for_ability_card` 的 param_4)|
   | --- | --- |
@@ -54,4 +54,4 @@ TH18 的**装备/射击卡**(`CardReimu1/2`、`CardMarisa1/2`、`CardSakuya1/2`�
 ## 交叉引用
 - 装备卡子机模型(一手,已验):见即将落地的 `cards-01-*`(`on_power_level_change`→`Player__allocate_option`→
   子机存卡+0x54;`on_tick_shooters`(0x1c)→ `tick_shooters_for_ability_card`)。
-- SHT shooterset 同形参照:`../../sht/findings/07-shooterset-organization.md`(TH16,待验是否跨作共用编号)。
+- SHT shooterset 同形参照:`../engine/sht/th16/07-shooterset-organization.md`(TH16,待验是否跨作共用编号)。

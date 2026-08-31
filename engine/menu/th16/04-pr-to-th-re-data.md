@@ -1,6 +1,6 @@
 # 给 ExpHP th-re-data 提 PR 的准备清单(TH16 MainMenu)
 
-> 目标仓库:`github.com/exphp-share/th-re-data`(vendor 克隆在 `../../ecl/vendor/th-re-data`,gitignore)。
+> 目标仓库:`github.com/exphp-share/th-re-data`(vendor 克隆在 `../local/vendor/th-re-data`,gitignore)。
 > 版本目录:`data/th16.v1.00a/`。本会话成果对照他们的贡献规则整理。写于 2026-06-10。
 
 ## 他们的规则(README "Contributing")

@@ -21,7 +21,7 @@
 ### A. 显示(每帧画法,prio 0x23 on_draw 链)
 
 ```
-Window::do_frame → run_all_on_draw                    [shared/th16-main-loop.md]
+Window::do_frame → run_all_on_draw                    [engine/_shared/frame-loop.md]
  └ LaserManager::on_draw_23 (LAB_00431720,匿名,prio 0x23)
     │ - 读 GAME_THREAD+0x88 做暂停门
     │ - 走 g_laser_mgr+0x14 活动链
@@ -220,7 +220,7 @@ return 0;
 | shot/transform 音 | 来自 ECL 参数 `a2`/`b2` | **硬编码 18 / −1**(spawn 里 `0x12`/`0xffffffff`) |
 | 宽度 | 固定 `s2` | 0→`r2` 扩张再收缩 |
 
-## 6. EX_LASER 参数布局交叉验证(✅✅ 与 `../ecl/ECL-info.md` 逐位吻合)
+## 6. EX_LASER 参数布局交叉验证(✅✅ 与 `engine/ecl/th16/ECL-info.md` 逐位吻合)
 
 无限激光(`a=1`)spawn 帧(弹 VM `0x413860` 的 `0x8000000` 分支)**逐位实测吻合社区**:`flags=(d&0xFD)|2`(`instr[7]`)、`effect_index=(d&0xFF00)>>8`、`delete_current=(d&0x10000)>>16`、`start/expand/duration/stop=instr[5/6/0xf/0x10]`、`shot_sound=18`、`transform_sound=-1`。线激光(`a=0`):`sprite/color/delete=instr[4]` 字节、`shot_sound=instr[5]`、`transform_sound=instr[6]`、角/速走 ±999990 阈值族。**这是 EX_LASER 在 exe 里的强佐证。**
 
@@ -286,7 +286,7 @@ return 0;
 | 字段:`mgr+0x604` | **bullet.anm 预加载 handle** | ✅ |
 | 字段:`mgr+0x608` | 擦弹累计 | 🟡(agent) |
 
-**优先级 0x1b** 把激光 tick 在主循环里钉在 **Enemy(0x1a)和 Bullet(0x1c)中间**(`run_all_on_tick`,见 `../shared/th16-main-loop.md`)——这条信息也补到 main-loop doc 了。
+**优先级 0x1b** 把激光 tick 在主循环里钉在 **Enemy(0x1a)和 Bullet(0x1c)中间**(`run_all_on_tick`,见 `engine/_shared/frame-loop.md`)——这条信息也补到 main-loop doc 了。
 
 ## 8. 开放 / 待挖
 
@@ -301,6 +301,6 @@ return 0;
 ## 关联
 - 生成来源:`01-core-engine.md` §3 opcode `0x8000000` + §8 EX_LASER。
 - 弹 VM 模型(激光是其 spawn 的产物):`02-bullet-vm-model.md`。
-- ECL 参数:`../ecl/ECL-info.md`(EX_LASER 段,已交叉验证)。
-- 落盘脚本:`../sht/disasm/scripts/apply_th16_bullet_names.py`。
+- ECL 参数:`engine/ecl/th16/ECL-info.md`(EX_LASER 段,已交叉验证)。
+- 落盘脚本:`tooling/ghidra/scripts/apply_th16_bullet_names.py`。
 </content>

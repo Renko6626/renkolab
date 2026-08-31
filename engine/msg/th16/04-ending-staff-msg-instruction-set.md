@@ -46,7 +46,7 @@ case 0xc(load_staff_roll):用 FUN_00419170 换载 staffN.msg(按难度)→ memse
 | 0xd0 | 线程对象(case 7 Thread__restart) |
 | 0xec | case 7 存 instr+4 |
 
-## 1.5 真实数据验证(`files/e01.msg` = 灵梦 no-continue 结局)✅
+## 1.5 真实数据验证(`local/th16.v1.00a/e01.msg` = 灵梦 no-continue 结局)✅
 
 用户提供真实 `e01.msg`(2520 字节,已解归档)按本格式 + 文本编解码(`02` §1)解析,**完全跑通**:
 - **文件头**:`@0 u32=1`(脚本数)、`@4 u32=0x0c`(脚本 0 偏移,构造器用此)、`@8 u32=0x100`(用途未明 🟡);脚本从 0x0c 起。
@@ -63,7 +63,7 @@ case 0xc(load_staff_roll):用 FUN_00419170 换载 staffN.msg(按难度)→ memse
 
 > 结论:**核心指令集已用真实数据闭环**(gate 2/3 通过);行为 ✅,命名仍为提案。下一步只需 staff/其它结局样本补全 0xd/0xf-0x11。
 
-## 1.6 真实数据验证(`files/staff1-4.msg` = staff roll)✅
+## 1.6 真实数据验证(`local/th16.v1.00a/staff1-4.msg` = staff roll)✅
 
 用户又提供 4 个 staff roll 文件(各 252 字节),用本工具解析,全部跑通,补充验证:
 - **4 文件几乎逐字节相同,只差一个值**:末条 `show_image @0xd0` 的 script = **12/13/14/15**(staff1/2/3/4)。
@@ -76,7 +76,7 @@ case 0xc(load_staff_roll):用 FUN_00419170 换载 staffN.msg(按难度)→ memse
   两条分支至此都见于真实数据)✅。
 - staff roll = **纯图片幻灯 + 音乐,无 `op3` 文本**(staff 名字烤进 `staff.anm` 精灵)。故 `op4/0xd/0xf/0x10/0x11` 两份样本(e01+staff)都未触及。
 
-**`files/e02.msg`、`e08.msg`(追加样本)**:同 opcode 集(0/3/5/6/7/8/9/0xa/0xb/0xe/0x0),文本全部解出——
+**`local/th16.v1.00a/e02.msg`、`e08.msg`(追加样本)**:同 opcode 集(0/3/5/6/7/8/9/0xa/0xb/0xe/0x0),文本全部解出——
 e02=灵梦败北结局(`Ending No.02 突然の敗北`),e08=魔理沙败北结局(`Ending No.08 不採用だったのかな?`,魔法森)。
 → 印证**结局索引方案**:`idx = 角色*2 + 是否用过 continue`(e01/e02=灵梦 通关/败北,e08=魔理沙 败北);
 "败北/continue"结局尾部带 `次はノーコンティニューでクリアを目指そう`,与 `Ending::initialize` 的 continue 分支一致。

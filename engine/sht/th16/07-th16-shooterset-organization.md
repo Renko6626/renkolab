@@ -87,7 +87,7 @@ while (...) { 同样计时; if(fire) shoot_one_bullet(this, ((season_lvl|0x100)<
 - SHT 编辑器应把 shooterset **按 (火力档 × 聚焦) 二维呈现**,而非平铺 10 组;组内按 `opt` 把
   shooter 归类为"本体主弹 / 子机#N 弹",让用户知道改的是哪一束。
 - 改行为(如把 pl02 改 homing)时可**按主次分别处理**:只改子机弹(`opt≥1`)= 副火力寻的、主弹保持直线;
-  或反之。详见与本篇配套的 homing 实验(`files/pl02_homing.sht`,当前是**全 shooter** 改寻的)。
+  或反之。详见与本篇配套的 homing 实验(`local/th16.v1.00a/pl02_homing.sht`,当前是**全 shooter** 改寻的)。
 
 ## 来源
 - 一手:th16.exe 反编译 `Player__do_shooting@0x445470`(ExpHP 名);pl02.sht 本地解析(版权不入库)。

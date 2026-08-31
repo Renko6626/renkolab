@@ -4,7 +4,7 @@
 > **方法**:主控一手反编译 `FUN_00424110`(变量读取器)→ 与 **Priw8 ECL 变量表**(`VAR_10` 新引擎基础)逐项交叉验证,**~30/30 吻合**。
 > **可信度**:本文 ECL 上下文字段偏移与变量 id↔语义 = **✅✅ 一手 exe + 社区双证**(过四闸门:一手反编译落到具体读取点 + Priw8 独立外部佐证 + 量纲/常识关 + 逐项对名)。仅 TH16(变量集 TH10+ 通用,逐作有增补)。
 >
-> **这解决了什么**:`00-thecl-format-reference.md` 给了格式侧的"返回寄存器 I3=-9982/F3=-9978";本文在 **exe 里坐实**了它们的运行时存储位置,并顺带解出整个 ECL 上下文(敌机/脚本)结构的一大片字段。**修正**了 `../bullets/01` §7 的一处误判(见 §4)。
+> **这解决了什么**:`00-thecl-format-reference.md` 给了格式侧的"返回寄存器 I3=-9982/F3=-9978";本文在 **exe 里坐实**了它们的运行时存储位置,并顺带解出整个 ECL 上下文(敌机/脚本)结构的一大片字段。**修正**了 `engine/bullet/th16/01` §7 的一处误判(见 §4)。
 
 ---
 
@@ -43,7 +43,7 @@
 | `+0x526c`(bit 0x13)/ `+0x526f`(bit 0) | 状态位场;`+0x526f&1`=**timeout 标志** | -9986 / -9954 区 | ✅ |
 | `+0x5180 / +0x5740 / +0x5744` | 其它(-9914 ID 区 / -9946 区 / 计数) | — | 🟡 |
 
-> 上下文很大(偏移到 +0x5744+),与 `../sht/findings/06 §4` 记的"敌人对象 ~0x574c、独立 operator_new"一致 → **ECL 上下文 = 敌机对象本体**(每个敌机跑一段 ECL,变量内嵌其中)。这坐实了 README §C 的关键假设:**敌机结构里的 ECL 变量/寄存器在 +0x1498..,移动态在 +0x125x..+0x12fx**。
+> 上下文很大(偏移到 +0x5744+),与 `engine/sht/th16/06 §4` 记的"敌人对象 ~0x574c、独立 operator_new"一致 → **ECL 上下文 = 敌机对象本体**(每个敌机跑一段 ECL,变量内嵌其中)。这坐实了 README §C 的关键假设:**敌机结构里的 ECL 变量/寄存器在 +0x1498..,移动态在 +0x125x..+0x12fx**。
 > ✅ **PC/sub 调用栈已定位(更新,见 `04`/`02`)**:在独立的 `zEclRunContext` 子结构里(PC=`cur_location` +0x4/+0x8、操作数/局部栈 `zEclStack` +0xc、stack_offset +0x100c)。注意**两个基址**:敌机对象的"global"寄存器(I0-3 等,本文 +0x1498)≠ zEclRunContext 的栈/PC——后者经 ECLplus `ENEMYFULL` 看是敌机对象前 0x120C 的 VM 块(`02` §2)。
 
 ---
@@ -55,15 +55,15 @@
 | `DAT_004a6ef8` | **玩家对象**;`+0x610/+0x614` = 玩家 X/Y | -9991/-9990/-9965/-9964 |
 | `DAT_004a57b4` | **难度全局**(与常量比 → E/N/H/L) | -9953..-9950 |
 | `DAT_004a6dc0` | **全局游戏/敌人管理器**:`+0x3c`=死亡数、`+0x40`=炸弹数、`+0x44`=破符标志、`+0x18c`=存活敌人数、`+0xc..0x38`=boss0 I0-3/F0-3 镜像、`+0x94`=rank 数值 | -9949..-9946 / -9943..-9936 / -9960 |
-| `DAT_004a6d88` | PRNG 状态(`../shared/th16-engine-math.md`) | -10000/-9999/-9998/-9987 |
+| `DAT_004a6d88` | PRNG 状态(`engine/_shared/math-and-prng.md`) | -10000/-9999/-9998/-9987 |
 | `FUN_00417580(i)` | **取 boss/敌机[i] 上下文**(boss0 = i=0) | -9943..-9936(boss0 寄存器)、-9963/-9962(boss final 坐标) |
 | `FUN_00443840` | 朝玩家角(已命名,见弹幕) | -9989/-9956/-9955 |
 
-> `DAT_004a6dc0` 与 `../bullets/01` 记的敌人管理器一致(注意 vs 弹管理器 `DAT_004a6dac` 差一位)。这里再得其字段:`+0x18c`=存活敌人数(与旧文档吻合)、`+0x3c/0x40/0x44`=死亡/炸弹/破符计数。
+> `DAT_004a6dc0` 与 `engine/bullet/th16/01` 记的敌人管理器一致(注意 vs 弹管理器 `DAT_004a6dac` 差一位)。这里再得其字段:`+0x18c`=存活敌人数(与旧文档吻合)、`+0x3c/0x40/0x44`=死亡/炸弹/破符计数。
 
 ---
 
-## 4. ★ 修正 `../bullets/01` §7 的假设
+## 4. ★ 修正 `engine/bullet/th16/01` §7 的假设
 
 旧文档(开放问题 1 / README §B)推测 **`0x4921b4` = ECL opcode 派发表(200+ 项)**。**实测推翻**:
 - `0x4921b4` 是 **变量访问器表**(§1),`FUN_00424110` 是其"读特殊变量"项;
@@ -88,13 +88,13 @@
   - `content/modding/vars.md` + **`js/ecl/vars.js`** = 特殊变量表(本文 §2/§5 来源,逐作负 id + 语义 + rw/scope)。
   - `content/modding/ins.md`、**`content/modding/eclmap-16.md`**(★ TH16 指令名 eclmap,补 thtk 不带 TH16 eclmap 的缺口,衔接 `00-*` §4)、`content/modding/transforms.md`(etEx/transform 表,对 `ECL-info.md`)、`flags.md`、`std-ins.md`、`ecl-tutorial/0..13`。
   - ⚠️ 社区单源(Priw8 主要做 TH17),但与本仓库 exe **逐项吻合** → 可信度高;冲突仍以 TH16 exe 为准。
-- thecl 格式侧:`00-thecl-format-reference.md`。运行时 etEx:`../bullets/01` §8 + `ECL-info.md`。
+- thecl 格式侧:`00-thecl-format-reference.md`。运行时 etEx:`engine/bullet/th16/01` §8 + `ECL-info.md`。
 
 ---
 
 ## 关联
 - 格式侧返回寄存器 I3/F3:`00-thecl-format-reference.md` §2.1。
-- 敌人对象/管理器(宿主):`README.md` §C、`../sht/findings/06 §4`(`DAT_004a6dc0`)。
-- PRNG/角度原语:`../shared/th16-engine-math.md`。
+- 敌人对象/管理器(宿主):`README.md` §C、`engine/sht/th16/06 §4`(`DAT_004a6dc0`)。
+- PRNG/角度原语:`engine/_shared/math-and-prng.md`。
 - 待办:定位 opcode 解释循环 + PC/sub 调用栈在上下文中的偏移(顺 `FUN_00417580` 调用方 / 上下文分配 `operator_new(0x574c)` 的初始化)。
-- 纪律:`../sht/findings/00-METHOD-逆向记录纪律.md`;memory `re-overclaim-guard`/`re-evidence-chain-discipline`。
+- 纪律:`METHOD.md`;memory `re-overclaim-guard`/`re-evidence-chain-discipline`。

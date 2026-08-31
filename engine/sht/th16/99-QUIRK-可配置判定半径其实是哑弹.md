@@ -56,4 +56,4 @@ SHT 编辑器**不能拿"字段存在/被读"当"改了有效"**。判定/擦弹
 
 - `0x4439e0`(碰撞读 sht_base+0x04)、`0x440fb0`(LAB_00441097 处覆写 `*(sht_base+4)=DAT_00492c98[char]`)、
   `DAT_00492c98`=[3.0,3.0,3.0,3.0](.rdata,从 th16.exe 直接读)。
-- 关联:`05-*.md`(死字段清单 + header 字段图)、`shared/touhou-modding-sources.md`(判定/擦弹 TH16 统一,wiki 互证)。
+- 关联:`05-*.md`(死字段清单 + header 字段图)、`engine/_shared/community-sources.md`(判定/擦弹 TH16 统一,wiki 互证)。

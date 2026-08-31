@@ -22,9 +22,9 @@ blob,不解析内部)。**不存在 `thsht` 这种官方工具**。网上"thsht 
   (全局/静态符号 + 类型)、`type-structs-*.json`(结构体布局,如 `zEclVm`/`zEclRunContext`/`AnmManager`…)。
   覆盖重 **ANM / laser / ECL / bullet**;**SHT 几乎为零**(SHT 运行时语义是我们的原创产出)。
 - **粒度**:**只给"叫什么 / 字段在哪",不给"干什么"**(`comment` 0 条)。**当命名层用,语义层自己做。**
-- **位置**:本地克隆 `research/ecl/vendor/th-re-data`(**gitignored**,可重克隆);上游 `exphp-share/th-re-data`;
+- **位置**:本地克隆 `local/vendor/th-re-data`(**gitignored**,可重克隆);上游 `exphp-share/th-re-data`;
   我们的 fork `Renko6626/th-re-data`(已提 **PR #7** = 15 个 MainMenu funcs、**issue #8** = 导入脚本,ExpHP 已邀 PR)。
-- **怎么用**:**`research/funcs/import_th_re_data.py`** —— 把 funcs/statics 名 + 注释一键套进 Ghidra
+- **怎么用**:**`tooling/ghidra/import_th_re_data.py`** —— 把 funcs/statics 名 + 注释一键套进 Ghidra
   (safe 默认不覆盖已有名;`--overwrite` / `--dry-run`)。建新工程或重建时跑它白得命名上下文。
   (当前 `th16` Ghidra 工程**已套用并落盘**,重开即见。)
 - 配套权威:Priw8 `eclmap`(ECL 指令名)、`thtk`(格式权威)。⚠️ 上游不太活跃;我们的 ghidra-re MCP 也已 fork 自用
@@ -39,7 +39,7 @@ blob,不解析内部)。**不存在 `thsht` 这种官方工具**。网上"thsht 
     `js/import.js`/`js/export.js`。是目前最完整的逆向文档。
   - ✅ 部署站版本选择器覆盖 **TH07–TH19(獣王園/UDoALG)**;GitHub README 过时(只到 TH18)——
     **以部署站和源码为准**。
-  - 本地克隆见 `research/sht/vendor/sht-webedit`(@98b8cca)。
+  - 本地克隆见 `local/local/vendor/sht-webedit`(@98b8cca)。
 - **shmupcc-sht** <https://github.com/Priw8/shmupcc-sht>
   - quickjs CLI 编译器:`-c` JSON→二进制、`-d` 二进制→JSON(类似 ECL 的 .decl↔.ecl)。
   - 架构干净(声明式 `Struct` + 校验 + JSON 互转 + 版本注册表),值得借鉴。
@@ -72,7 +72,7 @@ blob,不解析内部)。**不存在 `thsht` 这种官方工具**。网上"thsht 
 (MoF/TH16 起废弃不调);`func_on_hit`=命中敌人时(音效 / UFO 早苗B 溅射)。`rate2/delay2`= 上面
 120 帧计时器,**TH16 副季节 sub-shot 的计时即走此**(非特殊 func/flag)。
 🟡 flags 段疑为 **load-time 替换成 thiscall 函数指针的派发槽**(RUEEE 单源,TH15 枚举基数 5/4/2/6;
-与 sht-webedit `flags_len` 字节数对不上,**以反汇编为准**)。详见 `sht/findings/02-*.md`。
+与 sht-webedit `flags_len` 字节数对不上,**以反汇编为准**)。详见 `engine/sht/th16/02-*.md`。
 
 ## ❓ 社区公开未解(= 我们反汇编的目标)
 
@@ -84,7 +84,7 @@ blob,不解析内部)。**不存在 `thsht` 这种官方工具**。网上"thsht 
     **idx0=直线(夏/琪露诺,散射靠几何)、idx1=追踪(春/灵梦)、idx2=激光(冬/魔理沙)、idx5=匀加速(秋/文)**。
     关键变量(✅一手):**slot+0x64=移动角、slot+0x60=速度**(易标反)、+0x90 目标句柄、+0xa0 激光长度、
     find_nearest_enemy@0x425240、atan2@0x487aaa(已坐实)。idx3/5 = `speed+0x60 += 常量`(匀加速,非曲率;
-    游戏内实测 Aya 加速)。详见 `sht/findings/03-*.md`。**仅 TH16,勿外推。**
+    游戏内实测 Aya 加速)。详见 `engine/sht/th16/03-*.md`。**仅 TH16,勿外推。**
 - `flags` 段(TH14-18 = 0x20 字节,TH19 = 0x3c)位含义:作者自述 "who knows"(repo Issue #6)。
 - main 头部 `unknown_2..unknown_10`、shooter 的 `unknown_sht_float/byte`:无文档。
 
@@ -104,4 +104,4 @@ blob,不解析内部)。**不存在 `thsht` 这种官方工具**。网上"thsht 
   → **结论:灵梦"判定点更小"保留到 TH15,TH16 取消、全角色统一 3.0**;判定/擦弹半径**不可经 .sht 编辑**
     (硬编码于 exe)。可信度:统一值=✅一手;TH13–15 逐作数值=🟡(wiki 单源,绝对确认需各作反汇编)。
   - 出处:Touhou Wiki [Hitbox](https://en.touhouwiki.net/wiki/Hitbox) / [Graze](https://en.touhouwiki.net/wiki/Graze);
-    一手见 `sht/findings/05-*.md` §2b/§4b。
+    一手见 `engine/sht/th16/05-*.md` §2b/§4b。

@@ -75,7 +75,7 @@
 
 **不被任何代码单独读的字节(=padding,与解析吻合)**:0x03、0x05–0x07、0x0a–0x0b、0x16–0x17、0x23、0x25。
 
-## 2b. 与 sht-webedit 字段名交叉验证(`vendor/sht-webedit/js/struct/struct_16.js`)
+## 2b. 与 sht-webedit 字段名交叉验证(`local/vendor/sht-webedit/js/struct/struct_16.js`)
 
 sht-webedit 给出**静态字段名**(无运行时语义)。逐项核对,**我们的 RE 与之一致,并在两处反超**:
 
@@ -194,7 +194,7 @@ pl03sub=23, pl04sub=20):
   (擦弹计数 DAT_004a57c0/c4+音效0x2a)、`0x41c330`(调用方 ==2 走擦弹)、`0x440fb0`(+0x04 覆写)。✅HIGH,仅 TH16。
 - > 注:这些是 **SHT header 字段**(整文件级,非逐 shooter 结构),与 §2 的 shooter 结构表是两个区。
 
-## 5. 对 IDE 的指导(回流 ../docs/)
+## 5. 对 IDE 的指导(回流 THTK-Studio 的 docs/)
 
 - TH16 shooter 字段 **0x00–0x37 已全解**(见 §2)+ header 字段图(见 §2b),可作 SHT 编辑器字段定义层。
 - **「编辑无效」字段必须标注(否则误导用户)**:这些字段在 .sht 里有值,但 TH16 运行时**不采纳**——

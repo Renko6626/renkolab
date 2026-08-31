@@ -3,13 +3,13 @@
 > 方法:Ghidra(ghidra-re MCP)一手反编译 th16.exe(用户自有,ExpHP th-re-data 符号已套)。
 > 日期 2026-06-12。分级 ✅高 / 🟡中。**仅 TH16 v1.00a**。
 > 本篇补"开火的**上半段**"(输入→门控→cadence)与移动/聚焦;开火**下半段**(do_shooting→shooterset→
-> spawn→伤害)在 `../sht/findings/07`(shooterset)与 `08`(伤害管线),此处只衔接、不重复。
+> spawn→伤害)在 `engine/sht/th16/07`(shooterset)与 `08`(伤害管线),此处只衔接、不重复。
 
 ## 0. 一句话结论
 
 存活态每帧 `player_input_move`(移动 + 聚焦 + 派发已存在弹的 tick),`player_update_perframe` 末尾在
 **满足开火大门**时调 `Player__tick_shooting_state`(读射击键 → 推进短/长计时 → 调 `Player__do_shooting`
-按 shooterset 发弹)。**聚焦 = `+0x165c8` = `INPUT bit3`**(一手坐实,订正 `../sht/findings/07` 的 🟡)。
+按 shooterset 发弹)。**聚焦 = `+0x165c8` = `INPUT bit3`**(一手坐实,订正 `engine/sht/th16/07` 的 🟡)。
 
 ## 1. 输入全局 ✅
 
@@ -41,7 +41,7 @@
 ```
 GUI 不在对话(GUI+0x1c8==0) && 场上有敌(ENEMY_MANAGER+0x18c!=0)
 && (GAME_THREAD+0x88 & 0x4000)==0 && player+0x650 > 0x13(19)
-&& (player+0x1664c & 0x4)==0 && (player+0x1664c & 0x10)==0      // 两个"禁射"位(语义见 ../player/01 §7)
+&& (player+0x1664c & 0x4)==0 && (player+0x1664c & 0x10)==0      // 两个"禁射"位(语义见 engine/player/th16/01 §7)
 ```
 → 否则把射击计时复位(不发弹)。注:`+0x650` 是一个进关后自增的帧计数,>19 才允许开火(开局/复活后的
 短暂"不能射"缓冲)。
@@ -59,13 +59,13 @@ if (player+0x165d0 != player+0x165cc)                 // 计时跨过节拍
 // 长计时(+0x165e4):封顶 0x76(118)/0x77,管"长按"分支
 ```
 - `+0x165cc/d0` = **短射击计时**(prev/cur);`+0x165e0/e4` = **长按计时**。两者一起决定**开火节拍 cadence** 与
-  连射状态,然后把"当前计时值"传给 `Player__do_shooting` 当帧相位(对应 `../sht/findings/07` 里
+  连射状态,然后把"当前计时值"传给 `Player__do_shooting` 当帧相位(对应 `engine/sht/th16/07` 里
   `frame_main % fire_rate == start_delay` 的 `frame`)。
 - **`Player__set_shoot_key_short_timer` @0x440d50**:把短计时初始化为给定值(`+0x165d0=v`、`+0x165cc=v-1`、
   `+0x165d4=(float)v`)——按下射击键瞬间归零起拍。
 
 > 衔接:`do_shooting` 之后的"选 shooterset(火力×聚焦)→ 遍历 shooter → `shoot_one_bullet` → spawn 灌字段
-> → 建伤害源"全在 `../sht/findings/07`(组织)+ `08`(伤害)+ `03/04`(func_* 行为),本篇不再展开。
+> → 建伤害源"全在 `engine/sht/th16/07`(组织)+ `08`(伤害)+ `03/04`(func_* 行为),本篇不再展开。
 
 ## 3. 移动 + 聚焦:`player_input_move` @0x441cf0 ✅
 
@@ -74,7 +74,7 @@ if (player+0x165d0 != player+0x165cc)                 // 计时跨过节拍
 **9 向方向 `+0x2c780`**(0..8)由方向位组合得出:`0x10=上 0x20=下 0x40=左 0x80=右`,对角线取组合
 (如上+左→5、下+左→7、上+右→6、下+右→8;纯方向 1=上/2=下/3=左/4=右;无=0)。
 
-**聚焦 `+0x165c8`** ✅(★订正 `../sht/findings/07` §4 的 🟡):
+**聚焦 `+0x165c8`** ✅(★订正 `engine/sht/th16/07` §4 的 🟡):
 ```c
 if (场上有敌 && player+0x63c >= 4)  player+0x165c8 = INPUT>>3 & 1;   // = 聚焦键(bit3)是否按住
 else { player+0x165c8 = 0; player+0x16680 = 0x1e; }                  // 无敌/开局强制非聚焦
@@ -105,7 +105,7 @@ playershot_tick_dispatch(player, player+0x9f0, 8);   // 子机/option 槽 ×8
 ```
 并维护聚焦判定点指示(anm 0x1a `+0x165ac`)与聚焦光环(anm 0x1b `+0x165b0`)两个特效。
 
-## 4. 一帧自机时序(整合 `../player/01` + `../sht/04`)
+## 4. 一帧自机时序(整合 `engine/player/th16/01` + `../sht/04`)
 
 ```
 player 任务 0x443720
@@ -115,7 +115,7 @@ player 任务 0x443720
          └─ player_input_move 0x441cf0:9 向移动 + 聚焦(+0x165c8) + 边界钳制
                                          + playershot_tick_dispatch(已存在弹 tick)
        …(状态无关下半段)…
-         ├─ 伤害源池 256 更新(../sht/08)、无敌帧倒计时 + 闪烁(../player/01 §3)
+         ├─ 伤害源池 256 更新(../sht/08)、无敌帧倒计时 + 闪烁(engine/player/th16/01 §3)
          ├─ 判定矩形世界角点重算、帧计数自增
          ├─ 满足开火大门 → Player__tick_shooting_state 0x4455d0
          │      └─ 读 INPUT&1 → 推进短/长计时 → Player__do_shooting 0x445470
@@ -128,6 +128,6 @@ player 任务 0x443720
 - ✅ 一手:`Player__tick_shooting_state`(0x4455d0)、`Player__set_shoot_key_short_timer`(0x440d50)、
   `player_input_move`(0x441cf0)、`Supervisor__read_keyboard_input`(0x401d50)本会话反编译;开火大门来自
   `player_update_perframe`(0x442560)调用点。
-- ✅ **聚焦 = `+0x165c8` = INPUT bit3** 一手坐实 → 把 `../sht/findings/07` §4 的 🟡 升 ✅。
+- ✅ **聚焦 = `+0x165c8` = INPUT bit3** 一手坐实 → 把 `engine/sht/th16/07` §4 的 🟡 升 ✅。
 - 🟡 DInput 逐键→位映射未解(位值由消费侧坐实);`+0x650/+0x63c` 计数的精确语义只取了"门控阈值"。
-- 复核入口:Ghidra DB `th16`,地址见上。开火下半段交叉 `../sht/findings/07,08`。
+- 复核入口:Ghidra DB `th16`,地址见上。开火下半段交叉 `engine/sht/th16/07,08`。

@@ -1,8 +1,8 @@
 # 05 — ECL 游戏 opcode 派发 + 开火接缝(ECL et* → 弹幕 fire 描述符)
 
 > **对象**:TH16 `th16.exe`,imagebase 0x400000。日期 2026-06-10。
-> **方法**:subagent 一手反编译 `ecl_run_over_300`(0x41dcb0)+ `bullet_spawn_wrapper`(0x414da0)+ `ecl_enm_create`(0x423050)+ PE 跳转表 `0x422c44`;与 Priw8 `vendor/th16.eclm`(命名层)对差,与 `../bullets/01` §6(spawn 读取侧)交叉印证。
-> **provenance/可信度**:结论为 **subagent 一手反编译,地址可复核**;关键字段映射经 **写入侧(et* handler)与读取侧(bullet_spawn_wrapper)双向自洽** + 与我们独立做的 `../bullets/01` §6 一致 = 强。标 ✅一手 / 🟡推断 / ❓存疑。仅 TH16。
+> **方法**:subagent 一手反编译 `ecl_run_over_300`(0x41dcb0)+ `bullet_spawn_wrapper`(0x414da0)+ `ecl_enm_create`(0x423050)+ PE 跳转表 `0x422c44`;与 Priw8 `vendor/th16.eclm`(命名层)对差,与 `engine/bullet/th16/01` §6(spawn 读取侧)交叉印证。
+> **provenance/可信度**:结论为 **subagent 一手反编译,地址可复核**;关键字段映射经 **写入侧(et* handler)与读取侧(bullet_spawn_wrapper)双向自洽** + 与我们独立做的 `engine/bullet/th16/01` §6 一致 = 强。标 ✅一手 / 🟡推断 / ❓存疑。仅 TH16。
 
 ---
 
@@ -29,7 +29,7 @@
 
 ## 3. ★★ 开火接缝:发射器结构体 = fire 描述符(✅✅ 双向自洽)
 
-**模型**:敌机/VM 对象内嵌**发射器(emitter)数组**,每个发射器 idx `i`(= 所有 et* 指令的 arg0)位于 `param_1 + i*0xe0 + 0x166`(dword 索引;**stride 0xe0 dword = 0x380 字节**,由 etCopy(op 614)的 `for(0xe0)` 拷贝循环坐实)。**这个发射器结构体就是传给 `bullet_spawn_wrapper`(0x414da0)的 fire 描述符**(= `../bullets/01` §6 的 `param_1`)。et* 指令是配置 setter,`etOn` 是触发。
+**模型**:敌机/VM 对象内嵌**发射器(emitter)数组**,每个发射器 idx `i`(= 所有 et* 指令的 arg0)位于 `param_1 + i*0xe0 + 0x166`(dword 索引;**stride 0xe0 dword = 0x380 字节**,由 etCopy(op 614)的 `for(0xe0)` 拷贝循环坐实)。**这个发射器结构体就是传给 `bullet_spawn_wrapper`(0x414da0)的 fire 描述符**(= `engine/bullet/th16/01` §6 的 `param_1`)。et* 指令是配置 setter,`etOn` 是触发。
 
 ### 3.1 et* opcode → 描述符字段(写入侧一手,desc 偏移相对发射器基 dword)
 
@@ -44,7 +44,7 @@
 | 606 | etCount | 0x78 | desc **`[0xd9]` 低16=内层(路数)**、**高16=波数**(`desc+0x366`) | ✅✅ |
 | 607 | etAim | 0x79 | desc **`[0xda]`=散布/瞄准模式**(u16) | ✅✅ |
 | 608 | etSound | 0x7a | desc **`[0xdc]`=sfx id**、`[0xdd]`=第二音参 | ✅✅ |
-| 609–612 | etEx/etEx2 | 0x7b | 写一条 **etEx 效果 = 11 dword(0x2c 字节)弹字节码指令** 入描述符字节码块 `[0x10 + n*0xb]`(stride 0xb dword = `../bullets/01` §3 弹 VM stride);按 raw opcode 0x262/0x263/0x264 变参数布局 | ✅ |
+| 609–612 | etEx/etEx2 | 0x7b | 写一条 **etEx 效果 = 11 dword(0x2c 字节)弹字节码指令** 入描述符字节码块 `[0x10 + n*0xb]`(stride 0xb dword = `engine/bullet/th16/01` §3 弹 VM stride);按 raw opcode 0x262/0x263/0x264 变参数布局 | ✅ |
 
 ### 3.2 spawn 读取侧确认(`bullet_spawn_wrapper` 0x414da0,✅✅)
 
@@ -53,8 +53,8 @@
 - `baseAngle`:若 desc `[2]/[3]` ≠ 玩家位 → `atan2` 朝玩家(自机狙),否则 `DAT_00494534`。
 - SFX:`if (desc[0xdb] & 0x20) FUN_0045e1f0(desc[0xdc])` → desc **`[0xdb]` bit 0x20 = 播音标志**、**`[0xdc]` = sfx id**。
 
-> **双向印证**:`../bullets/01` §6 从 spawn **读取侧**独立推出的字段([0]type/[1]subtype/[2..4]pos/[5]angle/[6]spread/[7]speed/[8]speed2/[0xd9]count/[0xda]mode/sfx),现由 et* **写入侧**逐一确认 = 这条 ECL→弹幕接缝在 exe 层钉死(社区 ECL-info/eclmap 未在 exe 层给)。
-> **修正 `../bullets/01` §6**:sfx 是 **`[0xdc]`(非 [0xdd])**;`[0xdb]` bit 0x20=播音标志;`[0xd9]` 高16=波数(原文未拆分 count 高低16)。
+> **双向印证**:`engine/bullet/th16/01` §6 从 spawn **读取侧**独立推出的字段([0]type/[1]subtype/[2..4]pos/[5]angle/[6]spread/[7]speed/[8]speed2/[0xd9]count/[0xda]mode/sfx),现由 et* **写入侧**逐一确认 = 这条 ECL→弹幕接缝在 exe 层钉死(社区 ECL-info/eclmap 未在 exe 层给)。
+> **修正 `engine/bullet/th16/01` §6**:sfx 是 **`[0xdc]`(非 [0xdd])**;`[0xdb]` bit 0x20=播音标志;`[0xd9]` 高16=波数(原文未拆分 count 高低16)。
 
 ---
 
@@ -70,10 +70,10 @@
 ## 5. 开放 / 待挖
 - 散布模式 `[0xda]` 的 0..0xc 各模式精确几何在 `bullet_pool_spawn`(0x412cb0)内,本轮未展开(🟡;接 `ECL-info.md` etAim 0-12 对照)。
 - 发射器辅助区:et-offset `+0xf76..`、`+0xfa6..`(第二/"冻结"位,etOn 在 `+0xfa8 > 常量` 时用)、per-emitter 计数 `+0xf66`(etEx 自增)——存在 ✅,`+0xfa6` 分支用途 🟡。
-- etEx 写入的弹字节码块 = `../bullets/01` §3 弹 VM 程序;ECL `etEx(type,a,b,r,s)` 的 type→opcode、a/b/r/s→指令字段已在 `ECL-info.md`/`../bullets/01` §8 交叉验证。
+- etEx 写入的弹字节码块 = `engine/bullet/th16/01` §3 弹 VM 程序;ECL `etEx(type,a,b,r,s)` 的 type→opcode、a/b/r/s→指令字段已在 `ECL-info.md`/`engine/bullet/th16/01` §8 交叉验证。
 
 ## 关联
 - 解释器循环 `04-ecl-vm-interpreter.md`;运行时结构 `02-runtime-vm.md`;格式 `00-*`;变量 `01-*`。
-- 弹幕引擎(下游):`../bullets/01-core-engine.md` §6(fire 描述符,本文已精修)、§3(弹 VM)、§8(etEx 交叉验证)。
-- 命名层:`vendor/th16.eclm`(Priw8)。纪律:`../sht/findings/00-METHOD-逆向记录纪律.md`。
+- 弹幕引擎(下游):`engine/bullet/th16/01-core-engine.md` §6(fire 描述符,本文已精修)、§3(弹 VM)、§8(etEx 交叉验证)。
+- 命名层:`vendor/th16.eclm`(Priw8)。纪律:`METHOD.md`。
 - ⚠️ 本文为 subagent 一手反编译,地址均可在 Ghidra `th16` 复核;主控未逐行复跑,但关键字段映射已由写/读双向 + bullets/01 三方自洽。
