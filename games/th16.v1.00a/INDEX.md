@@ -15,12 +15,18 @@
 
 ## 符号覆盖
 
+由 `tooling/ghidra/bootstrap.py th16 --dry-run` 实测（2026-09-01）：
+
 | 来源 | 数量 |
 | --- | --- |
 | exe 内函数总数 | 1764 |
-| ExpHP `th-re-data` 已命名 | ~932（其中有意义 ~886） |
-| 已导入 Ghidra 并落盘 | 872（`renamed=614 / fail=0` 那一批之后） |
-| 🔬 真·待挖（谁都没命名） | 515 → 清单见 [`unexplored.md`](unexplored.md) |
+| 已命名（ExpHP + 我们自己） | 1294 |
+| 🔬 真·待挖（仍是 `FUN_`） | 470 → 清单见 [`unexplored.md`](unexplored.md) |
+| ExpHP 可套符号 | `skipped=1185 missing=123`（safe 模式，`applied=0` = 已全部套过，幂等） |
+| ExpHP 结构体 | 158（`failed=0`） |
+
+> ⚠️ [`unexplored.md`](unexplored.md) 本身的统计停在 2026-06-10（当时 872 已命名 / 515 待挖），
+> 比上表旧。要刷新，跑 `bootstrap.py` 后再跑 `tooling/ghidra/build_worklist.py`。
 
 ## 本作特有机制
 

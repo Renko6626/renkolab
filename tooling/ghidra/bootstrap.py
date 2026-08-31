@@ -150,6 +150,8 @@ def main():
     ap.add_argument("--data-dir", help="覆盖 th-re-data 版本目录")
     ap.add_argument("--reanalyze", action="store_true", help="工程已存在也重新分析")
     ap.add_argument("--skip-names", action="store_true", help="不套 ExpHP 名字/结构体")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="只预览命名/结构体导入的计数，不写库（用于验证接线与回归基线）")
     a = ap.parse_args()
 
     P = resolve(a.version)
@@ -164,6 +166,7 @@ def main():
     print(f"      工程       {P['proj_dir'].relative_to(REPO)} / {P['proj_name']}")
     print(f"      th-re-data {P['data_dir'].relative_to(REPO) if P['data_dir'] else '(缺失,跳过命名)'}")
 
+    dry = ["--dry-run"] if a.dry_run else []
     total = 3 if (a.skip_names or not P["data_dir"]) else 5
     lines = []
 
@@ -173,9 +176,9 @@ def main():
     n = 2
     if not a.skip_names and P["data_dir"]:
         step(n, total, "套 ExpHP 函数名 / 静态符号（safe，不覆盖已有名）"); n += 1
-        lines.append(driver("import_th_re_data.py", P))
+        lines.append(driver("import_th_re_data.py", P, dry))
         step(n, total, "套 ExpHP 结构体"); n += 1
-        lines.append(driver("import_th_re_data_structs.py", P))
+        lines.append(driver("import_th_re_data_structs.py", P, dry))
     elif not P["data_dir"]:
         print("\n      ⚠️ 没有 th-re-data，跳过命名。逆向新 exe 的第一件事就是翻它——")
         print("         见 engine/_shared/community-sources.md 的金矿条目。")
