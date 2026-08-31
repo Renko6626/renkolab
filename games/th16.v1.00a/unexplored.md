@@ -1,26 +1,17 @@
-# TH16 未挖函数地图(给新会话的任务指导)
-> **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
->
+# th16.v1.00a 未挖函数地图(给新会话的任务指导)
 
-> 自动生成:`funcs/build_worklist.py`(交叉 `funcs/th16-funcs.json` 当前工程快照 × ExpHP th-re-data)。
-> 重生成:见 `funcs/README.md`。本表 = TH16 v1.00a。
-
-> ⚠️ **本表是 2026-06-11 之前的快照,已部分过时——以 Ghidra DB `th16` 为准。已知更正**:
-> - **player-shot 段(0x444–0x447)现已 100% 命名**(SHT func 表全员 + 助手;findings/03 §6、08)。下表"PlayerBullet ~10"已清零。
-> - **Arcfile 段已做**(THA1 归档 + zun 加密 + LZSS,见 `engine/_shared/archive-tha1.md`);`0x458730` 是 hint 误导(文本字形平滑,**非归档/非 mipmap**)。
-> - **★ 选题启发式有缺陷**:本表按"大小 × 未命名"排,**过度偏向基础设施**(heap/log/CRT/Win32/AnmVm 渲染)。
->   高价值判据应是「**社区真没解(不在 thtk/pytouhou/wiki)且驱动可 mod 的格式/玩法**」;TH16 的玩法/格式函数 ExpHP
->   多已命名,故纯挖"未命名"边际递减——更值钱的是**深挖已命名函数的行为语义**(如 SHT func_*)或**换 TH18/19**。
-> - 要精确重生成:重跑 `dump_funcs.py`(读当前 DB)+ `build_worklist.py`。
+> **版本**：TH16 v1.00A（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+> 自动生成:`tooling/ghidra/build_worklist.py th16`(交叉当前工程快照 × ExpHP th-re-data)。
+> 重生成:`python tooling/ghidra/build_worklist.py th16`。本表 = th16.v1.00a。
 
 ## 总览
 | 类别 | 数量 | 含义 |
 | --- | --- | --- |
 | 总函数 | 1764 | 工程内全部 |
-| ✅ 已命名(我们/研究) | 888 | 我们反过/命名过(非 FUN_、非 CRT) |
+| ✅ 已命名(我们/研究) | 917 | 我们反过/命名过(非 FUN_、非 CRT) |
 | 📥 可从 ExpHP 导入 | 0 | 我们还是 FUN_,但 ExpHP 已命名 → 批量导名即得 |
-| 🔬 真·待挖 | 499 | 我们和 ExpHP 都没命名(非 CRT)= 研究处女地 |
-| ⚙️ CRT/库/thunk | 377 | 编译器运行时,非研究目标 |
+| 🔬 真·待挖 | 469 | 我们和 ExpHP 都没命名(非 CRT)= 研究处女地 |
+| ⚙️ CRT/库/thunk | 378 | 编译器运行时,非研究目标 |
 
 ## 📥 可从 ExpHP 导入(低垂果实:先批量导名,白得上下文)
 > 这些 ExpHP 已命名、我们工程里还是 `FUN_`。建议先写脚本批量 import(参考 `apply_th16_ecl_names.py` + ExpHP funcs.json),
@@ -40,13 +31,11 @@
 | `0x0046b900` | 1985 | 1 | AnmManager |
 | `0x00405700` | 1973 | 1 | AnmVm |
 | `0x0046c0d0` | 1964 | 3 | AnmManager |
-| `0x00446870` | 1409 | 1 | PlayerBullet |
 | `0x004895ce` | 1334 | 1 | math_call_by_name_488bb0 |
 | `0x00487af0` | 1311 | 2 | math_fmod |
 | `0x00437ee0` | 1164 | 4 | LaserCurve |
 | `0x00410550` | 1148 | 1 | BombSubWinter |
 | `0x00438370` | 986 | 2 | LaserCurve |
-| `0x00457b20` | 986 | 2 | Arcfile |
 | `0x00404220` | 982 | 2 | collision_test_circle_rect |
 | `0x00458730` | 954 | 1 | Arcfile |
 | `0x00404600` | 947 | 1 | collision_test_circle_rect |
@@ -78,12 +67,10 @@
 | `0x00488790` | 605 | 3 | _math_sqrt |
 | `0x004714c0` | 597 | 1 | disabled_logger_470240 |
 | `0x00469640` | 588 | 1 | AnmVm |
-| `0x00443cd0` | 576 | 1 | kill_player_in_circle |
 | `0x0046c920` | 572 | 1 | AnmManager |
 | `0x0047fcb4` | 570 | 1 | wrap_CreateDirectory |
 | `0x00469330` | 569 | 1 | AnmVm |
 | `0x0048a17e` | 564 | 1 | math_call_by_name_488bb0 |
-| `0x00458130` | 561 | 1 | Arcfile |
 | `0x00469bd0` | 558 | 1 | AnmVm |
 | `0x0040c280` | 541 | 1 | ecl_callSTD_40c040 |
 | `0x00427730` | 539 | 1 | gui_426d70_initializes_many_anms |
@@ -94,26 +81,29 @@
 | `0x0046d1c0` | 485 | 1 | AnmLoaded |
 | `0x0045dc50` | 472 | 1 | SoundManager |
 | `0x00484070` | 470 | 1 | global_heap_set_null |
+| `0x0047e877` | 468 | 1 | compat_RoUninitialize |
+| `0x0045c690` | 464 | 5 | ScreenEffect |
+| `0x0043c940` | 463 | 4 | Supervisor |
+| `0x004709b0` | 463 | 1 | disabled_logger_470240 |
 
-(共 499 个真·待挖;上表为最大的 60 个。全量在 `funcs/th16-funcs.json` 自行筛 name 以 FUN_ 开头者。)
+(共 469 个真·待挖;上表为最大的 60 个。全量在 `local/th16.v1.00a/th16-funcs.json` 自行筛 name 以 FUN_ 开头者。)
 
 ## 🔬 待挖函数按子系统线索聚合(挑一片整体挖)
 | 子系统线索 | 待挖数 | 累计字节 |
 | --- | --- | --- |
-| AnmVm | 21 | 8026 |
+| AnmVm | 19 | 7839 |
 | global_heap_set_null | 31 | 7286 |
-| Arcfile | 32 | 7281 |
 | disabled_logger_470240 | 29 | 6797 |
 | AnmManager | 13 | 6722 |
 | Supervisor | 23 | 5170 |
 | math_call_by_name_488bb0 | 20 | 4801 |
 | SoundManager | 14 | 3752 |
-| PlayerBullet | 10 | 3416 |
-| ReplayManager | 7 | 2960 |
+| Arcfile | 22 | 3526 |
 | AsciiManager | 4 | 2874 |
 | collision_test_circle_rect | 3 | 2789 |
-| PauseMenu | 13 | 2786 |
+| ReplayManager | 5 | 2741 |
 | AnmLoaded | 11 | 2481 |
+| PauseMenu | 12 | 2358 |
 | LaserCurve | 3 | 2292 |
 | math_fmod | 2 | 2058 |
 | BombSubWinter | 4 | 1967 |
@@ -125,3 +115,4 @@
 | TranslatorGuardHandler | 11 | 1347 |
 | cartesian_from_polar_469e00 | 2 | 1280 |
 | reads_file_into_new_allocation_402440 | 7 | 1128 |
+| GameThread | 3 | 1000 |

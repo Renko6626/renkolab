@@ -1,0 +1,1003 @@
+{
+ "version": "th18.v1.00a",
+ "exe_md5": "9969cac756098c1da05a81de45437a70",
+ "funcs": [
+  {
+   "name": "AbilityManager__recount_and_recategorize_cards",
+   "addr": "0x004080e0"
+  },
+  {
+   "name": "Card__death_save_bomb_revive",
+   "addr": "0x0040a2a0"
+  },
+  {
+   "name": "CardShop__price_for_tier",
+   "addr": "0x00416dd0"
+  },
+  {
+   "name": "CardData__is_available_at_stage",
+   "addr": "0x00416e10"
+  },
+  {
+   "name": "CardShop__pick_weighted_random_offer",
+   "addr": "0x00416f50"
+  },
+  {
+   "name": "CardCollection__mark_obtained_and_notify",
+   "addr": "0x00418de0"
+  },
+  {
+   "name": "Bomb__can_bomb_and_deathbomb_check",
+   "addr": "0x00420420"
+  },
+  {
+   "name": "GlobalsInner__spend_power",
+   "addr": "0x00457480"
+  },
+  {
+   "name": "Player__repopulate_options_and_notify_cards",
+   "addr": "0x0045d5e0"
+  }
+ ],
+ "statics": [
+  {
+   "addr": "0x004c4a4c",
+   "name": "__security_cookie",
+   "type": "int"
+  },
+  {
+   "addr": "0x004cccdc",
+   "name": "CURRENT_STAGE_globalsinner_base",
+   "type": "undefined4"
+  },
+  {
+   "addr": "0x004ccd34",
+   "name": "MONEY",
+   "type": "undefined4"
+  },
+  {
+   "addr": "0x004ccd38",
+   "name": "CURRENT_POWER",
+   "type": "undefined4"
+  },
+  {
+   "addr": "0x004ccd4c",
+   "name": "LIFE_FRAGMENTS",
+   "type": "undefined4"
+  },
+  {
+   "addr": "0x004ccd54",
+   "name": "LIVES_STOCK_cardfed_cap7",
+   "type": "undefined4"
+  },
+  {
+   "addr": "0x004ccd58",
+   "name": "CURRENT_BOMBS",
+   "type": "undefined4"
+  },
+  {
+   "addr": "0x004ccd5c",
+   "name": "BOMB_FRAGMENTS",
+   "type": "undefined4"
+  },
+  {
+   "addr": "0x004ccd64",
+   "name": "MAX_BOMBS",
+   "type": "undefined4"
+  }
+ ],
+ "labels": [],
+ "comments": [
+  {
+   "addr": "0x0040a2a0",
+   "kind": "pre",
+   "text": "Card death-save (called by CardEirin__on_player_death_after_deathbomb): spawn clear-effect ANM, create clearing damage source, consume CURRENT_BOMBS (decrements ~2x, clamped to MAX_BOMBS), set invuln + revive flags, count bomb stat (ENEMY_MGR+0x40). Plays sound 0x2c."
+  },
+  {
+   "addr": "0x0040a9c0",
+   "kind": "pre",
+   "text": "Equipment/shot-card familiar fire. param_1=option obj (card+0x54), param_4=per-card SHT shooter-table index into *(player+0x47940)+0xe0+idx*4 (stride 0x5c, sign-bit terminator). Bullets spawn from option pos (param_1+0x5c/0x60). OPEN: where the per-card shooter tables actually live (only pl00-03 unpacked) -> see cards-OPEN-passive-shooter-data.md"
+  },
+  {
+   "addr": "0x0040ebf0",
+   "kind": "pre",
+   "text": "c_press gate: card+0x54(active-state)==0 && card+0x38(recharge countdown current)<1. Recharge dur = recharge_time(+0x48) * ABILITY_MANAGER+0xc58 (global mult, =1.0 default), loaded into +0x34 timer (counts DOWN while idle). NOTE: ExpHP struct names +0x20/+0x34 appear swapped vs first-hand: +0x34 is the recharge countdown gating reuse; +0x20 measures active duration."
+  },
+  {
+   "addr": "0x00416dd0",
+   "kind": "pre",
+   "text": "Card price: table @ 0x4b35c4 indexed by card tier (zTableCardData+0x10). HALF price (*5/10) if a card with id 0x27 (discount card) is in the deck."
+  },
+  {
+   "addr": "0x00416e10",
+   "kind": "pre",
+   "text": "Card shop availability gate. Reads CURRENT_STAGE (0x4cccdc). RETURN (per disasm, NOT bool): dmode(+0x18)==0 -> 1 (always); dmode 1-5 AND CURRENT_STAGE==dmode -> *** 2 *** (STAGE-EXCLUSIVE card); dmode 6-10 stage-range -> 1; 0xb=stages1-5; else -> unlock byte SCOREFILE+0x5f588+id (0/1). initialize loop1 force-adds ret==1, loop2 force-adds ret==2. Stage-exclusive (dmode1-5) cards by id->class (allocate_new_card): 38 Maneki(st1)/39 Yamawaro(st2)/40 Kiseru(st3)/51 MagatamaOp(st4)/52 Cylinder+53 Riceball(st5). NOTE class names are ITEM codenames; boss/character correspondence is lore inference, NOT in binary."
+  },
+  {
+   "addr": "0x00416f50",
+   "kind": "pre",
+   "text": "Pick ONE weighted-random card offer with price tier in [param2,param3]. Tier->money via table 0x4b35c4: t1-6=50/80/100/100/140/180, t7-9=200/240/280, t10-13=300/350/400/450, t14=500. Shop bands: (10,0xe)=300-500, (7,9)=200-280, (1,6)=50-180 (wiki [300-450]/[200-280]/[0-180]). Maneki-neko card(id 0x26=38) adds 3 extra all-band draws. Unbought cards (SCOREFILE+0x5f588+id==0) weighted x5."
+  },
+  {
+   "addr": "0x00418de0",
+   "kind": "pre",
+   "text": "Mark card id obtained: set SCOREFILE+0x5f588+id=1 (=bought/obtained at least once -> usable as initial loadout card; wiki). If all 56 obtained -> trophy 0x1d. Queues 'new card!' popup (DAT_004cf2a8). Callers: shop buy (AbilityShop__on_tick) + GameThread__end_stage (grants this stage's cards incl boss cards 0x36/0x37)."
+  },
+  {
+   "addr": "0x00420360",
+   "kind": "pre",
+   "text": "X-key bomb (input bit 0x2), TH16-style. Gate: BOMB[0xc]==0 (not already bombing). Calls BOMB->vtable+0x4 = zVTableBomb.begin (character-specific bomb). Plays sound 0x2c; sets spell-fail flag if bombing mid-spell. TH18 KEEPS the bomb; cards only replaced TH16 season-release. Stock gate = Bomb__can_bomb_and_deathbomb_check (DAT_004ccd58)."
+  },
+  {
+   "addr": "0x0045d5e0",
+   "kind": "pre",
+   "text": "Repopulate player's main option familiars on power change (power lvl = DAT_004ccd38/DAT_004ccd40; option_pos from *(player+0x47940)+0x40 unfocus / +0x90 focus, +idx*8; triangular layout idx table @ 0x4cdb5c). TAIL: broadcasts on_power_level_change (card vtable+0x18) to all cards -> equipment/shot cards (re)allocate their own option via Player__allocate_option. = on_power_level_change engine call site."
+  },
+  {
+   "addr": "0x0045e320",
+   "kind": "pre",
+   "text": "PlayerBullet__create. Shooter base = (param1&0xff)*0x5c + *(*(player+0x47940)+0xe0+(param1>>8)*4). this+0xe8/ec/f0/f4 = shooter+0x2c/30/34/38 = SHT func_* ptrs (this+0xe8 called as func_on_init; nonzero -> abort bullet). TAIL: iterates ABILITY_MANAGER card list calling vtable+0x28 (on_bullet_created) on each card with the new bullet = on_bullet_created engine call site."
+  },
+  {
+   "addr": "0x004ad000",
+   "kind": "pre",
+   "text": "0  DirectInput8Create  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad010",
+   "kind": "pre",
+   "text": "697  GetStockObject  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad014",
+   "kind": "pre",
+   "text": "630  GetDeviceCaps  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad018",
+   "kind": "pre",
+   "text": "925  TextOutA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad01c",
+   "kind": "pre",
+   "text": "446  EnumFontFamiliesExA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad020",
+   "kind": "pre",
+   "text": "907  SetTextColor  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad024",
+   "kind": "pre",
+   "text": "868  SetBkMode  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad028",
+   "kind": "pre",
+   "text": "49  CreateCompatibleDC  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad02c",
+   "kind": "pre",
+   "text": "55  CreateDIBSection  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad030",
+   "kind": "pre",
+   "text": "380  DeleteDC  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad034",
+   "kind": "pre",
+   "text": "860  SelectObject  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad038",
+   "kind": "pre",
+   "text": "383  DeleteObject  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad03c",
+   "kind": "pre",
+   "text": "63  CreateFontA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad044",
+   "kind": "pre",
+   "text": "692  GetProcessHeap  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad048",
+   "kind": "pre",
+   "text": "426  FreeEnvironmentStringsW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad04c",
+   "kind": "pre",
+   "text": "567  GetEnvironmentStringsW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad050",
+   "kind": "pre",
+   "text": "471  GetCommandLineW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad054",
+   "kind": "pre",
+   "text": "470  GetCommandLineA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad058",
+   "kind": "pre",
+   "text": "449  GetCPInfo  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad05c",
+   "kind": "pre",
+   "text": "663  GetOEMCP  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad060",
+   "kind": "pre",
+   "text": "434  GetACP  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad064",
+   "kind": "pre",
+   "text": "907  IsValidCodePage  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad068",
+   "kind": "pre",
+   "text": "396  FindNextFileW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad06c",
+   "kind": "pre",
+   "text": "379  FindFirstFileExW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad070",
+   "kind": "pre",
+   "text": "186  CreateDirectoryW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad074",
+   "kind": "pre",
+   "text": "782  GetTimeZoneInformation  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad078",
+   "kind": "pre",
+   "text": "1534  WideCharToMultiByte  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad07c",
+   "kind": "pre",
+   "text": "305  EnterCriticalSection  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad080",
+   "kind": "pre",
+   "text": "957  LeaveCriticalSection  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad084",
+   "kind": "pre",
+   "text": "195  CreateFileA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad088",
+   "kind": "pre",
+   "text": "587  GetFileSize  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad08c",
+   "kind": "pre",
+   "text": "134  CloseHandle  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad090",
+   "kind": "pre",
+   "text": "1139  ReadFile  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad094",
+   "kind": "pre",
+   "text": "422  FormatMessageA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad098",
+   "kind": "pre",
+   "text": "609  GetLastError  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad09c",
+   "kind": "pre",
+   "text": "975  LocalFree  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0a0",
+   "kind": "pre",
+   "text": "1554  WriteFile  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0a4",
+   "kind": "pre",
+   "text": "1314  SetFilePointer  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0a8",
+   "kind": "pre",
+   "text": "1495  WaitForSingleObject  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0ac",
+   "kind": "pre",
+   "text": "1405  Sleep  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0b0",
+   "kind": "pre",
+   "text": "377  FindFirstFileA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0b4",
+   "kind": "pre",
+   "text": "394  FindNextFileA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0b8",
+   "kind": "pre",
+   "text": "373  FindClose  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0bc",
+   "kind": "pre",
+   "text": "528  GetCurrentDirectoryA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0c0",
+   "kind": "pre",
+   "text": "274  DeleteFileA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0c4",
+   "kind": "pre",
+   "text": "627  GetModuleFileNameA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0c8",
+   "kind": "pre",
+   "text": "862  InitializeCriticalSection  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0cc",
+   "kind": "pre",
+   "text": "568  GetEnvironmentVariableA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0d0",
+   "kind": "pre",
+   "text": "215  CreateMutexA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0d4",
+   "kind": "pre",
+   "text": "786  GetUserDefaultLCID  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0d8",
+   "kind": "pre",
+   "text": "1102  QueryPerformanceFrequency  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0dc",
+   "kind": "pre",
+   "text": "517  GetConsoleTitleA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0e0",
+   "kind": "pre",
+   "text": "719  GetStartupInfoA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0e4",
+   "kind": "pre",
+   "text": "272  DeleteCriticalSection  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0e8",
+   "kind": "pre",
+   "text": "1101  QueryPerformanceCounter  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0ec",
+   "kind": "pre",
+   "text": "243  CreateThread  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0f0",
+   "kind": "pre",
+   "text": "188  CreateEventA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0f4",
+   "kind": "pre",
+   "text": "945  LCMapStringW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0f8",
+   "kind": "pre",
+   "text": "155  CompareStringW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad0fc",
+   "kind": "pre",
+   "text": "590  GetFileType  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad100",
+   "kind": "pre",
+   "text": "841  HeapFree  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad104",
+   "kind": "pre",
+   "text": "837  HeapAlloc  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad108",
+   "kind": "pre",
+   "text": "722  GetStdHandle  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad10c",
+   "kind": "pre",
+   "text": "628  GetModuleFileNameW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad110",
+   "kind": "pre",
+   "text": "350  ExitProcess  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad114",
+   "kind": "pre",
+   "text": "529  GetCurrentDirectoryW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad118",
+   "kind": "pre",
+   "text": "1289  SetCurrentDirectoryW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad11c",
+   "kind": "pre",
+   "text": "1300  SetEnvironmentVariableW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad120",
+   "kind": "pre",
+   "text": "631  GetModuleHandleExW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad124",
+   "kind": "pre",
+   "text": "428  FreeLibraryAndExitThread  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad128",
+   "kind": "pre",
+   "text": "351  ExitThread  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad12c",
+   "kind": "pre",
+   "text": "963  LoadLibraryExW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad130",
+   "kind": "pre",
+   "text": "427  FreeLibrary  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad134",
+   "kind": "pre",
+   "text": "1439  TlsFree  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad138",
+   "kind": "pre",
+   "text": "1441  TlsSetValue  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad13c",
+   "kind": "pre",
+   "text": "1440  TlsGetValue  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad140",
+   "kind": "pre",
+   "text": "1438  TlsAlloc  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad144",
+   "kind": "pre",
+   "text": "301  EncodePointer  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad148",
+   "kind": "pre",
+   "text": "1330  SetLastError  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad14c",
+   "kind": "pre",
+   "text": "1122  RaiseException  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad150",
+   "kind": "pre",
+   "text": "1235  RtlUnwind  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad154",
+   "kind": "pre",
+   "text": "867  InitializeSListHead  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad158",
+   "kind": "pre",
+   "text": "745  GetSystemTimeAsFileTime  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad15c",
+   "kind": "pre",
+   "text": "540  GetCurrentThreadId  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad160",
+   "kind": "pre",
+   "text": "1553  WriteConsoleW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad164",
+   "kind": "pre",
+   "text": "536  GetCurrentProcessId  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad168",
+   "kind": "pre",
+   "text": "720  GetStartupInfoW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad16c",
+   "kind": "pre",
+   "text": "895  IsDebuggerPresent  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad170",
+   "kind": "pre",
+   "text": "902  IsProcessorFeaturePresent  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad174",
+   "kind": "pre",
+   "text": "1420  TerminateProcess  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad178",
+   "kind": "pre",
+   "text": "1354  SetStdHandle  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad17c",
+   "kind": "pre",
+   "text": "727  GetStringTypeW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad180",
+   "kind": "pre",
+   "text": "1315  SetFilePointerEx  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad184",
+   "kind": "pre",
+   "text": "846  HeapSize  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad188",
+   "kind": "pre",
+   "text": "844  HeapReAlloc  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad18c",
+   "kind": "pre",
+   "text": "415  FlushFileBuffers  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad190",
+   "kind": "pre",
+   "text": "490  GetConsoleCP  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad194",
+   "kind": "pre",
+   "text": "508  GetConsoleMode  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad198",
+   "kind": "pre",
+   "text": "265  DecodePointer  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad19c",
+   "kind": "pre",
+   "text": "203  CreateFileW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1a0",
+   "kind": "pre",
+   "text": "1007  MultiByteToWideChar  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1a4",
+   "kind": "pre",
+   "text": "535  GetCurrentProcess  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1a8",
+   "kind": "pre",
+   "text": "1389  SetUnhandledExceptionFilter  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1ac",
+   "kind": "pre",
+   "text": "1453  UnhandledExceptionFilter  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1b0",
+   "kind": "pre",
+   "text": "686  GetProcAddress  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1b4",
+   "kind": "pre",
+   "text": "632  GetModuleHandleW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1b8",
+   "kind": "pre",
+   "text": "191  CreateEventW  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1bc",
+   "kind": "pre",
+   "text": "863  InitializeCriticalSectionAndSpinCount  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1d0",
+   "kind": "pre",
+   "text": "363  GetKeyboardState  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1d4",
+   "kind": "pre",
+   "text": "818  SetKeyboardState  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1d8",
+   "kind": "pre",
+   "text": "320  GetDC  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1dc",
+   "kind": "pre",
+   "text": "653  MsgWaitForMultipleObjects  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1e0",
+   "kind": "pre",
+   "text": "683  PostThreadMessageA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1e4",
+   "kind": "pre",
+   "text": "586  KillTimer  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1e8",
+   "kind": "pre",
+   "text": "865  SetTimer  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1ec",
+   "kind": "pre",
+   "text": "4  AdjustWindowRectEx  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1f0",
+   "kind": "pre",
+   "text": "188  DispatchMessageA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1f4",
+   "kind": "pre",
+   "text": "491  GetWindowRect  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1f8",
+   "kind": "pre",
+   "text": "591  LoadCursorA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad1fc",
+   "kind": "pre",
+   "text": "181  DestroyWindow  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad200",
+   "kind": "pre",
+   "text": "879  SetWindowPos  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad204",
+   "kind": "pre",
+   "text": "71  CheckRadioButton  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad208",
+   "kind": "pre",
+   "text": "452  GetSystemMetrics  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad20c",
+   "kind": "pre",
+   "text": "896  ShowWindow  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad210",
+   "kind": "pre",
+   "text": "554  IsDialogMessageA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad214",
+   "kind": "pre",
+   "text": "876  SetWindowLongA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad218",
+   "kind": "pre",
+   "text": "639  MessageBoxA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad21c",
+   "kind": "pre",
+   "text": "255  EnumDisplaySettingsA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad220",
+   "kind": "pre",
+   "text": "652  MoveWindow  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad224",
+   "kind": "pre",
+   "text": "556  IsDlgButtonChecked  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad228",
+   "kind": "pre",
+   "text": "725  RegisterClassA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad22c",
+   "kind": "pre",
+   "text": "166  DefWindowProcA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad230",
+   "kind": "pre",
+   "text": "117  CreateWindowExA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad234",
+   "kind": "pre",
+   "text": "928  TranslateMessage  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad238",
+   "kind": "pre",
+   "text": "780  SendMessageA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad23c",
+   "kind": "pre",
+   "text": "799  SetCursor  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad240",
+   "kind": "pre",
+   "text": "105  CreateDialogParamA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad244",
+   "kind": "pre",
+   "text": "910  SystemParametersInfoA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad248",
+   "kind": "pre",
+   "text": "330  GetDlgItem  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad24c",
+   "kind": "pre",
+   "text": "676  PeekMessageA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad250",
+   "kind": "pre",
+   "text": "815  SetForegroundWindow  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad254",
+   "kind": "pre",
+   "text": "891  ShowCursor  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad258",
+   "kind": "pre",
+   "text": "239  EnableWindow  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad25c",
+   "kind": "pre",
+   "text": "757  ReleaseDC  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad260",
+   "kind": "pre",
+   "text": "972  WINNLSEnableIME  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad268",
+   "kind": "pre",
+   "text": "23  joyGetDevCapsA  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad26c",
+   "kind": "pre",
+   "text": "148  timeGetTime  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad270",
+   "kind": "pre",
+   "text": "145  timeEndPeriod  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad274",
+   "kind": "pre",
+   "text": "144  timeBeginPeriod  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad278",
+   "kind": "pre",
+   "text": "27  joyGetPosEx  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad288",
+   "kind": "pre",
+   "text": "9  Direct3DCreate9  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad290",
+   "kind": "pre",
+   "text": "313  D3DXVec3Transform  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad294",
+   "kind": "pre",
+   "text": "310  D3DXVec3Normalize  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad298",
+   "kind": "pre",
+   "text": "221  D3DXMatrixTranslation  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad29c",
+   "kind": "pre",
+   "text": "183  D3DXLoadSurfaceFromSurface  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2a0",
+   "kind": "pre",
+   "text": "97  D3DXCreateTextureFromFileInMemoryEx  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2a4",
+   "kind": "pre",
+   "text": "312  D3DXVec3ProjectArray  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2a8",
+   "kind": "pre",
+   "text": "178  D3DXLoadSurfaceFromFileInMemory  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2ac",
+   "kind": "pre",
+   "text": "216  D3DXMatrixRotationZ  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2b0",
+   "kind": "pre",
+   "text": "214  D3DXMatrixRotationY  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2b4",
+   "kind": "pre",
+   "text": "198  D3DXMatrixMultiply  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2b8",
+   "kind": "pre",
+   "text": "213  D3DXMatrixRotationX  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2bc",
+   "kind": "pre",
+   "text": "311  D3DXVec3Project  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2c0",
+   "kind": "pre",
+   "text": "180  D3DXLoadSurfaceFromMemory  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2c4",
+   "kind": "pre",
+   "text": "92  D3DXCreateTexture  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2c8",
+   "kind": "pre",
+   "text": "204  D3DXMatrixPerspectiveFovLH  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2cc",
+   "kind": "pre",
+   "text": "196  D3DXMatrixLookAtLH  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2d0",
+   "kind": "pre",
+   "text": "300  D3DXVec2Normalize  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2d8",
+   "kind": "pre",
+   "text": "141  CoUninitialize  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2dc",
+   "kind": "pre",
+   "text": "132  CoSetProxyBlanket  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2e0",
+   "kind": "pre",
+   "text": "40  CoCreateInstance  <<not bound>>"
+  },
+  {
+   "addr": "0x004ad2e4",
+   "kind": "pre",
+   "text": "93  CoInitialize  <<not bound>>"
+  }
+ ],
+ "structs": {}
+}

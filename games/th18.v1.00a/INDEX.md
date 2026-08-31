@@ -1,19 +1,65 @@
 # th18/ — TH18(東方虹龍洞 / Unconnected Marketeers)逆向工作区
 
+> **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+
 > **独立于 th16 的工作区**,避免结论混淆。本目录放 **TH18 自己一手验证过的结论**;
-> TH16 的成果只作**方法论 + 认知地图 + 待验假设**来源,**地址/偏移一律按 th18.exe 重取**(见 `00-port-plan.md`)。
-> 新会话先读本 README,再读 `00-port-plan.md`。纪律:`METHOD.md`。
+> TH16 的成果只作**方法论 + 认知地图 + 待验假设**来源,**地址/偏移一律按 th18.exe 重取**(见 [`port-plan.md`](port-plan.md))。
+> 新会话先读本 README,再读 [`port-plan.md`](port-plan.md)。纪律:`METHOD.md`。
 
-## 当前状态:✅ 基础建设与卡牌主线已完成(2026-06-14)，可开展定点验证/改造
+## 当前状态:✅ 基础建设与卡牌主线已完成，符号往返已跑通(2026-09-01)
 
-> 新会话**无需重做导入**,`open_database`(`file_path=th18/local/th18.v1.00a/th18.exe`,`database_id=th18`)即用。若目标是协作制作运行时卡牌改造，先读 [COLLABORATION.md](../../mods/th18.v1.00a/card-rework/ROADMAP.md)：现有结论可指导 TH18 v1.00a 的定点实验，但尚无已实跑的 TH18 注入补丁。
-- ✅ **th18.exe 已全量分析**(Ghidra headless,函数 **2447** 个)并落盘。
-- ✅ **ExpHP th18 名字已套**(`import_th_re_data.py`:applied=715 / skipped=97 / missing=63)——含**完整卡牌/能力系统**
-  (`AbilityManager__*`/`AbilityMenu__*`/`AbilityShop__*`,卡牌 `CardLife/CardBomb/CardLifeFragment/CardBombFragment/CardMokou/CardNarumi/...`,共 ~295 函数)。
-- ✅ **157 个结构体已建**(`import_th_re_data_structs.py`,failed=0;`zPlayer/zPlayerInner/zAbilityManager/zCardBaseClass/zEnemyData/...`)。
-- ✅ **卡牌主线已一手反出**:核心架构/调用接缝、资源经济、58 项注册表、商店规则与卡牌目录见 `findings/cards-01` 至 `cards-06`。
-- ⏳ **仍未做**:已实跑的 TH18 thcrap/DLL 改造样例；装备卡 shooter 数据存储与少数标 🟡 的字段/参数仍待验证。
-- 工程位置见下表 / `local/th18.v1.00a/README.md`。
+> 新会话**无需重做导入**。要重建或补齐，一条命令：`tooling/ghidra/bootstrap.py th18`(幂等)。
+> 若目标是协作制作运行时卡牌改造，先读 [ROADMAP](../../mods/th18.v1.00a/card-rework/ROADMAP.md)：
+> 现有结论可指导 TH18 v1.00a 的定点实验，但尚无已实跑的 TH18 注入补丁。
+
+- ✅ **th18.exe 已全量分析**(Ghidra headless,函数 **2333** 个,已命名 **1366**)。
+- ✅ **ExpHP 名字已套满**:`skipped=874 missing=1`。原先漏掉的 63 个只经 vtable 进入的回调
+  (含 `Player::on_tick` `0x45caa0`、`BulletManager::on_tick` `0x424e70`)已由
+  `create_missing_funcs.py` 补建函数后套上,只剩 1 个 CRT 初始化器(落在别的函数体内,无价值)。
+- ✅ **157 个结构体 + 2 枚举 + 2 位域已建**,`statics` 类型已套 **151** 项(`failed=0`)。
+- ✅ **492 条 labels 已套**:VM 指令分发函数体内的 opcode case 标签
+  (ecl 242 / anm 136 / msg 36 / std 21 / card 57),详见下节。
+- ✅ **卡牌主线已一手反出**:核心架构/调用接缝、资源经济、58 项注册表、商店规则与卡牌目录见
+  `engine/card/th18/cards-01` 至 `cards-06`。
+- ✅ **符号往返已跑通**:我们自己那层 200 条存进 [`symbols.json`](symbols.json),
+  全量重建后 0 漂移。见 [`tooling/ghidra/README.md`](../../tooling/ghidra/README.md) 的「两层符号」。
+- ⏳ **仍未做**:已实跑的 TH18 thcrap/DLL 改造样例；装备卡 shooter 数据存储与少数标 🟡 的字段仍待验证。
+  **结构体尚未绑到全局与函数参数**——这一步才是让反编译变可读的关键,见下节。
+
+## ★ 让反编译变可读:绑定还没做
+
+ExpHP 给的是**名字 + 结构体布局**,不给**绑定**。没绑之前:
+
+```c
+void __fastcall AbilityManager__on_tick(void *param_1)
+    iVar3 = AnmManager__get_vm_with_id(ANM_MANAGER_PTR, *(uint *)((int)param_1 + 0x3c));
+```
+
+把 this 参数绑上 `zAbilityManager*` 之后(已在事务里试过,效果确认):
+
+```c
+void __fastcall AbilityManager__on_tick(zAbilityManager *self)
+    iVar3 = AnmManager__get_vm_with_id(ANM_MANAGER_PTR, (self->__id_3c).id);
+```
+
+全库目前只有 `ABILITY_MANAGER_PTR` 等少数全局带了 `z*` 类型。**批量绑定是当前投入产出比最高的活**,
+且它的产出属于「我们那层」,干完记得 `symbols.py export th18`。
+
+## ★ labels:492 条现成的 opcode 表
+
+`labels.json` 本仓在 2026-09-01 前从没读过。每条 = 一个 **opcode → 处理分支地址**:
+
+| 组 | 条数 | 宿主函数 |
+| --- | --- | --- |
+| `ecl` | 242 | `0x430d30` 175 条 + `EclRunContext__ecl_run` 67 条 |
+| `anm` | 136 | `AnmVm__run` |
+| `msg` | 36 | `GuiMsgVm__run` |
+| `std` | 21 | `StageInner__run_std` |
+| `card` | 57 | `AbilityManager__allocate_new_card` |
+
+两点值得注意：`0x430d30` 我们库里**还没命名**,但它体内有 175 个 ECL opcode case——身份就此确定;
+`card` 那 57 条与 `cards-03` 的 58 项注册表是两边独立得出的,该做**交叉对名**(对不上就有一边错了),
+**不是**拿它去改既有结论。
 
 ## 这是什么 / 目标
 
@@ -27,7 +73,7 @@ TH18 = **東方虹龍洞**(Unconnected Marketeers),特有机制是**卡牌/能�
 | 复用 ✅ | 不复用 ❌(必须按 th18 重取)|
 | --- | --- |
 | 方法论(锚点常量、func 表、ExpHP 命名、证据链纪律)| **所有函数/全局地址**(th18.exe 重新编译,全变)|
-| 工具(`tooling/ghidra/import_th_re_data*.py` 直接指向 `data/th18.v1.00a`)| **结构体字段偏移**(th18 结构体长大了,例:`zPlayer` th16=0x2c828 / **th18=0x479d4**)|
+| 工具(`tooling/ghidra/import_th_re_data*.py` 直接指向 `local/vendor/th-re-data/data/th18.v1.00a`)| **结构体字段偏移**(th18 结构体长大了,例:`zPlayer` th16=0x2c828 / **th18=0x479d4**)|
 | 认知地图(知道该找哪些子系统/字段语义)| **特有机制**(TH16 季节/炸弹 ≠ TH18 卡牌/能力,代码不同)|
 | 字段的**语义含义**(state/iframes/flags/hitbox… 是什么)| **func_* 跳转表内容、玩法数值**(逐作不同)|
 
@@ -38,7 +84,7 @@ TH18 = **東方虹龍洞**(Unconnected Marketeers),特有机制是**卡牌/能�
 开工前**务必先翻 TH16 的成果当地图**——它们告诉你"该找什么、长什么样、坑在哪",能省掉大量探索:
 - **TH16 findings**:`engine/player/th16/01-06`(自机生命/季节释放/火力/option/字段图/资源经济)、`engine/sht/th16/03,05,07,08`
   (SHT func 表/字段/shooterset/伤害管线)、`engine/_shared/`(引擎数学/主循环/归档)。
-- **TH16 Ghidra 工程**:可同时 `open_database files/th16.exe`(database_id `th16`)与 th18 **并排对照**——
+- **TH16 Ghidra 工程**:可同时 `open_database local/th16.v1.00a/th16.exe`(database_id `th16`)与 th18 **并排对照**——
   对同名函数(ExpHP 命名一致)看 TH16 已反清楚的版本,理解逻辑后**再去 th18.exe 重新定位/验证**。
   (MCP 支持多库;`decompile_function` 指定不同 `database` 即可左右对照。)
 
@@ -48,7 +94,7 @@ TH18 = **東方虹龍洞**(Unconnected Marketeers),特有机制是**卡牌/能�
 - 落笔规矩:从 TH16 借来的判断在 th18 文档里写成"**(TH16 如此,th18 待验)**",**在 th18.exe 验证通过后**才去掉"待验"。
 - 一句话:**拿 TH16 当"已解出的参考答案"对照思路,但每一步都要在 th18 上重新算一遍、对得上才算数。**
 
-## ExpHP th18 盘点(实测 `data/th18.v1.00a/`,2026-06-13)
+## ExpHP th18 盘点(实测 `local/vendor/th-re-data/data/th18.v1.00a/`,2026-06-13)
 
 ExpHP 对 TH18 积累与 TH16 同量级,引擎结构体填得很满,**卡牌系统也已结构化映射**:
 
@@ -68,27 +114,24 @@ ExpHP 对 TH18 积累与 TH16 同量级,引擎结构体填得很满,**卡牌系�
   | 作品 | exe | MCP `database_id` | headless project-dir / project / program |
   | --- | --- | --- | --- |
   | TH16 | `local/th16.v1.00a/th16.exe` | `th16` | `local/th16.v1.00a/ghidra_projects` / `th16.exe` / `/th16.exe` |
-  | **TH18** | **`local/th18.v1.00a/th18.exe`** | **`th18`** | **`th18/local/th18.v1.00a/ghidra_projects`** / `th18.exe` / `/th18.exe` |
+  | **TH18** | **`local/th18.v1.00a/th18.exe`** | **`th18`** | **`local/th18.v1.00a/ghidra_projects`** / `th18.exe` / `/th18.exe` |
 
   详见 `local/th18.v1.00a/README.md`。**可同时开 `th16` 与 `th18` 两库并排对照**(`decompile_function` 指定 `database`),
   结论各写各的。
-- **样本**:`th18.exe`(32 位 PE)由用户放进 **`th18/local/th18.v1.00a/`**(gitignored),**没有就先问用户、不要下载**。
-- **导入 ExpHP th18 符号 + 结构体**(开工第一件事,headless driver,先 `MCP close_database` 释放锁,env 见 `tooling/ghidra/README.md`):
+- **样本**:`th18.exe`(32 位 PE)由用户放进 **`local/th18.v1.00a/`**(gitignored),**没有就先问用户、不要下载**。
+- **重建/补齐整个库**(开工第一件事,幂等;先在 MCP 里 `close_database` 释放工程锁):
   ```bash
-  # 名字(funcs/statics)
-  python tooling/ghidra/import_th_re_data.py        local/vendor/th-re-data/data/th18.v1.00a \
-      --project-dir th18/local/th18.v1.00a/ghidra_projects --project th18.exe --program /th18.exe
-  # 类型(157 structs) —— programmatic build(★CParser 不可靠落盘,见 funcs/README)
-  python tooling/ghidra/import_th_re_data_structs.py local/vendor/th-re-data/data/th18.v1.00a \
-      --project-dir th18/local/th18.v1.00a/ghidra_projects --project th18.exe --program /th18.exe
+  P=/data/sunyunbo/miniconda3/envs/ghidra
+  JAVA_HOME=$P GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC \
+    $P/bin/python tooling/ghidra/bootstrap.py th18
   ```
   之后把 `zPlayer*/zEnemyData*/zBullet*` 套到对应全局 → 反编译即具名字段(同 th16 做法,见 `engine/player/th16/05` §0.5)。
 
 ## 怎么开干(给新会话)
 
-1. 确认有 `th18/local/th18.v1.00a/th18.exe`;没有先问用户。
-2. `open_database`(`file_path=th18/local/th18.v1.00a/th18.exe`,`database_id=th18`)→ 跑上面两个 import 脚本 → 得 729 名 + 157 结构体。
-3. 读 `00-port-plan.md`:挑一个**共通子系统**(如自机生命/碰撞)→ 用 ExpHP th18 `zPlayerInner` 偏移定位 → **到 th18.exe 一手验证**行为是否与 TH16 同形 → 写进 `th18/findings/`(或 `th18/player/`)。
+1. 确认有 `local/th18.v1.00a/th18.exe`;没有先问用户。
+2. `open_database`(`file_path=local/th18.v1.00a/th18.exe`,`database_id=th18`)→ 跑上面两个 import 脚本 → 得 729 名 + 157 结构体。
+3. 读 [`port-plan.md`](port-plan.md):挑一个**共通子系统**(如自机生命/碰撞)→ 用 ExpHP th18 `zPlayerInner` 偏移定位 → **到 th18.exe 一手验证**行为是否与 TH16 同形 → 写进 `engine/<子系统>/th18/`。
 4. 或挑**特有的卡牌/能力系统**(`zCard*`/`zAbility*`)从锚点新反。
 5. **每条结论**都按证据链纪律落到 **th18 自己的地址 + 读写点 + 可信度**;**严禁把 TH16 地址/偏移写成 TH18 事实**。
 
@@ -101,10 +144,11 @@ ExpHP 对 TH18 积累与 TH16 同量级,引擎结构体填得很满,**卡牌系�
 ## 目录
 
 ```
-th18/
-├── README.md          # ← 你在这
-├── 00-port-plan.md    # ★ TH16 结论→TH18 待验假设 + 锚点 + "会变"警示(复用内容的核心)
-├── findings/          # TH18 一手验证结论(已含 cards-01~06；后续可建 player/ sht/ 等)
-└── local/th18.v1.00a/        # ★ th18.exe + 它自己的 Ghidra 工程(独立于 th16;内容 gitignore,仅 README 入库)
-    └── README.md      #    位置对照表(th16 vs th18 工程位置)+ 开工命令
+games/th18.v1.00a/
+├── INDEX.md       # ← 你在这
+├── port-plan.md   # ★ TH16 结论→TH18 待验假设 + 锚点 + "会变"警示
+└── symbols.json   # ★ 我们自己那层符号(入库);往返见 tooling/ghidra/symbols.py
+
+engine/card/th18/  # TH18 一手结论(卡牌 cards-01~06)
+local/th18.v1.00a/ # th18.exe + 它自己的 Ghidra 工程(gitignored)
 ```
