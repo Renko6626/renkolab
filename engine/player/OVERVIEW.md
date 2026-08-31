@@ -26,6 +26,7 @@
 | 本体子机挂火力档、季节子机挂季节档，是两条独立链 | ✅ | ❌ | [th16/04 §2–3](th16/04-options-subshot-system.md) |
 | 伤害源从 `PLAYER+0xd080` 池分配（stride 0x94，256 个） | ✅ | 🟡 | [th16/05 §3](th16/05-object-field-maps.md)、[sht/th16/08 §2](../sht/th16/08-th16-player-damage-pipeline.md) |
 | 命碎片**没有任何拾取来源**（负结论，evidence-complete） | ✅ | 🟡 | [th16/06 §4](th16/06-resource-economy.md) |
+| 自机位置 = `inner.field_0` 前 12 字节（float px）+ 8 字节 1/128 定点 | 🟡 | ✅ | [th18/01](th18/01-position-and-state-timers.md) |
 
 > **图例**：✅ 该版本一手验过（证据列给地址/出处） · 🟡 待验（从别的版本借来的假设，或单源） · ❌ 已知不同/不存在 · ❓ 存疑 · — 未看
 >

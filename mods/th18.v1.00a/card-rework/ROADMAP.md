@@ -25,7 +25,7 @@
 | 阶段 | 目标 | 已有依据 | 尚需确认/实现 |
 | --- | --- | --- |
 | 0. 运行时底座 | 确认 thcrap 能对 TH18 v1.00a 安全加载、写入并卸载最小观测逻辑。 | TH16 thcrap 文档/审计。 | TH18 目标点、原字节、ABI 与游戏内实跑。 |
-| 1. 替换零售卡 | 将一个既有卡的效果转交给我们的逻辑；先主动卡，再被动/装备卡。 | `cards-01` 的 vtable 调用点、`cards-05` 的逐卡目录。 | 每个目标函数的 TH18 机器码级复核和稳定的自定义状态管理。 |
+| 1. 替换零售卡 | 将一个既有卡的效果转交给我们的逻辑；先主动卡，再被动/装备卡。 | `engine/card/th18/03-hooks.md` 的 vtable 调用点全表、`engine/card/th18/08-catalog.md` 的逐卡目录。 | 每个目标函数的 TH18 机器码级复核和稳定的自定义状态管理。 |
 | 2. 自定义卡运行时 | 用自定义对象/vtable 或统一 dispatcher 承载新行为，并与 AbilityManager 卡链表兼容。 | 基类 `zCardBaseClass`、22 槽 `zVTableCard`、链表和分类 flags 已定位。 | 自定义对象内存布局/析构、完整必需 vtable 槽、与 HUD/option 的生命周期。 |
 | 3. 注册与获得 | 让新 ID 被查找、分配、商店/掉落逻辑选择，并配置价格、权重和关卡可用性。 | `zTableCardData[]`、`allocate_new_card`、商店筛选/购买路径已定位。 | 静态表的迭代边界、未知 ID 的 allocator fallback、所有 ID 范围检查与掉落/图鉴入口。 |
 | 4. 呈现与持久化 | 显示名称/图标/说明，支持初始卡组、解锁、存档与 replay。 | 表中 sprite 字段；存档和 replay 都保存 card-id 字节数组。 | 文本/ANM 资源来源与加载路径、存档/解锁数组的可扩范围和完整 UI 消费点。 |
@@ -40,14 +40,14 @@
 - `TableCardData__get` 和所有商店/菜单遍历的确切表边界：如何让外部表参与查询，而不覆写零售 `.rdata`。
 - 卡牌文本、图标和 HUD 精灵的资源加载链；目前只确认表内 `sprite_large/sprite_small` 字段，尚未形成可替换的资产管线。
 - `SCOREFILE` 解锁位、初始卡组的 16 个 ID 字节、replay 数组以及任何按 `card_id` 索引的数组：逐处确认上限与兼容策略。
-- 装备卡的 shooter 数据来源；若新卡要发射新弹型，`cards-OPEN-passive-shooter-data.md` 是硬性前置。
+- 装备卡的 shooter 数据来源；若新卡要发射新弹型，`engine/card/th18/OPEN-questions.md` §1 是硬性前置。
 
-不要从 `cards-DEEPRESEARCH-salvage.md` 直接抄实现结论；它是未合并原始素材。标为 🟡/⏳ 的字段可成为专项研究任务，但不能作为未经验证的新卡框架前提。
+原始社区素材在 `engine/card/th18/_sources/`，是素材不是结论，别直接抄。标为 🟡/⏳ 的字段可成为专项研究任务，但不能作为未经验证的新卡框架前提。
 
 ## 开工顺序
 
 1. 读 [README.md](../../../games/th18.v1.00a/INDEX.md) 和 [findings/README.md](../../../engine/card/th18/README.md)，确认样本和证据纪律。
-2. 按任务阅读：架构 [cards-01-system-architecture.md](../../../engine/card/th18/cards-01-system-architecture.md)，卡效果 [cards-05-card-catalog.md](../../../engine/card/th18/cards-05-card-catalog.md)，商店 [cards-04-card-shop.md](../../../engine/card/th18/cards-04-card-shop.md)。
+2. 按任务阅读：钩子全表 [03-hooks.md](../../../engine/card/th18/03-hooks.md)，卡效果 [08-catalog.md](../../../engine/card/th18/08-catalog.md)，商店 [05-shop-and-money.md](../../../engine/card/th18/05-shop-and-money.md)。
 3. 在本地、忽略的 `local/th18.v1.00a/` 中打开 TH18 数据库；以函数语义和控制流复核目标点，记录 EXE 的版本/哈希和原始字节。
 4. 用 thcrap patch 组织实验：逐版本脚本、`expected` 原字节校验、最小 codecave/binhack；地址只写入该版本文件。
 5. 先做无行为改动的加载验证，再一次只加入一个行为变化；保留可还原补丁和游戏内验证记录。

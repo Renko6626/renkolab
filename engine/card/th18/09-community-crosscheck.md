@@ -2,9 +2,9 @@
 > **版本**：TH18 v1.00a（`th18.exe`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
 >
 
-> 社区源:**THBWiki《东方虹龙洞/卡牌系统》**(thwiki.cc API 取 wikitext,2026-06-14;原始表存 `cards-COMMUNITY-thbwiki.txt`)。
+> 社区源:**THBWiki《东方虹龙洞/卡牌系统》**(thwiki.cc API 取 wikitext,2026-06-14;原始表存 `_sources/thbwiki-cards.txt`)。
 > 规则(用户定):**最终以社区玩法验证为准**;代码给精确数值/机制,社区给玩法事实与角色名。冲突处**采社区结论**,并标出代码分歧备查。
-> 对账键=**角色 + 效果**(不是编号——见下)。代码侧 = `cards-05-card-catalog.md`(card_id↔角色经 vtable 链钉死)。
+> 对账键=**角色 + 效果**(不是编号——见下)。代码侧 = `08-catalog.md`(card_id↔角色经 vtable 链钉死)。
 
 ## 0. 编号体系厘清(终结之前的"编号对不上")
 - THBWiki `编号` = **图鉴/收藏序**(1=空白…56),**前段 = 内部 card_id+1**,但 wiki 在中段插入了 boss/EX 卡(如 wiki#22=玉造魅须丸 EX 勾玉),
@@ -68,7 +68,7 @@
   - `FUN_00409b10(SPELLCARD)…&& card_exists(0x28)`(行~1617,设 0x3c)= Sannyo **收符卡时触发生命碎片** —— 社区"收符卡出生命碎片"坐实。
 - 📌 **规律(回写认知地图)**:`Card<角色>` 体为 stub 的卡(Chimata/Sannyo 等),效果**不在 vtable**,而在相关子系统里**按 `card_exists(card_id)` 检查**触发。
   下次遇到 stub 卡,直接 grep `card_exists(<id>)` 找效果点。
-- ✅ 已解明的 🟡 已回填 `cards-05`(Koishi/Aya/Kaguya/Yuyuko/MAGATAMA2/Narumi/Patchouli/Mamizou + Yachie 金钱)。
+- ✅ 已解明的 🟡 已回填 `08-catalog.md`(Koishi/Aya/Kaguya/Yuyuko/MAGATAMA2/Narumi/Patchouli/Mamizou + Yachie 金钱)。
 
 ## 来源
-- THBWiki《东方虹龙洞/卡牌系统》:https://thwiki.cc/东方虹龙洞/卡牌系统(原始效果表 `cards-COMMUNITY-thbwiki.txt`)。
+- THBWiki《东方虹龙洞/卡牌系统》:https://thwiki.cc/东方虹龙洞/卡牌系统(原始效果表 `_sources/thbwiki-cards.txt`)。

@@ -21,11 +21,11 @@ engine/<子系统>/
 
 | 子系统 | 已覆盖版本 | 状态 |
 | --- | --- | --- |
-| [`player/`](player/OVERVIEW.md) | th16 | 三大子系统已反（生命/季节释放/开火·option） |
+| [`player/`](player/OVERVIEW.md) | th16、th18 | th16 三大子系统已反；th18 已定位自机位置与状态计时器 |
 | [`bullet/`](bullet/OVERVIEW.md) | th16 | 核心引擎 + 运动 VM + 激光 |
 | [`ecl/`](ecl/OVERVIEW.md) | th16 | VM 核心已基本反完 |
 | [`sht/`](sht/OVERVIEW.md) | th16 | 运行时语义已攻下（社区此前无公开破解） |
 | [`msg/`](msg/OVERVIEW.md) | th16 | 两套指令集全反，已告一段落 |
 | [`menu/`](menu/OVERVIEW.md) | th16 | 状态机 + 选择链 |
-| [`card/`](card/OVERVIEW.md) | th18 | 卡牌主线已一手反出 |
+| [`card/`](card/OVERVIEW.md) | th18 | 已反完：对象模型 / 生命周期 / 21 槽钩子 / C 键释放 / 商店与金钱 |
 | [`anm/`](anm/OVERVIEW.md) | th16 | ⚠️ 未系统开工，只有旁敲的锚点 |

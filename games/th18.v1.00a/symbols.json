@@ -3,12 +3,32 @@
  "exe_md5": "9969cac756098c1da05a81de45437a70",
  "funcs": [
   {
+   "name": "Timer__increment",
+   "addr": "0x00405990"
+  },
+  {
    "name": "AbilityManager__recount_and_recategorize_cards",
    "addr": "0x004080e0"
   },
   {
+   "name": "AbilityManager__draw_active_card_hud_entry",
+   "addr": "0x00408890"
+  },
+  {
+   "name": "AbilityManager__notify_cards_on_load",
+   "addr": "0x00408ad0"
+  },
+  {
+   "name": "AbilityManager__dump_recharge_timers",
+   "addr": "0x00408ba0"
+  },
+  {
    "name": "Card__death_save_bomb_revive",
    "addr": "0x0040a2a0"
+  },
+  {
+   "name": "Card__death_save_money_revive",
+   "addr": "0x0040d840"
   },
   {
    "name": "CardShop__price_for_tier",
@@ -31,8 +51,32 @@
    "addr": "0x00420420"
   },
   {
+   "name": "Input__compute_edges",
+   "addr": "0x0042abc0"
+  },
+  {
+   "name": "Enemy__drop_items_and_notify_cards",
+   "addr": "0x00430510"
+  },
+  {
+   "name": "GameThread__teardown_and_recount_cards",
+   "addr": "0x004432c0"
+  },
+  {
+   "name": "ItemManager__collect_power_item",
+   "addr": "0x00446870"
+  },
+  {
+   "name": "ItemManager__collect_money_item",
+   "addr": "0x00446b00"
+  },
+  {
    "name": "GlobalsInner__spend_power",
    "addr": "0x00457480"
+  },
+  {
+   "name": "Player__commit_death_and_enter_state2",
+   "addr": "0x0045d090"
   },
   {
    "name": "Player__repopulate_options_and_notify_cards",
@@ -41,13 +85,38 @@
  ],
  "statics": [
   {
+   "addr": "0x004b908c",
+   "name": "SUBPIXEL_TO_PIXEL_1_over_128",
+   "type": "undefined4"
+  },
+  {
    "addr": "0x004c4a4c",
    "name": "__security_cookie",
    "type": "int"
   },
   {
+   "addr": "0x004ca428",
+   "name": "INPUT_HELD",
+   "type": "undefined4"
+  },
+  {
+   "addr": "0x004ca434",
+   "name": "INPUT_PRESSED",
+   "type": "undefined2"
+  },
+  {
+   "addr": "0x004ca438",
+   "name": "INPUT_RELEASED",
+   "type": "undefined2"
+  },
+  {
    "addr": "0x004cccdc",
    "name": "CURRENT_STAGE_globalsinner_base",
+   "type": "undefined4"
+  },
+  {
+   "addr": "0x004ccd24",
+   "name": "MONEY_ITEM_SCORE_VALUE",
    "type": "undefined4"
   },
   {
@@ -86,8 +155,48 @@
    "type": "undefined4"
   }
  ],
- "labels": [],
+ "labels": [
+  {
+   "addr": "0x004b35c4",
+   "name": "CARD_PRICE_BY_TIER"
+  },
+  {
+   "addr": "0x004b4020",
+   "name": "ITEM_TYPE_TABLE_sprite_and_card"
+  },
+  {
+   "addr": "0x004ca42c",
+   "name": "INPUT_HELD_PREV"
+  },
+  {
+   "addr": "0x004ca430",
+   "name": "INPUT_REPEAT"
+  },
+  {
+   "addr": "0x004ca440",
+   "name": "INPUT_HELD_OVER_7F"
+  },
+  {
+   "addr": "0x004ccd30",
+   "name": "MONEY_TOTAL_COLLECTED"
+  }
+ ],
  "comments": [
+  {
+   "addr": "0x004080e0",
+   "kind": "eol",
+   "text": "Runs ONLY from GameThread__teardown_and_recount_cards (0x4432c0) when gamemode_to_switch_to is 10/11. Deletes every card whose flags&1 == 0 -> i.e. everything acquired during the run (item drops + shop buys); the savefile/replay-loaded equipped deck (bit0=1) survives. Then recounts active/equipment/passive and re-selects the last active card."
+  },
+  {
+   "addr": "0x004088e8",
+   "kind": "eol",
+   "text": "HUD charge gauge for one active card. fill = 1.0 - card+0x3c (recharge timer current_f) / card+0x48 (recharge_time) -> INDEPENDENT proof that the +0x34 timer is the recharge countdown and +0x20 is not. card->vtable[0x40] (is_firing = flags&0x20) picks the 'ready/firing' vs 'charging' colouring."
+  },
+  {
+   "addr": "0x00408de0",
+   "kind": "eol",
+   "text": "HUD card lists. category 0 = flags&8 (active) and also fills mgr+0x458 (anm ids) / mgr+0x858 (card ptrs); category 1 = flags&0x40 (equipment); category 2 = (flags & 0x48)==0 AND table_entry+0x28 != 0  <-- zTableCardData+0x28 is the 'show in passive HUD row' flag. Each icon calls card->vtable[0x44] on_anm_id_assigned_to_hud(anm_id)."
+  },
   {
    "addr": "0x0040a2a0",
    "kind": "pre",
@@ -100,8 +209,18 @@
   },
   {
    "addr": "0x0040ebf0",
+   "kind": "eol",
+   "text": "Active-card release template (all 12 c_press cards share it). Gate: card+0x54 (subclass state) == 0 AND recharge timer current (card+0x38) < 1. On fire: snapshot player pos, spawn the effect ANM VM into card+0x1c, card+0x54 = 1, RESET the elapsed timer at +0x20 (Timer at 0x20: previous/current/current_f/_/control), play sound, then load the recharge countdown: dur = (float)recharge_time(+0x48) * ABILITY_MANAGER+0xc58 (global charge multiplier, 1.0 default, 0.8 with CardByakuren) into the timer at +0x34 (current=+0x38, current_f=+0x3c, previous=+0x34=dur-1), and set flags bit 0x20 = 'firing'. NOTE ExpHP's field names are swapped: +0x20 'recharge_timer' is really the elapsed/phase timer (Timer__increment every frame), +0x34 '__timer_2__prolly_bomb_time' is really the recharge countdown (Timer__decrement only while idle, and only while GUI/no-dialogue/enemies-present)."
+  },
+  {
+   "addr": "0x0040ebf0",
    "kind": "pre",
    "text": "c_press gate: card+0x54(active-state)==0 && card+0x38(recharge countdown current)<1. Recharge dur = recharge_time(+0x48) * ABILITY_MANAGER+0xc58 (global mult, =1.0 default), loaded into +0x34 timer (counts DOWN while idle). NOTE: ExpHP struct names +0x20/+0x34 appear swapped vs first-hand: +0x34 is the recharge countdown gating reuse; +0x20 measures active duration."
+  },
+  {
+   "addr": "0x00412ce4",
+   "kind": "eol",
+   "text": "allocate_new_card common tail: card->card_id=id; card->array_index=num_total+1; flags bit0 = (mode & 1)  [1 = persistent equipped deck (mode1 savefile / mode3 replay), 0 = acquired this run (mode0 item drop / mode2 shop buy)]. If (mode&1)==0 -> call vtable[0x00] constructor; if (mode&2) -> call vtable[0x04] destructor; either returning nonzero => operator_delete(1) and the card NEVER joins the list (this is the 'instant' card mechanism: CardLife/CardBomb/CardNazrin ... apply their effect in ctor/dtor gated on flags&2, then vanish). Otherwise: owned_flag[+0xc84+id*4]=1, link into list, count into num_active(+0x2c, flags&8) / num_equipment(+0x30, flags&0x40) / num_passive(+0x34), table_entry(+0x4c)=TableCardData__get(id), and if mode!=1 rebuild HUD lists."
   },
   {
    "addr": "0x00416dd0",
@@ -119,6 +238,21 @@
    "text": "Pick ONE weighted-random card offer with price tier in [param2,param3]. Tier->money via table 0x4b35c4: t1-6=50/80/100/100/140/180, t7-9=200/240/280, t10-13=300/350/400/450, t14=500. Shop bands: (10,0xe)=300-500, (7,9)=200-280, (1,6)=50-180 (wiki [300-450]/[200-280]/[0-180]). Maneki-neko card(id 0x26=38) adds 3 extra all-band draws. Unbought cards (SCOREFILE+0x5f588+id==0) weighted x5."
   },
   {
+   "addr": "0x004171b0",
+   "kind": "eol",
+   "text": "Shop offers = 3 weighted-random draws by price band: pick(10,0xe) 300-500, pick(7,9) 200-280, pick(1,6) 50-180. A MANEKI card (id 0x26=38) in the deck inserts one extra pick(1,0xe) after EACH of the three -> 6 offers. Then loop1 force-adds every unowned card with is_available_at_stage()==1 AND weight(+0x14)==0 (the staple resource cards), loop2 force-adds every unowned card with is_available_at_stage()==2 (the stage-exclusive card, dmode 1-5 matching CURRENT_STAGE). Dedupe. Finally this+0xe34 = 1 if the deck holds card id 0 (BLANK / Chimata) -> shop enters state 3 instead of 2."
+  },
+  {
+   "addr": "0x0041842a",
+   "kind": "eol",
+   "text": "BLANK-card (id 0, Chimata) shop branch, state 3: reset_cards(mgr,0) discards the WHOLE deck, then every offer whose table_entry+0x1c == 0 (non-repeatable) is granted free via allocate_new_card(id,2) + mark_obtained, and MONEY = 0. This is where the 'trade your whole fortune for all the rare cards' effect lives - NOT in CardChimata (that class is a stub)."
+  },
+  {
+   "addr": "0x004185c7",
+   "kind": "eol",
+   "text": "Confirmed purchase: allocate_new_card(id,2) + mark_obtained, then price = price_for_tier(offer+0x10). If price <= MONEY: MONEY -= price. Else: spend_power(price - MONEY) (clamped so power never drops below one level; returns whether the power LEVEL changed -> repopulate options) and then MONEY = 0. So topping up with power always burns ALL remaining money."
+  },
+  {
    "addr": "0x00418de0",
    "kind": "pre",
    "text": "Mark card id obtained: set SCOREFILE+0x5f588+id=1 (=bought/obtained at least once -> usable as initial loadout card; wiki). If all 56 obtained -> trophy 0x1d. Queues 'new card!' popup (DAT_004cf2a8). Callers: shop buy (AbilityShop__on_tick) + GameThread__end_stage (grants this stage's cards incl boss cards 0x36/0x37)."
@@ -127,6 +261,36 @@
    "addr": "0x00420360",
    "kind": "pre",
    "text": "X-key bomb (input bit 0x2), TH16-style. Gate: BOMB[0xc]==0 (not already bombing). Calls BOMB->vtable+0x4 = zVTableBomb.begin (character-specific bomb). Plays sound 0x2c; sets spell-fail flag if bombing mid-spell. TH18 KEEPS the bomb; cards only replaced TH16 season-release. Stock gate = Bomb__can_bomb_and_deathbomb_check (DAT_004ccd58)."
+  },
+  {
+   "addr": "0x00430510",
+   "kind": "eol",
+   "text": "Enemy death drop: for item type 1..0x13 spawn enemy->drop_count[type] (at enemy+0x04+(type-1)*4) items, then notify EVERY card via vtable[0x30]. ExpHP calls that slot 'recharge' but first-hand it is on_enemy_dropped_items(pos, drop_count_table): CardYachie (id 34 MONEY) spawns drop_count[type2]/3 EXTRA money items."
+  },
+  {
+   "addr": "0x00442f98",
+   "kind": "eol",
+   "text": "GameThread__thread_start calls card vtable[0x34] (__on_load__2) on every card at stage start - this is the 'per stage' grant hook: CardPatchouli (id 37) +1 bomb here, CardNarumi (id 36) +1 life fragment."
+  },
+  {
+   "addr": "0x0045b170",
+   "kind": "eol",
+   "text": "PLAYER POSITION lives here. zPlayer.inner sits at +0x620, and ExpHP leaves zPlayerInner.field_0 as an opaque char[80] - that blob IS the position block, which is why 'player x/y' looks missing in th18. Layout derived first-hand, fits 0x50 exactly: +0x00/+0x04/+0x08 = x/y/z float (= player+0x620/624/628); +0x0c/+0x10 = x/y as SUBPIXEL ints (unit 1/128 px, SUBPIXEL_TO_PIXEL_1_over_128 @ 0x4b908c = 0.0078125), clamped x in [-0x5c00,0x5c00] (+-184 px) and y in [0x1000,0xd800] (32..432 px); +0x14 / +0x28 / +0x3c = three zTimer (20B each), the player state/animation timers incremented at the tail of Player__on_tick__body. 12 + 8 + 60 = 80 = 0x50."
+  },
+  {
+   "addr": "0x0045c048",
+   "kind": "eol",
+   "text": "C-key active-card release. Gate: GUI alive && no dialogue (GUI->msg==0) && ENEMY_MANAGER+0x198 != 0 (stage running) && INPUT_PRESSED & 0x400 (rising edge) && selected_active_card != 0  ->  selected->vtable[0x08] c_press(). INPUT_PRESSED & 0x800 -> set_selected_active_card(-1) cycles to the next flags&8 card, sound 0x4e. Input bits (first-hand): 0x1 shoot, 0x2 bomb, 0x8 focus, 0x10/0x20/0x40/0x80 = up/down/left/right, 0x400 use card, 0x800 switch card."
+  },
+  {
+   "addr": "0x0045c21b",
+   "kind": "eol",
+   "text": "Death settlement, player state 2 frame 3: lose one power LEVEL (spend_power(POWER_PER_LEVEL)), scatter 7 items, then MONEY -= min(MONEY/3, 100)  <-- the money death penalty. AFTER that every card gets vtable[0x14] (on_player_death_after_deathbomb_frame_2): CardTewi restores the MONEY it snapshotted in vtable[0x0c], CardMamizou restores power, CardKaguya drops 3 spellcard items."
+  },
+  {
+   "addr": "0x0045d557",
+   "kind": "eol",
+   "text": "Player__die: default deathbomb window = 8 frames written into PLAYER+0x47908 (num_deathbomb_frames), then EVERY card gets vtable[0x10] on_player_before_deathbomb - CardTewi (id 24 DBOMBEXTEND) overwrites it with 15. Player__on_tick__body case 4 compares player state timer >= this field to decide the window has expired."
   },
   {
    "addr": "0x0045d5e0",

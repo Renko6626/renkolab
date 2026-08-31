@@ -31,7 +31,7 @@
 - ~~**注意**:TH18 **无炸弹**(`zBomb` MISSING)~~ → ❌ **已证伪(2026-06-13)**:TH18 **保留 TH16 式炸弹(按 X)**,
   有 `BOMB_PTR`/`do_bomb`(`0x420360`)/`Bomb__operator_new`(`0x41FD40`)/`zVTableBomb`(角色专属 begin)。
   ExpHP 没命名 `zBomb` **数据结构** ≠ 没有炸弹机制。卡牌只取代了**季节释放(按 C)**,不是炸弹。
-  决死窗口同时支持"X 炸救命"与"救命卡"两条路。证据/详见 `findings/cards-01-system-architecture.md` §4B/§7。
+  决死窗口同时支持"X 炸救命"与"救命卡"两条路。证据/详见 `engine/card/th18/06-resource-economy.md` §1 与 `engine/card/th18/03-hooks.md` §4。
   教训:别把 "ExpHP 未命名某结构" 当 "该机制不存在"。
 
 ### 1b. 火力/输入/移动/聚焦(源:`engine/player/th16/03`)

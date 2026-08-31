@@ -1,6 +1,6 @@
 # card — 卡牌 / 能力系统（TH18 特有）
-> **版本**：跨版本。本文出现的地址一律带版本前缀（如 `th16:0x442560`）。
 
+> **版本**：跨版本。本文出现的地址一律带版本前缀（如 `th16:0x442560`）。
 
 TH18《虹龍洞》用**卡牌/能力系统**取代了 TH16 的季节系统。它不是一个小功能，而是一整条
 横跨 玩法 / 商店 / HUD / 存档 / replay 的纵向系统——这也是为什么「加一张新卡」不能只往
@@ -13,17 +13,26 @@ TH18《虹龍洞》用**卡牌/能力系统**取代了 TH16 的季节系统。�
 
 | 断言 | th16 | th18 | 证据 |
 | --- | :---: | :---: | --- |
-| 存在卡牌/能力系统 | ❌ | ✅ | [th18/cards-01 §0](th18/cards-01-system-architecture.md) |
-| `AbilityManager` 统一负责分配 / 选中 / 每帧 tick | ❌ | ✅ | [th18/cards-01 §1](th18/cards-01-system-architecture.md) |
-| 主动卡按 C 键触发，带充能 | ❌ | ✅ | [th18/cards-01 §2](th18/cards-01-system-architecture.md) |
-| 卡牌分类写在 `card->flags(+0x50)` 的位义里 | ❌ | ✅ | [th18/cards-01 §3](th18/cards-01-system-architecture.md) |
-| 装备/射击卡带**每卡一份 .sht**，经 `Player__allocate_option` 挂子机 | ❌ | ✅ | [th18/cards-01 §4](th18/cards-01-system-architecture.md)、[th18/cards-05 D](th18/cards-05-card-catalog.md) |
-| ↑ 但这些 shooter 数据**存在哪里**仍未定 | — | 🟡 | [th18/cards-OPEN](th18/cards-OPEN-passive-shooter-data.md) |
-| X 键炸弹系统与卡牌**并行存在**（不是被取代） | ✅ | ✅ | th16：[player/OVERVIEW](../player/OVERVIEW.md)；th18：[cards-01 §4B](th18/cards-01-system-architecture.md)、[cards-02 §1](th18/cards-02-bomb-life-resource-economy.md) |
-| 58 项**静态**注册表 `zTableCardData[]` | ❌ | ✅ | [th18/cards-03](th18/cards-03-card-registry-dump.md)、[th18/cards-05](th18/cards-05-card-catalog.md) |
-| 商店 offer = 随机 + 保证 混合（`AbilityShop__initialize` `th18:0x4171B0`），卡也可由道具直接掉落 | ❌ | ✅ | [th18/cards-04 §2,§2b](th18/cards-04-card-shop.md) |
-| 关卡可用性由 `CardData__is_available_at_stage` `th18:0x416E10` 判定（**订正**了原 `_for_difficulty` 命名） | ❌ | ✅ | [th18/cards-04 §3](th18/cards-04-card-shop.md) |
-| 存档与 replay 保存 card-id 字节数组 | ❌ | ✅ | [th18/cards-04 §5](th18/cards-04-card-shop.md) |
+| 存在卡牌/能力系统 | ❌ | ✅ | [th18/01 §0](th18/01-object-model.md) |
+| `AbilityManager` 统一负责分配 / 选中 / 每帧 tick | ❌ | ✅ | [th18/01 §5](th18/01-object-model.md) |
+| 卡是 0x54 字节基类 + **21 槽虚表**，槽全部有确定引擎调用点 | ❌ | ✅ | [th18/03](th18/03-hooks.md) |
+| 分配只有一个入口，`mode` 决定调 ctor/dtor 与 `flags` bit0 | ❌ | ✅ | [th18/02 §2](th18/02-lifecycle.md) |
+| **即时卡**靠 ctor/dtor 返回非 0 当场自毁，从不入链表 | ❌ | ✅ | [th18/02 §3](th18/02-lifecycle.md) |
+| 主动卡按 C 键（输入位 `0x400` 上升沿）触发，带充能倒计时 | ❌ | ✅ | [th18/04 §1,§2](th18/04-active-cards.md) |
+| 卡的两个 `zTimer`：+0x34 是充能、+0x20 是激活经过帧（ExpHP 名反了）| ❌ | ✅ | [th18/01 §3](th18/01-object-model.md)、[th18/03 §2](th18/03-hooks.md) |
+| 卡牌分类写在 `card->flags(+0x50)` 的位义里（引擎只分三类）| ❌ | ✅ | [th18/01 §4](th18/01-object-model.md) |
+| 装备卡带**每卡一个 shooter 索引**，经 `Player__allocate_option` 挂子机 | ❌ | ✅ | [th18/03 §5](th18/03-hooks.md)、[th18/08 D](th18/08-catalog.md) |
+| ↑ 但这些 shooter 数据**存在哪里**仍未定 | — | 🟡 | [th18/OPEN §1](th18/OPEN-questions.md) |
+| X 键炸弹系统与卡牌**并行存在**（不是被取代） | ✅ | ✅ | th16：[player/OVERVIEW](../player/OVERVIEW.md)；th18：[06 §1](th18/06-resource-economy.md) |
+| 决死窗口默认 8 帧，救命卡在窗口尽头按 OR 累加抢答 | ✅ | ✅ | th18：[03 §4](th18/03-hooks.md) |
+| 58 项**静态**注册表 `zTableCardData[]`（可获得的是前 56 项）| ❌ | ✅ | [th18/07](th18/07-registry.md) |
+| 商店 offer = 3 档随机 + 两个保证循环，卡也可由道具直接掉落 | ❌ | ✅ | [th18/05 §4,§8](th18/05-shop-and-money.md) |
+| 出现规则由 `CardData__is_available_at_stage` `th18:0x416E10` 判定，返回 0/1/**2** | ❌ | ✅ | [th18/05 §5](th18/05-shop-and-money.md) |
+| **`MONEY` 既是购卡货币，也是计分乘数** | ❌ | ✅ | [th18/05 §2](th18/05-shop-and-money.md) |
+| 用火力补差价会把剩余金钱一并清零；至少保留 1.00 火力 | ❌ | ✅ | [th18/05 §6](th18/05-shop-and-money.md) |
+| 死亡罚款 `min(MONEY/3, 100)`，`CardTewi` 可完全抵消 | ❌ | ✅ | [th18/05 §9](th18/05-shop-and-money.md) |
+| 空白卡（id 0）的效果实现在 `AbilityShop` 而非卡类里 | ❌ | ✅ | [th18/05 §7](th18/05-shop-and-money.md) |
+| 存档与 replay 保存 card-id 字节数组（replay 另存每卡充能剩余）| ❌ | ✅ | [th18/02 §6,§7](th18/02-lifecycle.md) |
 
 > **图例**：✅ 该版本一手验过（证据列给地址/出处） · 🟡 待验（从别的版本借来的假设，或单源） · ❌ 已知不同/不存在 · ❓ 存疑 · — 未看
 >
@@ -32,15 +41,16 @@ TH18《虹龍洞》用**卡牌/能力系统**取代了 TH16 的季节系统。�
 ## ★ 加新卡的关键判断
 
 **新增卡不能只往 `zTableCardData[]` 后面写一项。** 零售表是静态的，而
-`allocate_new_card` 的 ID→类分派、商店的表遍历、UI、解锁位、存档/replay
-**各自都可能假设了零售卡集合**。要做完整的新卡，这些必须以同一套新 ID/元数据模型
-一起设计和验证——路线见 [`../../mods/th18.v1.00a/card-rework/ROADMAP.md`](../../mods/th18.v1.00a/card-rework/ROADMAP.md)。
+`allocate_new_card` 的 **id→类跳转表只有 57 项**（`th18:0x412dac`，id 0–56）、
+商店的表遍历硬编码 `id < 56`、HUD/解锁位/存档卡组各有自己的容量假设。
+要做完整的新卡，这些必须以同一套新 ID/元数据模型一起设计和验证——
+路线见 [`../../mods/th18.v1.00a/card-rework/ROADMAP.md`](../../mods/th18.v1.00a/card-rework/ROADMAP.md)，
+接缝清单见 [th18/04 §8](th18/04-active-cards.md) 与 [th18/03](th18/03-hooks.md)。
 
 ## 社区交叉验证
 
-[th18/cards-06](th18/cards-06-community-crosscheck.md) 记录了与 THBWiki 的逐项对账：
-高度一致，社区解开了我们几处 🟡；**分歧处社区全对，代码侧已订正**。
-⚠️ [`cards-DEEPRESEARCH-salvage.md`](th18/cards-DEEPRESEARCH-salvage.md) 是**未合并的原始素材**，
-不要从中直接抄实现结论。
+[th18/09](th18/09-community-crosscheck.md) 记录了与 THBWiki 的逐项对账：高度一致，
+社区解开了我们几处 🟡；**分歧处社区全对，代码侧已订正**。原始 wikitext 存在
+`engine/card/th18/_sources/thbwiki-cards.txt`，**是素材不是结论**。
 
-逐卡特征化的待办清单在 [`cards-TODO-58card-characterization.md`](th18/cards-TODO-58card-characterization.md)。
+开放问题集中在 [th18/OPEN-questions.md](th18/OPEN-questions.md)。

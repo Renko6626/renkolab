@@ -1,17 +1,53 @@
-# th18/findings/ — TH18 一手验证结论
+# TH18 卡牌/能力系统 — 一手结论
 
-这里只放 **TH18(th18.exe)自己一手验证过的结论**,逐子系统建文件(如 `01-...`、`sht-...`、`cards-...`)。当前已完成卡牌/能力系统主线：
+> **版本**：TH18 v1.00a（`th18.exe`，database_id `th18`）。各篇裸地址默认属该版本。
+> 这里只放 **TH18 自己一手验证过的结论**；跨版本断言在 [`../OVERVIEW.md`](../OVERVIEW.md)。
+> 证据链纪律见 [`../../../METHOD.md`](../../../METHOD.md)，排版规范见 [`../../../DOCSTYLE.md`](../../../DOCSTYLE.md)。
 
-- `cards-01`：AbilityManager、vtable 接缝、主动/装备/被动卡架构；
-- `cards-02`：炸弹、残机与资源卡；
-- `cards-03`：58 项注册表；
-- `cards-04`：商店、价格和供给规则；
-- `cards-05`：逐卡效果目录；
-- `cards-06`：社区玩法资料与代码结论的交叉校验。
+## 怎么读
 
-协作者若要做运行时改造，先读 `../COLLABORATION.md`；它明确了这些结论的适用范围与尚不能直接实施的部分。
+按依赖顺序，前四篇是**机制主线**，后四篇是**数据与对账**：
 
-- 未在 th18.exe 验证前,相关内容留在 `../00-port-plan.md` 当**待验假设**,不进本目录。
-- 每条结论按 `../METHOD.md` 写全证据链(发现→推测→验证→结论(可信度+版本)→证据)。
-- 引用 TH16 结论时显式标 "(TH16)",**严禁把 TH16 地址/偏移写成 TH18 事实**。
-- 验完一个子系统可像 TH16 那样拆子目录(`th18/player/`、`th18/sht/`、`th18/cards/`)。
+| # | 文档 | 讲什么 |
+| --- | --- | --- |
+| 01 | [`01-object-model.md`](01-object-model.md) | 对象与数据布局：`zCardBaseClass` / `zVTableCard` / `zAbilityManager` / `zTableCardData`、`flags` 位义、两个计时器的订正 |
+| 02 | [`02-lifecycle.md`](02-lifecycle.md) | 生命周期：分配的四种 mode、即时卡为什么拿不到手、局末回收、存档与 replay |
+| 03 | [`03-hooks.md`](03-hooks.md) | **21 个虚表槽 × 引擎调用点全表**，含两处 ExpHP 误名的订正 |
+| 04 | [`04-active-cards.md`](04-active-cards.md) | **C 键释放全链路**：输入位 → 门控 → `c_press` → 充能 → 状态机 → HUD/replay |
+| 05 | [`05-shop-and-money.md`](05-shop-and-money.md) | **商店与金钱系统**：收支穷举、offer 生成、`dmode` 规则、定价与购买、空白卡、道具侧 |
+| 06 | [`06-resource-economy.md`](06-resource-economy.md) | 残机/符卡库存三元组与资源卡怎么喂它 |
+| 07 | [`07-registry.md`](07-registry.md) | `zTableCardData[]` 58 项 dump + 字段语义 |
+| 08 | [`08-catalog.md`](08-catalog.md) | 逐卡效果目录（56 张可获得卡）|
+| 09 | [`09-community-crosscheck.md`](09-community-crosscheck.md) | 与 THBWiki 的逐项对账 |
+| — | [`OPEN-questions.md`](OPEN-questions.md) | 开放问题与验法 |
+
+原始素材（社区 wikitext）在 [`_sources/`](_sources/thbwiki-cards.txt)，**不是结论**。
+
+## ⚠️ 代码块的约定：伪代码 ≠ Ghidra 输出
+
+各篇里的 C 代码块是**加了语义名的伪代码**，不是反编译器的原样输出。
+因为本仓 Ghidra 库**还没做类型绑定**（ExpHP 给了名字与结构体布局，没给「哪个函数的哪个参数是哪个类型」，
+见 [`../../../games/th18.v1.00a/INDEX.md`](../../../games/th18.v1.00a/INDEX.md)），
+所以你在 HTML 导出或 MCP 里看到的仍然是 `*(int *)(param_1 + 0x54)`。
+
+**为此我们一律保留裸偏移**——写成 `card->state(+0x54)`、`card->recharge_cur(+0x38)`、`player+0x620`，
+让每一行都能直接对回未绑定的反编译输出。看到 `->名字(+0x…)` 这种写法，括号里的才是可核对的事实。
+
+## 纪律
+
+- 每条结论按 [`../../../METHOD.md`](../../../METHOD.md) 写全五段链条（发现 → 推测 → 验证 → 结论 → 证据）。
+- 引用 TH16 结论时显式写 `th16:` 前缀，**严禁把 TH16 地址/偏移写成 TH18 事实**。
+- 「超过社区」的宣称要过额外闸门（一手到底 / 对抗证伪 / 量纲常识 / 交叉对名），复核前一律 🟡。
+- 想做运行时改造，先读 [`../../../mods/th18.v1.00a/card-rework/ROADMAP.md`](../../../mods/th18.v1.00a/card-rework/ROADMAP.md)：
+  现有结论足以指导定点实验，但**尚无已实跑的 TH18 注入补丁**。
+
+## 本轮（2026-09-01）新增与订正
+
+- 21 槽虚表**全部**落到确定的引擎调用点（此前只有 9 个）→ [`03-hooks.md`](03-hooks.md)。
+- ExpHP 两处误名订正：`+0x3c get_bomb_timer` → `get_recharge_remaining`；
+  `+0x30 recharge` → `on_enemy_dropped_items`。两条都有**双独立证据**。
+- 卡的两个 `zTimer` 语义确认互换（HUD 充能条的分子分母是决定性佐证）。
+- 分配的四种 mode、`flags` bit0 的来源、以及**即时卡靠 ctor/dtor 返回值当场自毁**的机制。
+- 空白卡（`CardChimata`）效果**一手闭合**：实现在 `AbilityShop` 的 state 3。
+- 金钱系统收支穷举，并发现 **`MONEY` 同时是计分乘数**。
+- 死亡的金钱惩罚 `min(MONEY/3, 100)`、默认决死窗口 8 帧、初始卡槽 1→2→3 的解锁条件。

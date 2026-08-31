@@ -20,7 +20,8 @@
 - ✅ **492 条 labels 已套**:VM 指令分发函数体内的 opcode case 标签
   (ecl 242 / anm 136 / msg 36 / std 21 / card 57),详见下节。
 - ✅ **卡牌主线已一手反出**:核心架构/调用接缝、资源经济、58 项注册表、商店规则与卡牌目录见
-  `engine/card/th18/cards-01` 至 `cards-06`。
+  `engine/card/th18/` 的 01–09 共九篇（对象模型 / 生命周期 / 钩子全表 / C 键释放 / 商店与金钱 /
+  资源经济 / 注册表 / 逐卡目录 / 社区对账）。
 - ✅ **22 条 Shift-JIS 串已认出并落库**（Ghidra 的字符串分析器认不出日文，原先一条没有）：
   标题、字体名（ＭＳ ゴシック / メイリオ / ＭＳ 明朝）、卡牌与实绩文案模板
   （`を手に入れた！` / `の実績を手に入れた`）、音乐室剧透警告。
@@ -61,7 +62,7 @@ void __fastcall AbilityManager__on_tick(zAbilityManager *self)
 | `card` | 57 | `AbilityManager__allocate_new_card` |
 
 两点值得注意：`0x430d30` 我们库里**还没命名**,但它体内有 175 个 ECL opcode case——身份就此确定;
-`card` 那 57 条与 `cards-03` 的 58 项注册表是两边独立得出的,该做**交叉对名**(对不上就有一边错了),
+`card` 那 57 条与 `engine/card/th18/07-registry.md` 的 58 项注册表是两边独立得出的,该做**交叉对名**(对不上就有一边错了),
 **不是**拿它去改既有结论。
 
 ## 这是什么 / 目标
@@ -151,6 +152,6 @@ games/th18.v1.00a/
 ├── port-plan.md   # ★ TH16 结论→TH18 待验假设 + 锚点 + "会变"警示
 └── symbols.json   # ★ 我们自己那层符号(入库);往返见 tooling/ghidra/symbols.py
 
-engine/card/th18/  # TH18 一手结论(卡牌 cards-01~06)
+engine/card/th18/  # TH18 一手结论(卡牌 01~09 + OPEN-questions)
 local/th18.v1.00a/ # th18.exe + 它自己的 Ghidra 工程(gitignored)
 ```

@@ -77,7 +77,7 @@ dmode 1-5 的"本关专属卡"= 各关 boss 的角色卡,经 vtable 链证实(�
 | 0 | BLANK | Chimata | 即时 | 空白卡:获得即**弃掉当前所有卡**,下个商店**全财产换稀有卡**(引擎侧 `card_exists(0)` @ `FUN_00430d30`,非 vtable)| — | 0 | ✅(社区+引擎核实) |
 
 ## D. 装备类——各角色自机射击子机(on_power→Player__allocate_option;on_shoot→tick_shooters,逐卡 SHT 索引)
-> 子弹实际数据在 SHT shooter 表(存储=开放问题,见 `cards-OPEN`);此处只给 SHT 索引 + 子机位 + 价。
+> 子弹实际数据在 SHT shooter 表(存储=开放问题,见 `OPEN-questions.md`);此处只给 SHT 索引 + 子机位 + 价。
 
 | id | 内部名 | 角色 | SHT索引 | 子机位偏移 | 特殊 | 价 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -102,7 +102,7 @@ dmode 1-5 的"本关专属卡"= 各关 boss 的角色卡,经 vtable 链证实(�
 
 ## 待核 / 开放
 - 🟡 WARP/CYLINDER 充能 init 机制 · ITEM_CATCH/LINE 玩家字段精确尺度。
-- ✅ **社区分歧已全部一手核实**(见 `cards-06` §5):Yachie=金钱(已订正)· Shinmyoumaru 清弹→金钱(一致)· Chimata 空白卡 & Sannyo 收符卡→命碎片 = 引擎侧 `card_exists(id)` @ `FUN_00430d30`(stub 卡的效果不在 vtable,在子系统按 id 触发)。
+- ✅ **社区分歧已全部一手核实**(见 `09-community-crosscheck.md` §5):Yachie=金钱(已订正)· Shinmyoumaru 清弹→金钱(一致)· Chimata 空白卡 & Sannyo 收符卡→命碎片 = 引擎侧 `card_exists(id)` @ `FUN_00430d30`(stub 卡的效果不在 vtable,在子系统按 id 触发)。
 > 📌 **stub 卡规律**:`Card<角色>` 仅 operator_delete 的卡(Chimata/Sannyo/Mike/Takane 等),效果在引擎子系统按 `card_exists(card_id)` 触发,不在 vtable。
-- ⏳ 装备子机的实际弹幕数值 → SHT 表存储(`cards-OPEN` deep research)。
-- 资源/即时卡的库存数值见 `cards-02`;商店机制见 `cards-04`;注册表见 `cards-03`。
+- ⏳ 装备子机的实际弹幕数值 → SHT 表存储(`OPEN-questions.md` deep research)。
+- 资源/即时卡的库存数值见 `06-resource-economy.md`;商店机制见 `05-shop-and-money.md`;注册表见 `07-registry.md`。
