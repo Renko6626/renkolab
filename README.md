@@ -13,6 +13,8 @@ mod 产物死绑某个 exe build，换个版本就全废；工具链版本无关
 ## 目录
 
 ```
+docs/SETUP.md  ★ clone 下来怎么跑起来(协作者从这开始)
+tooling/doctor.py  自检:缺什么 + 怎么补 · tooling/env.sh 探测环境
 METHOD.md      ★ 逆向记录纪律 —— 一条结论怎么才算成立(动手前必读)
 DOCSTYLE.md    ★ 文档规范 —— 成立之后怎么写下来(地址/路径/版本/表格)
 CLAUDE.md        agent 说明:环境、路径、纪律
@@ -38,6 +40,7 @@ local/         gitignored:exe / 资产 / Ghidra 工程 / vendor 克隆
 
 | 你想干什么 | 先读 |
 | --- | --- |
+| **刚 clone 下来** | `python3 tooling/doctor.py` → [`docs/SETUP.md`](docs/SETUP.md) |
 | 接着逆向 | [`METHOD.md`](METHOD.md) → 对应 `engine/<子系统>/OVERVIEW.md` → 该版本的一手文档 |
 | 开一个新作 | [`games/`](games/) 看已有两作的登记格式 → [`tooling/ghidra/README.md`](tooling/ghidra/README.md) 建库 |
 | 做 mod | [`mods/README.md`](mods/README.md) → [`mods/_template/`](mods/_template/) |

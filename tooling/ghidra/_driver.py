@@ -28,7 +28,18 @@ from contextlib import contextmanager
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-DEFAULT_GHIDRA = "/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC"
+
+# 别写死任何一台机器的路径。优先环境变量，其次按常见位置探测。
+# 协作者 clone 下来在自己机器上跑，靠的就是这套探测 + tooling/doctor.py 的提示。
+GHIDRA_GLOBS = (
+    "~/opt/ghidra_*_PUBLIC", "~/ghidra_*_PUBLIC", "~/ghidra",
+    "/opt/ghidra_*_PUBLIC", "/opt/ghidra", "/usr/share/ghidra",
+    "/usr/local/ghidra*", "~/Downloads/ghidra_*_PUBLIC",
+)
+JAVA_GLOBS = (
+    "~/miniconda3/envs/ghidra", "~/anaconda3/envs/ghidra", "~/mambaforge/envs/ghidra",
+    "~/micromamba/envs/ghidra", "/opt/conda/envs/ghidra",
+)
 
 _started = False
 
@@ -84,12 +95,96 @@ def resolve(version, exe=None, data_dir=None):
     )
 
 
+def _expand(globs, marker):
+    """按 glob 列表找第一个含 marker 的目录。"""
+    import glob as _g
+    for pat in globs:
+        for c in sorted(_g.glob(os.path.expanduser(pat)), reverse=True):   # 版本号大的优先
+            if Path(c, marker).exists():
+                return c
+    return None
+
+
+def find_ghidra():
+    """GHIDRA_INSTALL_DIR：环境变量 → 常见位置 → PATH 上的 analyzeHeadless。"""
+    env = os.environ.get("GHIDRA_INSTALL_DIR")
+    if env and Path(env, "support/analyzeHeadless").is_file():
+        return env
+    hit = _expand(GHIDRA_GLOBS, "support/analyzeHeadless")
+    if hit:
+        return hit
+    import shutil
+    exe = shutil.which("analyzeHeadless")
+    if exe:
+        return str(Path(exe).resolve().parents[1])
+    return None
+
+
+MIN_JDK = 21              # Ghidra 12.x 的硬性要求；给它 JDK 17 会起不来
+
+
+def java_major(home):
+    """读某个 JDK 的主版本号；读不出来返回 None。"""
+    rel = Path(home, "release")
+    if rel.is_file():
+        m = re.search(r'JAVA_VERSION="(\d+)', rel.read_text(errors="ignore"))
+        if m:
+            return int(m.group(1))
+    try:
+        import subprocess
+        out = subprocess.run([str(Path(home, "bin/java")), "-version"],
+                             capture_output=True, text=True, timeout=20).stderr
+        m = re.search(r'version "(\d+)', out)
+        return int(m.group(1)) if m else None
+    except Exception:                                     # noqa: BLE001
+        return None
+
+
+def find_java(min_major=MIN_JDK):
+    """JAVA_HOME：环境变量 → conda 的 ghidra 环境 → 当前解释器所在环境 → PATH 上的 java。
+
+    ⚠️ **每个候选都要过版本关**。别无条件信 $JAVA_HOME——本机就踩过：shell 里
+    export 着一个 JDK 17，而 Ghidra 12 要 21，直接信它会起不来且报错很难懂。
+    """
+    cands = []
+    env = os.environ.get("JAVA_HOME")
+    if env:
+        cands.append(env)
+    import glob as _g
+    for pat in JAVA_GLOBS:
+        cands += sorted(_g.glob(os.path.expanduser(pat)), reverse=True)
+    cands.append(str(Path(sys.executable).resolve().parents[1]))   # 当前 python 所在环境
+    import shutil
+    j = shutil.which("java")
+    if j:
+        cands.append(str(Path(j).resolve().parents[1]))
+
+    fallback = None
+    for c in cands:
+        if not c or not Path(c, "bin/java").is_file():
+            continue
+        v = java_major(c)
+        if v is not None and v >= min_major:
+            return c
+        fallback = fallback or (c, v)
+    if fallback:
+        die(f"找到的 JDK 版本不够：{fallback[0]} 是 JDK {fallback[1]}，"
+            f"Ghidra 需要 {min_major}+。\n"
+            f"       装一个：conda create -n ghidra -c conda-forge openjdk=21 python=3.11\n"
+            f"       或跑 python tooling/doctor.py 看完整清单。")
+    return None
+
+
 def ghidra_install():
-    inst = os.environ.get("GHIDRA_INSTALL_DIR", DEFAULT_GHIDRA)
-    if not Path(inst, "support/analyzeHeadless").is_file():
-        die(f"GHIDRA_INSTALL_DIR 无效：{inst}")
-    if not os.environ.get("JAVA_HOME"):
-        die("未设 JAVA_HOME —— 用 conda 环境 `ghidra`（openjdk 21），见 tooling/ghidra/README.md")
+    """确保 GHIDRA_INSTALL_DIR / JAVA_HOME 就绪（找得到就顺手写回 environ）。"""
+    inst = find_ghidra()
+    if not inst:
+        die("找不到 Ghidra。设 GHIDRA_INSTALL_DIR，或跑 `python tooling/doctor.py` 看怎么装。")
+    os.environ["GHIDRA_INSTALL_DIR"] = inst
+    java = find_java()
+    if not java:
+        die("找不到 JAVA_HOME（需要 JDK 21）。跑 `python tooling/doctor.py` 看怎么装。")
+    os.environ["JAVA_HOME"] = java
     return inst
 
 
@@ -174,3 +269,13 @@ def add_project_args(ap):
     ap.add_argument("--project", required=True, help="工程名，如 th18.exe")
     ap.add_argument("--program", required=True, help="工程内程序路径，如 /th18.exe")
     ap.add_argument("--dry-run", action="store_true", help="只统计，不写库")
+
+
+if __name__ == "__main__":                       # 给 tooling/env.sh 用：吐出可 eval 的 export
+    g, j = find_ghidra(), find_java()
+    if not g or not j:
+        sys.stderr.write("[env] 探测失败：%s%s—— 跑 python tooling/doctor.py\n" % (
+            "" if g else "找不到 Ghidra ", "" if j else "找不到 JDK "))
+        sys.exit(1)
+    print(f'export GHIDRA_INSTALL_DIR="{g}"')
+    print(f'export JAVA_HOME="{j}"')

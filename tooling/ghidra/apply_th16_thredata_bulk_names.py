@@ -13,9 +13,7 @@
 #   (memory re-workflow-fanout-cost)。
 #
 # ⚠️ 运行前先 MCP close_database 释放 ghidra_projects/th16.exe 锁!
-# 用法:GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC \
-#       JAVA_HOME=/data/sunyunbo/miniconda3/envs/ghidra \
-#       /data/sunyunbo/miniconda3/envs/ghidra/bin/python funcs/apply_th16_thredata_bulk_names.py
+# 用法:source tooling/env.sh && "$JAVA_HOME/bin/python" tooling/ghidra/apply_th16_thredata_bulk_names.py
 # 仅 TH16 v1.00a(imagebase 0x400000)。
 import json, re
 import pyghidra

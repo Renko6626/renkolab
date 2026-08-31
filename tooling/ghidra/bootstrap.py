@@ -4,13 +4,14 @@
 把原来手动的一串步骤固化成一条命令：
 
     建库 → 分析 → 补建漏掉的函数 → 套 ExpHP 名/结构体/labels
-    → 回放我们自己那层 → dump 函数清单 → 落盘
+    → 认 Shift-JIS 串 → 回放我们自己那层 → dump 函数清单 → 落盘
 
-用法（必须用 conda 环境 `ghidra` 的 python，Ghidra 12 没有 Jython）：
+用法（必须用带 pyghidra 的 python，Ghidra 12 没有 Jython）：
 
-    P=/data/sunyunbo/miniconda3/envs/ghidra
-    JAVA_HOME=$P GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC \\
-      $P/bin/python tooling/ghidra/bootstrap.py th18
+    source tooling/env.sh              # 探测并导出 GHIDRA_INSTALL_DIR / JAVA_HOME
+    "$JAVA_HOME/bin/python" tooling/ghidra/bootstrap.py th18
+
+环境缺东西时跑 `python3 tooling/doctor.py`，它会逐条告诉你差什么、怎么补。
 
 路径按约定推导（见 `_driver.resolve`），不用逐个指定。
 
@@ -146,7 +147,7 @@ def main():
 
     dry = ["--dry-run"] if a.dry_run else []
     has_names = not a.skip_names and P["data_dir"]
-    total = 8 if has_names else 4          # 漂移拦截另算「第 0 步」，只在 --reanalyze 时出现
+    total = 9 if has_names else 5          # 漂移拦截另算「第 0 步」，只在 --reanalyze 时出现
     lines = []
     n = 1
 
@@ -180,6 +181,9 @@ def main():
     elif not P["data_dir"]:
         print("\n      ⚠️ 没有 th-re-data，跳过命名。逆向新 exe 的第一件事就是翻它——")
         print("         见 engine/_shared/community-sources.md 的金矿条目。")
+
+    step(n, total, "认 Shift-JIS 字符串（Ghidra 的字符串分析器认不出日文）"); n += 1
+    lines.append(driver("import_sjis_strings.py", P, dry, data_dir=False))
 
     step(n, total, "回放我们自己那层（覆盖语义，压过 ExpHP）"); n += 1
     if P["symbols"].exists():

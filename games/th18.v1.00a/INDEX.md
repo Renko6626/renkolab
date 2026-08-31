@@ -21,6 +21,9 @@
   (ecl 242 / anm 136 / msg 36 / std 21 / card 57),详见下节。
 - ✅ **卡牌主线已一手反出**:核心架构/调用接缝、资源经济、58 项注册表、商店规则与卡牌目录见
   `engine/card/th18/cards-01` 至 `cards-06`。
+- ✅ **22 条 Shift-JIS 串已认出并落库**（Ghidra 的字符串分析器认不出日文，原先一条没有）：
+  标题、字体名（ＭＳ ゴシック / メイリオ / ＭＳ 明朝）、卡牌与实绩文案模板
+  （`を手に入れた！` / `の実績を手に入れた`）、音乐室剧透警告。
 - ✅ **符号往返已跑通**:我们自己那层 200 条存进 [`symbols.json`](symbols.json),
   全量重建后 0 漂移。见 [`tooling/ghidra/README.md`](../../tooling/ghidra/README.md) 的「两层符号」。
 - ⏳ **仍未做**:已实跑的 TH18 thcrap/DLL 改造样例；装备卡 shooter 数据存储与少数标 🟡 的字段仍待验证。
@@ -121,9 +124,8 @@ ExpHP 对 TH18 积累与 TH16 同量级,引擎结构体填得很满,**卡牌系�
 - **样本**:`th18.exe`(32 位 PE)由用户放进 **`local/th18.v1.00a/`**(gitignored),**没有就先问用户、不要下载**。
 - **重建/补齐整个库**(开工第一件事,幂等;先在 MCP 里 `close_database` 释放工程锁):
   ```bash
-  P=/data/sunyunbo/miniconda3/envs/ghidra
-  JAVA_HOME=$P GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC \
-    $P/bin/python tooling/ghidra/bootstrap.py th18
+  source tooling/env.sh
+  "$JAVA_HOME/bin/python" tooling/ghidra/bootstrap.py th18
   ```
   之后把 `zPlayer*/zEnemyData*/zBullet*` 套到对应全局 → 反编译即具名字段(同 th16 做法,见 `engine/player/th16/05` §0.5)。
 

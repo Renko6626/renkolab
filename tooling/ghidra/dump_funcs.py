@@ -4,9 +4,8 @@
 这是「我们当前命名状态」的快照，喂给 build_worklist.py 算出待挖清单。
 被 bootstrap.py 调用，也可单独跑：
 
-    P=/data/sunyunbo/miniconda3/envs/ghidra
-    JAVA_HOME=$P GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC \
-      $P/bin/python tooling/ghidra/dump_funcs.py \
+    source tooling/env.sh
+    "$JAVA_HOME/bin/python" tooling/ghidra/dump_funcs.py \
         --project-dir "$(pwd)/local/th16.v1.00a/ghidra_projects" \
         --project th16.exe --program /th16.exe \
         --out local/th16.v1.00a/th16-funcs.json

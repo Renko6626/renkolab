@@ -13,7 +13,12 @@ program 上留着一个整会话不关的 **"Batch Processing" 事务**,占着�
 `saveAs`(若需)→ `project.close(program)` → 用**专用 `java.lang.Object` consumer** 以可写方式
 `df.getDomainObject(...)` 重开;`Session.close()` 关工程前 `release` 该 consumer 释放锁。
 
-**应用**(目标:`.../site-packages/re_mcp_ghidra/session.py`):
+**现状(2026-09-01 实测)**:这个修复**已经烘进 fork 分支 `thtk-patches`**——
+本机装的 `re-mcp 3.0.1` 的 `session.py` 里已有专用 consumer 逻辑,且没有 `.bak`,
+说明是随 fork 装进来的、不是手打的。**所以下面的手工步骤现在不需要执行**,
+本 diff 只作存档：万一哪天改回装 PyPI 上游版本,或要给上游提 PR 时拿它对照。
+
+**（存档）手工应用步骤**(目标:`.../site-packages/re_mcp_ghidra/session.py`):
 ```bash
 cd <re-mcp-ghidra venv>/lib/python3.*/site-packages/re_mcp_ghidra
 cp session.py session.py.bak                       # 备份

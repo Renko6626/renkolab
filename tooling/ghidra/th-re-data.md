@@ -24,9 +24,7 @@
 ## 重新生成(工程改动后刷新地图)
 ```
 # 1) dump 当前工程函数快照(需先 MCP close_database 释放锁;conda ghidra 环境)
-GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC \
-JAVA_HOME=/data/sunyunbo/miniconda3/envs/ghidra \
-/data/sunyunbo/miniconda3/envs/ghidra/bin/python funcs/dump_funcs.py     # -> funcs/th16-funcs.json
+"$JAVA_HOME/bin/python" funcs/dump_funcs.py     # -> funcs/th16-funcs.json
 # 2) 交叉分类出待挖清单(纯 python3)
 python3 funcs/build_worklist.py                                          # -> games/th16.v1.00a/unexplored.md
 # 3) 完事 MCP open_database 重开

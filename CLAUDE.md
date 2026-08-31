@@ -1,6 +1,6 @@
 # CLAUDE.md — renkolab
 
-东方 Project 引擎逆向工作台。**先读 [`README.md`](README.md)**（结构与导航），
+东方 Project 引擎逆向工作台。**先读 [`README.md`](README.md)**（结构与导航），环境没搭好先看 [`docs/SETUP.md`](docs/SETUP.md)，
 **动手前必读 [`METHOD.md`](METHOD.md)**（逆向记录纪律）与 [`DOCSTYLE.md`](DOCSTYLE.md)（文档规范）。
 本文件只讲环境和跨层规矩。
 
@@ -22,23 +22,32 @@
    矩阵里 th16 一列填 ❌/❓ 即可。不要再开 `th19/` 这种国中之国。
 3. **mod 产物不进 `engine/`。** cave 源码、patch、审计记录属于 `mods/<版本>/<mod名>/`。
 
-## 环境（已搭好并验证，无 sudo；绝对路径）
+## 环境（不写死路径；缺什么问 doctor）
 
-- **Ghidra 12.1.2**：`/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC/`
-- **conda 环境 `ghidra`**：`/data/sunyunbo/miniconda3/envs/ghidra/`（openjdk 21 + python 3.11 + pyghidra 3.1.0）
-  - `JAVA_HOME=/data/sunyunbo/miniconda3/envs/ghidra`
-  - `GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC`
+```bash
+python3 tooling/doctor.py     # 自检：缺什么 + 怎么补
+source tooling/env.sh         # 探测并导出 GHIDRA_INSTALL_DIR / JAVA_HOME
+```
+
+- **Ghidra 12.x** + **JDK 21**（Ghidra 12 不吃 17）+ 带 **pyghidra** 的 python。
+  路径一律靠 `tooling/env.sh` 探测——**别在脚本或文档里写死任何一台机器的路径**，
+  协作者 clone 下来要能直接跑。装法见 [`docs/SETUP.md`](docs/SETUP.md)。
 - **驱动 Ghidra 两条路**：
-  1. **MCP（推荐迭代用）**：`ghidra-re`（自维护 fork `Renko6626/re-mcp@thtk-patches`，
-     以 local scope 注册进 Claude Code）。工具目录见
-     [`tooling/ghidra/mcp-tools.md`](tooling/ghidra/mcp-tools.md)。
-     **fork 不在本仓维护**——它是 `jtsylve/ida-mcp` 的 fork，有自己的仓库和 upstream，随用随取。
+  1. **MCP（推荐迭代用）**：`ghidra-re`（自维护 fork `Renko6626/re-mcp@thtk-patches`）。
+     已在本仓注册（project-local，2026-09-01 实测 41 个 pinned 工具）；
+     ⚠️ **注册/改动后要新开会话才加载**，且作用域绑目录——在别的目录开会话调不到。
+     工具目录见 [`tooling/ghidra/mcp-tools.md`](tooling/ghidra/mcp-tools.md)，
+     装法与自检见 [`docs/SETUP.md`](docs/SETUP.md)。
+     **fork 不在本仓维护**——它有自己的仓库和 upstream，随用随取。
   2. **脚本**：`tooling/ghidra/run.sh <exe> <script.py>`（封装好 env 的 pyghidra）。
 - **新作一键起库**：`tooling/ghidra/bootstrap.py`（建库 → 分析 → 补建漏掉的函数 → 套 ExpHP
   名/结构体/labels → 回放我们那层 → dump → 落盘）。幂等，随时可重跑。
 - ⚠️ **Ghidra 里的成果不导出就等于没有**。工程在 `local/`（gitignored），
   干完活跑 `tooling/ghidra/symbols.py export <版本>` 存进 `games/<版本>/symbols.json`；
   `symbols.py status <版本>` 随时对账。详见 [`tooling/ghidra/README.md`](tooling/ghidra/README.md) 的「两层符号」。
+- **想看库里有什么又不抢锁**：`tooling/ghidra/export_html.py <版本>` 导出 HTML
+  （对齐 MCP 只读工具能看到的东西）+ `serve.sh <版本>`。工程锁是独占的——
+  GUI／MCP／driver 三者同一时刻只能有一个，见 [`docs/SETUP.md`](docs/SETUP.md) 的「锁」。
 - ⚠️ **坑**：Ghidra 12 移除了 Jython，`.py` 必须走 **PyGhidra（CPython 3）**，
   不能 `analyzeHeadless -postScript foo.py`；analyzeHeadless 的工程目录**必须绝对路径**。
 
