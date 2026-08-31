@@ -7,7 +7,7 @@
 #
 # ★ 与 apply_th16_bullet/math/sht_names.py 不同:本脚本的**名字来源不是我们的反编译**,而是
 #   **ExpHP `exphp-share/th-re-data`(data/th16.v1.00a/funcs.json)** —— 社区一手 RE 的 TH16 符号表
-#   (仅名字 + 结构体偏移,无语义注释)。本仓库已对照验证(见 research/ecl/03-thredata-crosscheck.md):
+#   (仅名字 + 结构体偏移,无语义注释)。本仓库已对照验证(见 engine/ecl/th16/03-thredata-crosscheck.md):
 #   我们独立反出的弹幕/数学/SHT 函数与 ExpHP 命名**绝大多数语义吻合**(连 step_ex_NN 的 EX 索引都对上)。
 #   本脚本把 ExpHP 的 45 个 ECL 子系统函数名导进工程,作为后续反 ecl_run 等的导航底图。
 #   名字里的 "::" 在 Ghidra 名中以 "__" 代替。注释标 [th-re-data] 来源 + 本仓库已确认者标注。
@@ -66,7 +66,7 @@ FUNCS = [
     (0x4251F0, "EnemyData__ecl_get_int_arg_ptr__trampoline", "[th-re-data]"),
     (0x425200, "EnemyData__ecl_get_float_arg__trampoline", "[th-re-data]"),
     (0x425220, "EnemyData__ecl_get_float_arg_ptr__trampoline", "[th-re-data]"),
-    # ---- 全局/特殊变量访问器(本仓库独立反出,命名与 ExpHP 一致 -> research/ecl/01)----
+    # ---- 全局/特殊变量访问器(本仓库独立反出,命名与 ExpHP 一致 -> engine/ecl/th16/01)----
     (0x423810, "Enemy__ecl_get_int_global",
      "[th-re-data] read special/global var (int) by neg id. OUR RE (ecl/01): table @0x4921ac = "
      "{int,int_ptr,float,float_ptr} -> NAMES MATCH ExpHP exactly. ✅✅"),

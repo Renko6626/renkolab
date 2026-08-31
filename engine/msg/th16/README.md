@@ -1,4 +1,4 @@
-# research/msg/ — TH16 MSG(对话/文本)系统逆向
+# engine/msg/th16 — TH16 MSG(对话/文本)系统逆向
 > **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
 >
 

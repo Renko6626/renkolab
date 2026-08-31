@@ -174,4 +174,4 @@ th16.exe v1.00a:`Gui::start_dialogue` `0x429FF0`、`Gui::sub_426c10` `0x426C10`�
 (ins 518 调用点 `0x4216C3`,跳表 `0x422C44`)、归档读 `0x402440`、文本转 anm `0x46D990`、
 `Ending::on_tick_23__main` `0x4199F0`。
 th-re-data:`data/th16.v1.00a/{funcs,labels,type-structs-own}.json`(GuiMsgVm/zMsgRawInstr/zGuiMsgVm)。
-eclmap:`research/ecl/vendor/th16.eclm`(`518 S` / `519`)。
+eclmap:`local/vendor/th16.eclm`(`518 S` / `519`)。

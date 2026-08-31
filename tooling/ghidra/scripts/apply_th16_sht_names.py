@@ -1,5 +1,5 @@
 # 把 SHT 逆向结论(函数名 + 证据注释 + 跳转表标签)应用到 TH16 (th16.exe) 的 Ghidra 工程。
-# source of truth = research/sht/findings/03/04 + 审计(00-METHOD 纪律)。MCP 的 save 有事务 bug、
+# source of truth = engine/sht/th16/03/04 + 审计(00-METHOD 纪律)。MCP 的 save 有事务 bug、
 # run.sh 建的是临时工程都不能可靠落盘,故用本脚本作**版本化、可复现**的固化手段。
 #
 # 用法(二选一):

@@ -90,7 +90,7 @@ xxd -p cave.bin                       # 取 hex,贴进 codecave.code
 
 - ✅ **thcrap 机制已对一手源码 + ExpHP 实补丁核实**(§0):binhack 写数据槽可行、`<codecave:>` 绝对地址正确、
   文件结构对齐 ExpHP `th16.v1.00a.js`、注入方式确认。核实中修正了 `[…]`→`<…>` 的真 BUG。
-- ✅ 伤害路径已反(`findings/08`,经对抗审计):伤害自动,cave 不写伤害代码。
+- ✅ 伤害路径已反(`engine/sht/th16/08`,经对抗审计):伤害自动,cave 不写伤害代码。
 - ✅ cave 逻辑/ABI/偏移经对抗审计(`NOTES.md`):修了 stdcall 误当 cdecl 的崩溃 BUG;hit=0 证安全。
 - ⏳ **唯一剩下的**:把 `tick_tracking_burst_starter.asm` 用 nasm 汇编成字节、组 thcrap patch、**进游戏验**
   (手写 asm 仍需汇编后比对 + 实跑确认不崩、追踪/脉冲/伤害符合预期)。

@@ -42,3 +42,5 @@ TH18《虹龍洞》用**卡牌/能力系统**取代了 TH16 的季节系统。�
 高度一致，社区解开了我们几处 🟡；**分歧处社区全对，代码侧已订正**。
 ⚠️ [`cards-DEEPRESEARCH-salvage.md`](th18/cards-DEEPRESEARCH-salvage.md) 是**未合并的原始素材**，
 不要从中直接抄实现结论。
+
+逐卡特征化的待办清单在 [`cards-TODO-58card-characterization.md`](th18/cards-TODO-58card-characterization.md)。

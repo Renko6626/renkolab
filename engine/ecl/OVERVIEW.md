@@ -31,3 +31,4 @@ opcode 分两层：**系统 opcode**（0–0x5d，控制流/变量/栈，VM 自�
 - 「范围闸」配方**尚未在游戏里跑过**，标 🟡；要落地走 [`../../mods/`](../../mods/README.md) 的流程。
 - 帧末浮点插值器 `float_i[8]` 的完整语义仍有边角未清（[th16/04 §5](th16/04-ecl-vm-interpreter.md)）。
 - 与 ExpHP th-re-data 的命名差异与 2 处真冲突裁决记录在 [th16/03](th16/03-thredata-crosscheck.md)。
+- 社区 etEx / 指令速查（已与弹幕 VM 交叉验证）：[th16/ECL-info.md](th16/ECL-info.md)。

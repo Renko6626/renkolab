@@ -17,7 +17,7 @@ program 上留着一个整会话不关的 **"Batch Processing" 事务**,占着�
 ```bash
 cd <re-mcp-ghidra venv>/lib/python3.*/site-packages/re_mcp_ghidra
 cp session.py session.py.bak                       # 备份
-patch -p0 < <repo>/research/tooling/ghidra/patches/re-mcp-ghidra-3.0.2-txfix.diff
+patch -p0 < <repo>/tooling/ghidra/patches/re-mcp-ghidra-3.0.2-txfix.diff
 # 然后重启 ghidra-re MCP 服务(运行中的进程不会热加载源码改动)
 ```
 ⚠️ 这是改**已安装工具的副本**,`uv tool upgrade/reinstall` 会覆盖;升级后需重打或改走上游 PR。

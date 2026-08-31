@@ -1,90 +1,102 @@
-# research/sht/disasm — 东方本体反汇编工作区
+# tooling/ghidra — Ghidra 工具链
 
-目标:用反汇编 + 社区资料,解开 `findings/01-runtime-semantics.md` 里没人公开破解的语义黑洞——
-逐版本 `func_on_init/tick/draw/hit`(行为函数索引)、`flags` 段位含义、`unknown_*` 字段。
+版本无关的逆向工具。目标是把「拿到一个新 exe → 有一个可用的、已命名的 Ghidra 库」
+这件事从半天压到一条命令。
 
-## 环境(Linux 服务器,无 sudo,用户空间)— ✅ 已验证可用
-
-- **conda 环境 `ghidra`**:`openjdk 21` + `python 3.11` + `pyghidra 3.1.0`(JPype 1.5.2)。
-- **Ghidra**:12.1.2,解压在 `/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC/`(仓库外,不入库)。
-- **关键环境变量**(脚本里已封装):
-  - `GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC`
-  - `JAVA_HOME=/data/sunyunbo/miniconda3/envs/ghidra`
-- ⚠️ **Ghidra 12 已移除 Jython**,`.py` 脚本必须走 **PyGhidra(CPython 3)**,不能再靠
-  `analyzeHeadless -postScript foo.py`(会报 "Ghidra was not started with PyGhidra")。
-- 验证:`pyghidra tools/thecl.exe scripts/list_functions.py` → 正确分析出 921 个函数。
-- binutils(objdump 支持 `pei-i386`/`pei-x86-64`)作为快速辅助随时可用。
-
-## 样本(必须你提供)
-
-东方游戏本体 exe 是 ZUN 版权商业软件,**不在仓库、不能下载**。请把**自己合法持有**的
-`th18.exe` / `th19.exe`(32 位 PE)拷到 `samples/`(已 gitignore)。为互操作做个人逆向是社区惯例。
-
-- 优先 TH18/TH19(用户偏好新作)。
-- exe 基本无壳无强加密(加密在 .dat,exe 本体可直接静态分析),Ghidra 可直接吃。
-
-## 用法(环境就绪后)
-
-**首选:`scripts/run.sh`(PyGhidra,Python 3,已验证)** —— 对单个二进制跑一个脚本:
+## 一键起库
 
 ```bash
-# scripts/run.sh <binary> <script.py> [args...]
-research/tooling/ghidra/scripts/run.sh research/tooling/ghidra/samples/th18.exe \
-  research/tooling/ghidra/scripts/find_sht.py
+P=/data/sunyunbo/miniconda3/envs/ghidra
+JAVA_HOME=$P GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC \
+  $P/bin/python tooling/ghidra/bootstrap.py th18
 ```
 
-`run.sh` 已封装好 `GHIDRA_INSTALL_DIR` / `JAVA_HOME` 并调用 `pyghidra`。pyghidra 首次会对 exe
-建临时工程并自动分析(大 exe 数分钟),脚本里 `currentProgram`、`getFunctionManager()`、
-反编译 API 等全部可用(标准 GhidraScript API,只是 CPython 3 语法)。
+[`bootstrap.py`](bootstrap.py) 串起五步：**建库 → headless 分析 → 套 ExpHP 函数/静态名
+→ 套 ExpHP 结构体 → dump 函数清单 → 落盘**，末尾打印一段可直接粘进
+`games/<版本>/INDEX.md` 的登记文本。
 
-**批量/复用已分析工程**:用 `analyzeHeadless` 先 `-import` 建工程并分析一次,后续
-`-process <bin> -noanalysis` 复用。注意 **工程目录必须是绝对路径**(Ghidra 不接受以 `.` 开头的
-路径),且 `.py` 后处理脚本仍需 PyGhidra 模式;纯 Java(`.java`)脚本则可直接用 analyzeHeadless。
+路径按约定推导（`local/<ver>*/` 下唯一的 exe、`ghidra_projects/`、
+`local/vendor/th-re-data/data/<版本目录名>/`），不用逐个指定。
+工程已存在时默认跳过分析（幂等），要重来加 `--reanalyze`；
+`--dry-run` 只预览计数、不写库。
 
-## MCP 方式:让 Claude Code 直接驱动 Ghidra(已装,推荐用于迭代逆向)
+TH16 上的实测基线（2026-09-01）：`skipped=1185 missing=123`、`types=158 failed=0`、
+1764 个函数。`applied=0` 正是幂等的证据。
 
-装了 **`re-mcp-ghidra`**(jtsylve,headless,基于 pyghidra),把 Ghidra 的反编译/反汇编/xref/
-struct/搜索等暴露成 MCP 工具,Claude Code 可直接调用,免去"写脚本→跑→解析 stdout"。
+## 环境（无 sudo，用户空间，已验证）
 
-- 安装:`uv tool install re-mcp-ghidra`(隔离环境,自带 py3.12);可执行
-  `~/.local/bin/re-mcp-ghidra`。后端检测:`re-mcp-ghidra backends` → `ghidra`。
-- 已注册进 Claude Code(**local scope**,不入库,记录在 `~/.claude.json` 本项目条目):
-  ```bash
-  claude mcp add ghidra-re \
-    -e GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC \
-    -e JAVA_HOME=/data/sunyunbo/miniconda3/envs/ghidra \
-    -- /data/sunyunbo/.local/bin/re-mcp-ghidra stdio
-  ```
-- `claude mcp list` 显示 `ghidra-re: ✓ Connected`。
-- ⚠️ **新增 MCP 服务器的工具要新开一个 Claude Code 会话才会加载**;当前会话注册后仍调不到。
-- 关系:这是**我们 dev 期逆向用的 MCP**,与 THTK-Studio 自己内置要 ship 的 MCP 服务器无关,
-  且 local scope 不会写进项目 `.mcp.json`。
+| 项 | 值 |
+| --- | --- |
+| Ghidra | 12.1.2，`/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC/`（仓库外） |
+| conda 环境 `ghidra` | openjdk 21 + python 3.11 + pyghidra 3.1.0（JPype 1.5.2） |
+| `GHIDRA_INSTALL_DIR` | `/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC` |
+| `JAVA_HOME` | `/data/sunyunbo/miniconda3/envs/ghidra` |
 
-## 逆向策略(怎么从一坨汇编里找到 func_* 的含义)
+⚠️ **两个坑**：
 
-不靠运气,靠格式已知量当"锚点"反推:
+1. **Ghidra 12 移除了 Jython**，`.py` 必须走 PyGhidra（CPython 3）。
+   `analyzeHeadless -postScript foo.py` 会报 "Ghidra was not started with PyGhidra"。
+2. **analyzeHeadless 的工程目录必须是绝对路径**，不接受以 `.` 开头的相对路径。
 
-1. **定位 SHT 解析器**:用我们已知的版本常量做特征搜索——
-   - shooterset 终止符 `0xFFFFFFFF`(4×0xFF)的比较;
-   - 偏移表定长 `forced_shtoffarr_len`(TH18/19 = 0x28)、`option_pos_len`(0xA0)、`max_opt`(4);
-   - main 头部移动速度等 float 的加载序列。
-   命中后即为读取 SHT 结构、构造 shooter 对象的代码。
-2. **锚定 shooter 结构步长**:用 `docs/sht-webedit-and-shmupcc-analysis.md` 里 TH18/19 的逐字段
-   偏移表,找到按该步长遍历、并在已知偏移处取 `func_*` 字段的循环。
-3. **跟踪 func_* 的去向**:`func_on_tick` 等被当作**函数指针表索引 / switch 分派**使用。顺着索引找到
-   跳转表,表里每个条目就是一个行为函数(寻的、加速、激光、命中音效…)。逐个反编译命名,产出
-   "索引→行为"表。
-4. **flags 段**:找读取 flags 各位/各项的代码,看每位喂给哪段逻辑,反推语义。
-5. **交叉验证**:与 pytouhou(Gen-1)、thtk、Mddass(TH07/12/13)对照;社区已知的零散结论用来
-   印证而非替代反汇编结果。
+## 目录
+
+| 文件 | 用途 |
+| --- | --- |
+| [`bootstrap.py`](bootstrap.py) | ★ 一键起库（上文） |
+| [`th-re-data.md`](th-re-data.md) | ★★ ExpHP 符号金矿的用法与待挖地图说明 |
+| [`import_th_re_data.py`](import_th_re_data.py) | 套 funcs/statics 名字 + 注释（safe，不覆盖已有名） |
+| [`import_th_re_data_structs.py`](import_th_re_data_structs.py) | 套结构体/枚举/typedef（布局精确，未知区域填带名占位） |
+| [`dump_funcs.py`](dump_funcs.py) | 导出当前命名状态到 JSON |
+| [`build_worklist.py`](build_worklist.py) | 对比 ExpHP 与本地命名，算出「谁都没命名的处女地」 |
+| [`apply_th16_thredata_bulk_names.py`](apply_th16_thredata_bulk_names.py) | TH16 批量导名（历史脚本） |
+| [`mcp-tools.md`](mcp-tools.md) | `ghidra-re` MCP 工具目录（pinned / hidden） |
+| `run.sh` | 对单个二进制跑一个 pyghidra 脚本 |
+| `scripts/` | 逐子系统的命名固化脚本（headless 可复现） |
+| `patches/` | 我们给 MCP fork 打的补丁（见下） |
+
+```bash
+# run.sh <binary> <script.py> [args...]
+tooling/ghidra/run.sh local/th18.v1.00a/th18.exe tooling/ghidra/scripts/list_functions.py
+```
+
+`scripts/` 里的 `apply_th16_*_names.py` 是**唯一能给数据符号真改名**的途径
+（MCP 的 rename 对数据符号需经 driver 落盘），且 headless 可复现。
+
+## MCP：让 Claude Code 直接驱动 Ghidra（推荐用于迭代）
+
+`ghidra-re` 把反编译/反汇编/xref/struct/搜索暴露成 MCP 工具，免去
+「写脚本 → 跑 → 解析 stdout」。用的是**自维护 fork**
+`Renko6626/re-mcp@thtk-patches`（上游 `jtsylve/ida-mcp` 基本不维护）。
+
+```bash
+uv tool install --force \
+  "git+https://github.com/Renko6626/re-mcp@thtk-patches#subdirectory=packages/re-mcp-ghidra"
+
+claude mcp add ghidra-re \
+  -e GHIDRA_INSTALL_DIR=/data/sunyunbo/opt/ghidra_12.1.2_PUBLIC \
+  -e JAVA_HOME=/data/sunyunbo/miniconda3/envs/ghidra \
+  -- ~/.local/bin/re-mcp-ghidra stdio
+```
+
+- **fork 不在本仓维护**——它有自己的仓库和 upstream remote，吸收进来会打断跟上游 rebase、
+  那条安装 URL、以及同仓的 `re-mcp-ida`/`re-mcp-core` 两个包。随用随取。
+  [`patches/`](patches/README.md) 留着我们打过的补丁存档。
+- ⚠️ **新增 MCP 服务器的工具要新开一个会话才会加载**；当前会话注册后仍调不到。
+- ⚠️ **跑 `dump_funcs.py` 等 driver 前先 `close_database`**，否则撞工程锁。
+- 这是**我们 dev 期逆向用的 MCP**，与 THTK-Studio 自己要 ship 的 MCP 服务器无关
+  （local scope，不写进项目 `.mcp.json`）。
+
+## 样本
+
+游戏 exe 是 ZUN 版权商业软件，**不在仓库、不要下载**。放进 `local/<版本>/`，
+见 [`local/README.md`](../../local/README.md)。exe 本体无壳（加密在 `.dat`），Ghidra 可直接吃。
 
 ## 产出去向
 
-- 原始大文件(反编译 dump、跳转表导出)→ `exports/`(gitignore)。
-- 结论(索引→行为表、flags 位表)→ `findings/02-*.md`,稳定后回填 `docs/`。
-- 可复用的 Ghidra 脚本 → `scripts/`(入库)。
+| 产物 | 去处 |
+| --- | --- |
+| 反编译 dump、跳转表导出等大文件 | `local/`（gitignore） |
+| 结论（索引→行为表、字段图） | `engine/<子系统>/<版本>/`，见 [`METHOD.md`](../../METHOD.md) |
+| 可复用脚本 | 本目录（入库） |
 
-## 法务/伦理
-
-- 仅对**用户自有**游戏做互操作性逆向,产出是格式语义文档/IDE 支持,不分发游戏代码或资产。
-- `samples/` 永不入库。
+仅对**用户自有**游戏做互操作性逆向；产出是格式语义文档与工具支持，不分发游戏代码或资产。

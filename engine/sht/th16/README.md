@@ -1,4 +1,4 @@
-# research/sht — SHT 格式逆向工程工作区
+# engine/sht/th16 — SHT 格式逆向工程工作区
 
 这是 SHT（自机 / shoot type）格式的**独立研究工作区**,用于在动手写 IDE 支持之前彻底搞懂原理。
 与 `docs/` 的区别:`docs/` 放沉淀后的结论(`sht-format-research.md`、
@@ -17,7 +17,7 @@
 
 ## 研究目标(为什么还要更深一层)
 
-源码级布局已在 `docs/sht-webedit-and-shmupcc-analysis.md` 搞清。仍有一批**语义黑洞**需要逆向:
+源码级布局已在 `engine/sht/tools-analysis.md` 搞清。仍有一批**语义黑洞**需要逆向:
 
 1. `flags` 段(各版本 0x20 / 0x3c 字节)到底控制什么?(sht-webedit README 自列为 TODO)
 2. 行为函数索引 `func_on_init/tick/draw/hit`(TH19 变成 4× `func_?`)各自对应游戏里的什么行为

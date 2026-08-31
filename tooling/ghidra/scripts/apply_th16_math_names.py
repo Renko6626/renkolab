@@ -1,5 +1,5 @@
 # 把 TH16 数学/CRT 模块逆向结论(函数名 + 常量名 + 证据注释)应用到 th16.exe 的 Ghidra 工程。
-# source of truth = research/shared/th16-engine-math.md(过程报告)。与 apply_th16_sht_names.py 分开:
+# source of truth = engine/_shared/math-and-prng.md(过程报告)。与 apply_th16_sht_names.py 分开:
 # 后者是 SHT/shoot-type,本脚本是跨主题的引擎数学子系统。MCP 的 save 有事务 bug、run.sh 建临时工程
 # 都不能可靠落盘,故用本版本化脚本作可复现的固化手段。
 #

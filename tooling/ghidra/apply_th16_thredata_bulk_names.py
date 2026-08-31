@@ -24,9 +24,10 @@ from ghidra.base.project import GhidraProject
 from ghidra.program.model.symbol import SourceType
 from ghidra.program.model.listing import CodeUnit
 
-ROOT = "/data/sunyunbo/www/THTK-Studio-2/research"
-PROJ_DIR = ROOT + "/files/ghidra_projects"
-EXP = json.load(open(ROOT + "/ecl/vendor/th-re-data/data/th16.v1.00a/funcs.json"))
+import os
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJ_DIR = os.path.join(REPO, "local/th16.v1.00a/ghidra_projects")
+EXP = json.load(open(os.path.join(REPO, "local/vendor/th-re-data/data/th16.v1.00a/funcs.json")))
 
 US = SourceType.USER_DEFINED
 

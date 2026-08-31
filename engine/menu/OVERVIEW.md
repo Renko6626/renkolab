@@ -22,5 +22,7 @@
 
 ## 备注
 
+尚未做完的部分见 [th16/PLAN.md](th16/PLAN.md)。
+
 [th16/04](th16/04-pr-to-th-re-data.md) 是给 ExpHP `th-re-data` 提 PR 的材料（16 个新函数 + 2 张静态表），
 不是引擎结论——回流社区的记录放在这里以免丢失。

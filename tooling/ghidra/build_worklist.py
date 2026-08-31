@@ -4,9 +4,9 @@
 # 纯标准库,直接 python3 funcs/build_worklist.py。
 import json, re, bisect, os
 
-ROOT = "/data/sunyunbo/www/THTK-Studio-2/research"
-OURS = json.load(open(os.path.join(ROOT, "funcs/th16-funcs.json")))
-EXP  = json.load(open(os.path.join(ROOT, "ecl/vendor/th-re-data/data/th16.v1.00a/funcs.json")))
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+OURS = json.load(open(os.path.join(REPO, "local/th16.v1.00a/th16-funcs.json")))
+EXP  = json.load(open(os.path.join(REPO, "local/vendor/th-re-data/data/th16.v1.00a/funcs.json")))
 
 def norm(a): return a.lower().replace("0x", "").lstrip("0").rjust(1, "0")
 ex_by = {norm(x["addr"]): x["name"] for x in EXP}
@@ -96,6 +96,6 @@ for f in unexplored:
 for h, (n, sz) in sorted(agg.items(), key=lambda kv: kv[1][1], reverse=True)[:25]:
     W("| %s | %d | %d |" % (h, n, sz))
 
-open(os.path.join(ROOT, "funcs/unexplored.md"), "w").write("\n".join(lines) + "\n")
+open(os.path.join(REPO, "games/th16.v1.00a/unexplored.md"), "w").write("\n".join(lines) + "\n")
 print("named=%d importable=%d unexplored=%d crt=%d -> funcs/unexplored.md" %
       (len(ours_named), len(importable), len(unexplored), len(crt)))

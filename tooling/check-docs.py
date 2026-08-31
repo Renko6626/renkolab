@@ -25,6 +25,8 @@ AT_ADDR = re.compile(r"@[ \t]*[`*]*" + ADDR)
 TICKED_ADDR = re.compile(r"`(?:(th\d+):)?(" + ADDR + r")`")
 
 VERSION_BANNER = re.compile(r"^>\s*\*\*版本\*\*[:：]\s*(TH\d+|跨版本)", re.M)
+# 这三份讲的是「怎么写」，里面的地址是记法示例而非结论，不要求版本声明。
+NOTATION_DOCS = {"README.md", "CLAUDE.md", "DOCSTYLE.md"}
 
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 LINK_SKIP = re.compile(r"^(https?:|mailto:|#|<)")
@@ -86,6 +88,8 @@ def check_version(files):
     """引用了真实地址的文档必须声明默认版本；跨版本文档的地址必须带版本前缀。"""
     bad = []
     for f in files:
+        if str(f.relative_to(REPO)) in NOTATION_DOCS:
+            continue
         text = f.read_text(encoding="utf-8", errors="replace")
         addrs = [(ln, m) for ln, _, raw in prose_lines(text)
                  for m in TICKED_ADDR.finditer(raw)

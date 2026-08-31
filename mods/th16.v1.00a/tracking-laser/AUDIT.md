@@ -15,7 +15,7 @@
   对非 0 返回直接跳到循环推进、不再碰该槽 → 无 UAF)、栈帧布局、`__fastcall` 普通 `ret`。
 
 ### Agent B — 伤害管线 / 集成审计 → 核心成立,1 个待验已解
-- 管线 Claim 1–5 **全部一手 CONFIRMED**,并**补实了 findings/08 §5 的 🟡**:
+- 管线 Claim 1–5 **全部一手 CONFIRMED**,并**补实了 engine/sht/th16/08 §5 的 🟡**:
   `EnemyData__step_logic @0x41c71c` 确实拿 `enm_compute` 返回值调 `receive_damage` 扣血。
 - idx4 重指**全部细节坐实**:`sht_func_tick_table @0x4919a0`,idx4 = `0x4919b0` → `0x4470f0`;
   原字节 `f0 70 44 00`(`expected` 正确);解析器 `0x443790` **无边界检查**;派发经 shooter+0x2c。

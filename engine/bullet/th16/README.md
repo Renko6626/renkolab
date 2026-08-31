@@ -1,4 +1,4 @@
-# research/bullets/ — TH16 弹幕(敌弹)引擎逆向(新会话入口)
+# engine/bullet/th16 — TH16 弹幕(敌弹)引擎逆向(新会话入口)
 > **版本**：TH16 v1.00a（`th16.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th18:0x…`。
 >
 

@@ -16,7 +16,10 @@ from ghidra.program.model.data import PointerDataType
 from ghidra.program.model.symbol import SourceType
 from ghidra.app.util.cparser.C import CParser
 
-PROJ_DIR = "/data/sunyunbo/www/THTK-Studio-2/research/files/ghidra_projects"
+import os
+PROJ_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
+    "local/th16.v1.00a/ghidra_projects")
 PROJ_NAME = "th16.exe"
 US = SourceType.USER_DEFINED
 

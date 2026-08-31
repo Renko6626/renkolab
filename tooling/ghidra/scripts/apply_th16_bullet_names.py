@@ -1,12 +1,12 @@
 # 把 TH16 敌弹(弹幕)引擎逆向结论(函数名 + 数据符号名 + 证据注释)应用到 th16.exe 的 Ghidra 工程。
-# source of truth = research/bullets/01-core-engine.md(过程报告)。与 apply_th16_sht_names.py /
+# source of truth = engine/bullet/th16/01-core-engine.md(过程报告)。与 apply_th16_sht_names.py /
 # apply_th16_math_names.py 分开:本脚本是敌弹/弹幕子系统。
 #
 # 本轮(2026-06-09)结论由 主控 inline 钉锚点 → Workflow 扇出(15 agent)→ 主控【逐函数一手复核】产出。
 # 复核中实打实纠出一处错误:bullet_beh_add_displacement(0x4161f0)完成时清的是 c68 的 0x1|0x8 位
 # (mask 0xfffffff6),不是它自己的 0x80000(auto-analysis/agent 误判已在注释里修正)。
 # 函数名已经 MCP rename+save 落盘;本脚本是【可复现固化】+ 唯一能给数据符号(DAT_*)真改名的途径。
-# ★ 整张 VM/handler 表已与 thcrap 社区 etEx 表(research/ecl/ECL-info.md)交叉验证:obj+0xc68 == etEx
+# ★ 整张 VM/handler 表已与 thcrap 社区 etEx 表(engine/ecl/th16/ECL-info.md)交叉验证:obj+0xc68 == etEx
 # 效果位场,opcode 整数 == EX_ 旧位值,~28/28 语义吻合(连 unused 空位都对齐)。独立外部佐证 = 最强一档。
 #
 # 用法(二选一):
@@ -128,7 +128,7 @@ FUNCS = [
     (0x414DA0, "bullet_spawn_wrapper",
      "[TH16] builds a fire descriptor on stack and calls bullet_pool_spawn. Called by bullet_vm_exec "
      "(opcode 0x2000 child split) and by external fire sites FUN_0041dcb0/FUN_00431fe0/FUN_00438cb0 "
-     "(ECL handoff candidates -> research/ecl/). ✅ (call graph)."),
+     "(ECL handoff candidates -> engine/ecl/th16/). ✅ (call graph)."),
 
     # ---- 子机制(graze / bounce / setsprite-interrupt / size-interp)----
     (0x444CF0, "player_graze",
@@ -145,7 +145,7 @@ FUNCS = [
      "[TH16] EX_SIZE per-frame size interpolator (state block +0x13ec); mode 0x7/0x11 linear, 0x8 bezier; "
      "output -> +0x141c (size scalar). ✅"),
 
-    # ---- 激光子系统(详见 research/bullets/03-lasers.md;EX_LASER = opcode 0x8000000)----
+    # ---- 激光子系统(详见 engine/bullet/th16/03-lasers.md;EX_LASER = opcode 0x8000000)----
     (0x443AF0, "player_collide_laser_obb",
      "[TH16] LASER vs player = ROTATED OBB. Rotates (player+0x610/614 - laser_origin) into laser-local frame "
      "(crt_sinf/crt_cosf of -angle), tests box [0,half_len]x[-width,+width] inflated by player hitbox "

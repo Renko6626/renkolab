@@ -93,7 +93,7 @@
   `vendor/shmupcc-sht/src/shmupcc.ts` 一手核对:确实是大端 + FLOAT64**(`Endianess.BIG_ENDIAN`,
   header 的 hitbox/grazebox/itembox 全 `DataType.FLOAT64`)。它是一个**归一化/独立格式**(很可能
   对应 "Shmup Creator" 引擎或统一中间表示),`versions.ts` 目前只注册了 `"shmupcc"` 这一个,**不含
-  真实东方逐版本 reader**。详见 `docs/sht-webedit-and-shmupcc-analysis.md` §4。
+  真实东方逐版本 reader**。详见 `engine/sht/tools-analysis.md` §4。
 
 ## 7. 关键结论 → 落到 IDE 设计
 
