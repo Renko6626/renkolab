@@ -63,6 +63,24 @@ def load_types(data_dir):
     return structs, j("type-aliases.json"), j("type-enums.json"), j("type-unions.json")
 
 
+def load_bitfields(data_dir):
+    """type-bitfields.json: {名字: [[起始位, "u<宽>"|null, 字段名], ...]}，末项 name='__end'。
+
+    th18 是目前唯一带这个文件的版本（th16/th17 都是空的），内容是 ANM VM 的标志位布局。
+    """
+    p = os.path.join(data_dir, "type-bitfields.json")
+    return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else {}
+
+
+def struct_comments(rows):
+    """回收 ExpHP 拿零长度字段当注释写的那些槽（`struct zCOMMENT[0x0]`）。
+
+    他在 README 里明说是为了「让注释在浏览代码时糊在脸上」。这些字段 size==0，
+    会被 struct_members 跳过——布局因此是对的，但那句话就丢了。捡回来当结构体描述。
+    """
+    return [m for (_o, m, t) in rows if t == "struct zCOMMENT[0x0]" and m]
+
+
 class Resolver:
     """Map a th-re-data type string to a C spelling + byte size, given a set of known type sizes."""
 
@@ -241,9 +259,12 @@ def apply_ghidra(prog, data_dir, dry=False, overwrite=False, apply_statics=False
         DoubleDataType, VoidDataType)
     dtm = prog.getDataTypeManager()
     structs, aliases, enums, unions = load_types(data_dir)
+    bitfields = load_bitfields(data_dir)
     if game_only:
         structs = {nm: r for nm, r in structs.items() if nm.startswith("z")}
-        enums = {}
+        # 只扔 PE/Win32 那些常量表；zMainMenuId / zMenuInput 是货真价实的游戏枚举，要留。
+        # （旧代码这里是 enums = {}，把两个游戏枚举一起扔了。）
+        enums = {nm: v for nm, v in enums.items() if nm.startswith("z")}
     order, sizes, res = build(structs, aliases, enums, unions)
     cat, REPL = CategoryPath("/"), DataTypeConflictHandler.REPLACE_HANDLER
     PRIMDT = {"char": CharDataType.dataType, "unsigned char": UnsignedCharDataType.dataType,
@@ -278,7 +299,7 @@ def apply_ghidra(prog, data_dir, dry=False, overwrite=False, apply_statics=False
             return to_dt(aliases[ty]["def"])
         return cache.get(_san(ty))
 
-    n = dict(types=0, skipped=0, failed=0, statics=0)
+    n = dict(types=0, skipped=0, failed=0, enums=0, bitfields=0, statics=0)
     for name in order:
         try:
             s = StructureDataType(cat, _san(name), 0, dtm)
@@ -287,12 +308,76 @@ def apply_ghidra(prog, data_dir, dry=False, overwrite=False, apply_statics=False
                 if dt is None or dt.getLength() != size:
                     dt = ArrayDataType(CHAR, size, 1)
                 s.add(dt, size, fname, (ty or "")[:60])
-            if not dry:
-                cache[_san(name)] = dtm.addDataType(s, REPL)
+            notes = struct_comments(structs[name])
+            if notes:
+                s.setDescription("[th-re-data] " + "; ".join(notes))
+            # dry 时也进 cache：否则 to_dt 全返回 None，statics 的计数会假报 0
+            cache[_san(name)] = dtm.addDataType(s, REPL) if not dry else s
             n["types"] += 1
         except Exception as e:
             n["failed"] += 1
     n["zEnemyData_present"] = 1 if dtm.getDataType(CategoryPath("/"), "zEnemyData") is not None else 0
+
+    # ── 枚举 ──────────────────────────────────────────────────────────
+    from ghidra.program.model.data import EnumDataType
+    for ename, members in enums.items():
+        try:
+            e = EnumDataType(cat, _san(ename), 4, dtm)
+            for mn, val in members:
+                e.add(_san(mn), int(val))
+            if not dry:
+                dtm.addDataType(e, REPL)
+            n["enums"] += 1
+        except Exception:
+            n["failed"] += 1
+
+    # ── 位域 ──────────────────────────────────────────────────────────
+    # 建成一个定宽结构体，位域挂在里面。**只建类型，不往任何字段上绑**——
+    # zAnmBitfieldsLo 与 zAnmVmPrefix.flags_lo 的对应关系是按名字推的（ExpHP 没有任何
+    # 字段声明用这两个类型），要在 AnmVm__run 上读位运算验过才算数。验过之后那条绑定
+    # 属于「我们那层」，进 games/<版本>/symbols.json。
+    for bname, rows in bitfields.items():
+        try:
+            end = next((int(b) for (b, _t, nm) in rows if nm == "__end"), 32)
+            width = max(1, (end + 7) // 8)
+            s = StructureDataType(cat, _san(bname), width, dtm)
+            for (bit, ty, nm) in rows:
+                if ty is None or nm == "__end":
+                    continue                      # __unknown 空洞 / 结尾标记
+                s.insertBitFieldAt(0, width, int(bit), UnsignedIntegerDataType.dataType,
+                                   int(str(ty).lstrip("u")), _san(nm), None)
+            if not dry:
+                dtm.addDataType(s, REPL)
+            n["bitfields"] += 1
+        except Exception:
+            n["failed"] += 1
+
+    def to_dt_deep(ty):
+        """给 statics 用的类型解析：指针**保留指向类型**。
+
+        to_dt 把所有指针压成 void*，那是建结构体时的有意为之（免得 `struct A*` 在 A 之前
+        出现就造出拓扑环）。但套到全局上就把最值钱的信息扔了——`PLAYER_PTR` 标成
+        `zPlayer*` 而不是 `void*`，反编译才会给出 `PLAYER_PTR->field`，
+        否则永远是 `*(float *)((int)PLAYER_PTR + 0x624)`。全局没有排序问题，可以深解。
+        """
+        if not ty:
+            return None
+        t = ty.strip()
+        depth = 0
+        while t.endswith("*"):
+            t, depth = t[:-1].strip(), depth + 1
+        if not depth:
+            return to_dt(ty)
+        for kw in ("struct ", "union ", "enum "):
+            if t.startswith(kw):
+                t = t[len(kw):].strip()
+        base = cache.get(_san(t))
+        if base is None:
+            return to_dt(ty)                  # 认不出指向谁，退回 void*
+        dt = base
+        for _ in range(depth):
+            dt = PointerDataType(dt, 4)
+        return dt
 
     if apply_statics:
         from ghidra.program.model.data import DataUtilities
@@ -303,18 +388,25 @@ def apply_ghidra(prog, data_dir, dry=False, overwrite=False, apply_statics=False
             ty = r.get("type")
             if not ty:
                 continue
-            dt = to_dt(ty)              # resolves pointers/structs via the cache built above
+            dt = to_dt_deep(ty)         # 指针保留指向类型（见 to_dt_deep 的说明）
             a = af(int(r["addr"], 16))
             existing = lst.getDataAt(a)
             if dt is None or (existing is not None and existing.isDefined() and not overwrite):
                 continue
+            # ⚠️ 这里曾是个哑巴 bug：不论 overwrite 与否都用 CLEAR_ALL_UNDEFINED_CONFLICT_DATA，
+            # 而它清不掉**已定义**的数据 —— 于是 --overwrite 对「自动分析已经猜了个类型」的地址
+            # 完全无效，异常还被 except: pass 吞掉。th18 的 58 个 VTABLE_CARD_* 就这样一直卡在
+            # 自动分析猜的 pointer[21] 上，套不成 zVTableCard。
+            mode = (ClearDataMode.CLEAR_ALL_CONFLICT_DATA if overwrite
+                    else ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA)
             if not dry:
                 try:
-                    DataUtilities.createData(prog, a, dt, -1,
-                                             ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA)
+                    DataUtilities.createData(prog, a, dt, -1, mode)
                     n["statics"] += 1
                 except Exception:
-                    pass
+                    n["failed"] += 1          # 别再静默吞掉
+            else:
+                n["statics"] += 1
     return n
 
 
@@ -339,28 +431,18 @@ if __name__ == "__main__":
                           "--apply-statics" in args, game_only="--all-types" not in args)
         print("[th-re-data types] " + " ".join(f"{k}={v}" for k, v in nn.items()))
     else:                                             # mode B: standalone PyGhidra driver
-        import argparse, pyghidra
+        import argparse
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from _driver import add_project_args, open_program
         ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-        ap.add_argument("data_dir"); ap.add_argument("--project-dir", required=True)
-        ap.add_argument("--project", required=True); ap.add_argument("--program", required=True)
-        ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--overwrite", action="store_true")
+        ap.add_argument("data_dir")
+        add_project_args(ap)
+        ap.add_argument("--overwrite", action="store_true")
         ap.add_argument("--apply-statics", action="store_true")
         ap.add_argument("--all-types", action="store_true", help="also import non-z Windows/d3d types")
         a = ap.parse_args()
-        pyghidra.start()
-        from ghidra.base.project import GhidraProject
-        folder, _, name = a.program.rpartition("/")
-        proj = GhidraProject.openProject(os.path.abspath(a.project_dir), a.project, False)
-        prog = proj.openProgram(folder or "/", name, False)
-        try:
-            tx = prog.startTransaction("import th-re-data types")
-            try:
-                nn = apply_ghidra(prog, a.data_dir, a.dry_run, a.overwrite, a.apply_statics,
-                                  game_only=not a.all_types)
-            finally:
-                prog.endTransaction(tx, not a.dry_run)
-            if not a.dry_run:
-                proj.save(prog)
-        finally:
-            proj.close()
+        with open_program(a.project_dir, a.project, a.program,
+                          tx="import th-re-data types", commit=not a.dry_run) as prog:
+            nn = apply_ghidra(prog, a.data_dir, a.dry_run, a.overwrite, a.apply_statics,
+                              game_only=not a.all_types)
         print("[th-re-data types] " + " ".join(f"{k}={v}" for k, v in nn.items()))

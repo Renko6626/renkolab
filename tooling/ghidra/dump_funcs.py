@@ -14,7 +14,10 @@
 ⚠️ 运行前先让 MCP `close_database` 释放工程锁，否则会撞锁。
 ⚠️ 工程目录必须是绝对路径。
 """
-import argparse, json, os
+import argparse, json, os, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _driver import open_program
 
 ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
 ap.add_argument("--project-dir", required=True, help="工程目录（绝对路径）")
@@ -23,14 +26,8 @@ ap.add_argument("--program", required=True, help="工程内程序路径，如 /t
 ap.add_argument("--out", required=True, help="输出 JSON 路径")
 a = ap.parse_args()
 
-import pyghidra
-pyghidra.start()
-from ghidra.base.project import GhidraProject
-
-folder, _, name = a.program.rpartition("/")
-proj = GhidraProject.openProject(os.path.abspath(a.project_dir), a.project, False)
-prog = proj.openProgram(folder or "/", name, False)
-try:
+# 只读打开：dump 不改库，也就不该有落盘这一步
+with open_program(a.project_dir, a.project, a.program) as prog:
     out = []
     for f in prog.getFunctionManager().getFunctions(True):
         sym = f.getSymbol()
@@ -45,5 +42,3 @@ try:
     os.makedirs(os.path.dirname(os.path.abspath(a.out)) or ".", exist_ok=True)
     json.dump(out, open(a.out, "w"), indent=0)
     print("[dump_funcs] wrote %d functions -> %s" % (len(out), a.out))
-finally:
-    proj.close()

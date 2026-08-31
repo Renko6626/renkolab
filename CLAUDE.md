@@ -34,7 +34,11 @@
      [`tooling/ghidra/mcp-tools.md`](tooling/ghidra/mcp-tools.md)。
      **fork 不在本仓维护**——它是 `jtsylve/ida-mcp` 的 fork，有自己的仓库和 upstream，随用随取。
   2. **脚本**：`tooling/ghidra/run.sh <exe> <script.py>`（封装好 env 的 pyghidra）。
-- **新作一键起库**：`tooling/ghidra/bootstrap.py`（建库 → 分析 → 套 ExpHP 名 → 套结构体 → dump → 落盘）。
+- **新作一键起库**：`tooling/ghidra/bootstrap.py`（建库 → 分析 → 补建漏掉的函数 → 套 ExpHP
+  名/结构体/labels → 回放我们那层 → dump → 落盘）。幂等，随时可重跑。
+- ⚠️ **Ghidra 里的成果不导出就等于没有**。工程在 `local/`（gitignored），
+  干完活跑 `tooling/ghidra/symbols.py export <版本>` 存进 `games/<版本>/symbols.json`；
+  `symbols.py status <版本>` 随时对账。详见 [`tooling/ghidra/README.md`](tooling/ghidra/README.md) 的「两层符号」。
 - ⚠️ **坑**：Ghidra 12 移除了 Jython，`.py` 必须走 **PyGhidra（CPython 3）**，
   不能 `analyzeHeadless -postScript foo.py`；analyzeHeadless 的工程目录**必须绝对路径**。
 

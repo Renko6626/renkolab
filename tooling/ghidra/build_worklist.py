@@ -1,12 +1,28 @@
 #!/usr/bin/env python3
-# 交叉对比 funcs/th16-funcs.json(本工程当前命名快照,dump_funcs.py 产出)与 ExpHP th-re-data funcs.json,
-# 把 1764 个函数分类,产出 funcs/unexplored.md —— 给新会话的"待挖函数地图"。
-# 纯标准库,直接 python3 funcs/build_worklist.py。
-import json, re, bisect, os
+"""交叉对比本工程当前命名快照（dump_funcs.py 产出）与 ExpHP th-re-data funcs.json，
+把函数分成四类，产出 `games/<版本>/unexplored.md` —— 给新会话的「待挖函数地图」。
 
-REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OURS = json.load(open(os.path.join(REPO, "local/th16.v1.00a/th16-funcs.json")))
-EXP  = json.load(open(os.path.join(REPO, "local/vendor/th-re-data/data/th16.v1.00a/funcs.json")))
+    python tooling/ghidra/build_worklist.py th18
+
+纯标准库 + `_driver.resolve` 的路径推导；跑之前先 bootstrap（要有 `<ver>-funcs.json`）。
+"""
+import argparse, json, re, bisect, os, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _driver import REPO, resolve
+
+_ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+_ap.add_argument("version", nargs="?", default="th16", help="版本号，如 th16 / th18")
+_A = _ap.parse_args()
+P = resolve(_A.version)
+VER = P["vdir"].name
+if not P["out_funcs"].exists():
+    sys.exit(f"[worklist] 缺 {P['out_funcs'].relative_to(REPO)} —— 先跑 bootstrap.py {_A.version}")
+if not P["data_dir"]:
+    sys.exit(f"[worklist] 缺 th-re-data/{VER} —— 见 local/README.md")
+
+OURS = json.load(open(P["out_funcs"]))
+EXP  = json.load(open(P["data_dir"] / "funcs.json"))
 
 def norm(a): return a.lower().replace("0x", "").lstrip("0").rjust(1, "0")
 ex_by = {norm(x["addr"]): x["name"] for x in EXP}
@@ -53,10 +69,12 @@ imp_by_sub = Counter(subsystem(f["exphp"]) for f in importable)
 
 lines = []
 W = lines.append
-W("# TH16 未挖函数地图(给新会话的任务指导)")
+W("# %s 未挖函数地图(给新会话的任务指导)" % VER)
 W("")
-W("> 自动生成:`funcs/build_worklist.py`(交叉 `funcs/th16-funcs.json` 当前工程快照 × ExpHP th-re-data)。")
-W("> 重生成:见 `funcs/README.md`。本表 = TH16 v1.00a。")
+W("> **版本**：%s（`%s`，imagebase `0x400000`）。本文裸地址默认属该版本；"
+  "引用其他版本须写成 `th16:0x…`。" % (VER.upper().replace(".V", " v"), P["exe"].name))
+W("> 自动生成:`tooling/ghidra/build_worklist.py %s`(交叉当前工程快照 × ExpHP th-re-data)。" % _A.version)
+W("> 重生成:`python tooling/ghidra/build_worklist.py %s`。本表 = %s。" % (_A.version, VER))
 W("")
 W("## 总览")
 W("| 类别 | 数量 | 含义 |")
@@ -82,9 +100,10 @@ W("")
 W("| addr | size | xrefs | 子系统线索(nearest named) |")
 W("| --- | --- | --- | --- |")
 for f in unexplored[:60]:
-    W("| %s | %d | %d | %s |" % (f["addr"], f["size"], f["xrefs"], f.get("hint", "?")))
+    W("| `%s` | %d | %d | %s |" % (f["addr"], f["size"], f["xrefs"], f.get("hint", "?")))
 W("")
-W("(共 %d 个真·待挖;上表为最大的 60 个。全量在 `funcs/th16-funcs.json` 自行筛 name 以 FUN_ 开头者。)" % len(unexplored))
+W("(共 %d 个真·待挖;上表为最大的 60 个。全量在 `local/%s/%s-funcs.json` 自行筛 name 以 FUN_ 开头者。)"
+  % (len(unexplored), VER, _A.version))
 W("")
 # 按子系统线索聚合待挖函数(帮你"挑一个子系统整片挖")
 W("## 🔬 待挖函数按子系统线索聚合(挑一片整体挖)")
@@ -96,6 +115,8 @@ for f in unexplored:
 for h, (n, sz) in sorted(agg.items(), key=lambda kv: kv[1][1], reverse=True)[:25]:
     W("| %s | %d | %d |" % (h, n, sz))
 
-open(os.path.join(REPO, "games/th16.v1.00a/unexplored.md"), "w").write("\n".join(lines) + "\n")
-print("named=%d importable=%d unexplored=%d crt=%d -> funcs/unexplored.md" %
-      (len(ours_named), len(importable), len(unexplored), len(crt)))
+out = REPO / "games" / VER / "unexplored.md"
+out.parent.mkdir(parents=True, exist_ok=True)
+out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+print("named=%d importable=%d unexplored=%d crt=%d -> %s" %
+      (len(ours_named), len(importable), len(unexplored), len(crt), out.relative_to(REPO)))

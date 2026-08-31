@@ -85,26 +85,18 @@ if __name__ == "__main__":
             or askDirectory("th-re-data dir", "Select").getPath()   # noqa: F821
         _summary(apply(cp, dd, dry, ov, incl), dry, ov)
     else:                                         # mode B: standalone PyGhidra driver
-        import argparse, pyghidra
+        import argparse, sys
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from _driver import add_project_args, open_program
         ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-        ap.add_argument("data_dir"); ap.add_argument("--project-dir", required=True)
-        ap.add_argument("--project", required=True); ap.add_argument("--program", required=True)
-        ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--overwrite", action="store_true")
+        ap.add_argument("data_dir")
+        add_project_args(ap)
+        ap.add_argument("--overwrite", action="store_true")
         ap.add_argument("--include-placeholders", action="store_true")
         a = ap.parse_args()
-        pyghidra.start()
-        from ghidra.base.project import GhidraProject
-        folder, _, name = a.program.rpartition("/")
-        proj = GhidraProject.openProject(os.path.abspath(a.project_dir), a.project, False)
-        prog = proj.openProgram(folder or "/", name, False)
-        try:
-            tx = prog.startTransaction("import th-re-data")
-            try:
-                n = apply(prog, a.data_dir, a.dry_run, a.overwrite, a.include_placeholders)
-            finally:
-                prog.endTransaction(tx, not a.dry_run)
-            if not a.dry_run:
-                proj.save(prog)                  # required for data-symbol changes to persist
-        finally:
-            proj.close()
+        # open_program 负责撞锁提示 / 出错回滚 / 落盘后验证 isChanged
+        # （数据符号的改动必须经 proj.save() 才持久，这点由它统一保证）
+        with open_program(a.project_dir, a.project, a.program,
+                          tx="import th-re-data", commit=not a.dry_run) as prog:
+            n = apply(prog, a.data_dir, a.dry_run, a.overwrite, a.include_placeholders)
         _summary(n, a.dry_run, a.overwrite)
