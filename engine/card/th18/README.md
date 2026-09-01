@@ -19,8 +19,8 @@
 | 07 | [`07-registry.md`](07-registry.md) | `zTableCardData[]` 58 项 dump + 字段语义 |
 | 08 | [`08-catalog.md`](08-catalog.md) | 逐卡效果目录（56 张可获得卡）|
 | 09 | [`09-community-crosscheck.md`](09-community-crosscheck.md) | 与 THBWiki 的逐项对账 |
-| 10 | [`10-extensibility-limits.md`](10-extensibility-limits.md) | ★ **新增卡牌的硬边界**：被零售卡集合写死的地方（本篇 12 处 + 11 篇 15 处）|
-| 11 | [`11-sentinels-56-57.md`](11-sentinels-56-57.md) | ★ **两个哨兵 id 56/57 的真身**：查表回退行 / 空槽伪卡 / 卡背，路线 B 判死 |
+| 10 | [`10-extensibility-limits.md`](10-extensibility-limits.md) | ★ **新增卡牌的硬边界**：被零售卡集合写死的地方（本篇 12 处 + 11 篇 21 处）|
+| 11 | [`11-sentinels-56-57.md`](11-sentinels-56-57.md) | ★ **两个哨兵 id 56/57 的真身**：查表回退行 / 存档里的空槽值 / 卡背；含**为什么写死**的全二进制穷举 |
 | — | [`OPEN-questions.md`](OPEN-questions.md) | 开放问题与验法 |
 
 原始素材（社区 wikitext）在 [`_sources/`](_sources/thbwiki-cards.txt)，**不是结论**。
@@ -61,5 +61,7 @@
 - 空白卡（`CardChimata`）效果**一手闭合**：实现在 `AbilityShop` 的 state 3。
 - 金钱系统收支穷举，并发现 **`MONEY` 同时是计分乘数**。
 - 死亡的金钱惩罚 `min(MONEY/3, 100)`、默认决死窗口 8 帧、初始卡槽 1→2→3 的解锁条件。
-- 新增卡牌的**硬边界全表**（27 处）与**两个哨兵 id 56/57 的真身** → [`10`](10-extensibility-limits.md) / [`11`](11-sentinels-56-57.md)。
+- 新增卡牌的**硬边界全表**（33 处）与**两个哨兵 id 56/57 的真身** → [`10`](10-extensibility-limits.md) / [`11`](11-sentinels-56-57.md)。
+- 全二进制线性反汇编穷举（204116 条指令）给出「为什么写死」：`id 56` 既是集合大小、
+  又是**写进存档的空槽字面值**；`TableCardData__get` 被内联 25 次是主要放大器。
 - 注册表两处订正：**表不按 id 排序**；`+0x20`（菜单可见）与 `+0x24`（初期解禁）反出来 → [`07`](07-registry.md)。
