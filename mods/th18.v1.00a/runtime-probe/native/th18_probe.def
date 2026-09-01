@@ -1,0 +1,4 @@
+LIBRARY th18_probe.dll
+EXPORTS
+	thcrap_plugin_init	@1
+	probe_mod_exit		@2
