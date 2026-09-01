@@ -328,6 +328,119 @@ AnmLoaded__set_sprite(..., *(int *)(entry + 0x2c));
 > 而 ExpHP 把该数组标成 `uint8_t[4][0x10]` = 64 字节。读写侧用的 stride 确实是 16
 > （`0x407eda  shl eax, 4`），所以是 3 行还是 4 行没定论。🟡 下一轮的题目。
 
+## 4.6 ★ 这在源码里长什么样 —— 132 处的绝大多数不是作者写的
+
+**结论：ZUN 的源码里几乎不可能有 132 个字面 `56`。**
+二进制里那 132 处，是**编译器把少数几个源码构造摊开**的结果。逐层拆开看：
+
+### 4.6.1 99 处地址立即数 = 一个 37 字节函数被内联了 24 次
+
+`TableCardData__get` `0x407d70` 全文只有 37 字节：
+
+```asm
+0x407d70  xor  edx, edx                 ; i = 0
+0x407d72  mov  eax, 0x4c53c4            ; p = &table[0].id
+0x407d77  cmp  [eax], ecx               ; p->id == id ?
+0x407d79  je   命中
+0x407d7b  add  eax, 0x34
+0x407d7e  inc  edx
+0x407d7f  cmp  eax, 0x4c5f8c            ; p < 表尾
+0x407d84  jl   0x407d77
+0x407d86  mov  eax, 0x4c5f20            ; return &table[NULL]
+0x407d8b  ret
+命中:     imul eax, edx, 0x34           ; ★ 用 i 重算地址,而不是 eax-4
+0x407d8f  add  eax, 0x4c53c0
+0x407d94  ret
+```
+
+**它同时维护指针 `eax` 和下标 `edx`，命中时用 `i` 重算地址**——这说明源码是**下标式**的：
+
+```c
+zTableCardData* TableCardData__get(int id) {
+    for (int i = 0; i < ABILITY_TABLE_LEN; i++)
+        if (ability_table[i].id == id) return &ability_table[i];
+    return &ability_table[ABILITY_NULL];      // ← 源码里就这一处
+}
+```
+
+「查不到返回 NULL 行」在**源码里只出现一次**。二进制里的 25 份拷贝，
+全部来自 MSVC 把这个小函数在每个调用点内联。更进一步的证据是**字段折叠**：
+调用点写的是 `get(id)->weight`，编译器把 `+0x14` 预加进两条臂的常量里，于是产生了
+`0x4c53dc`（命中臂）和 `0x4c5f34`（回退臂）这样的**成对变体**——
+7 个字段变体 × 两条臂，全是同一个源码表达式的不同实例化。
+
+**全二进制只有 30 处「静态表线性扫描」，其中 24 处是这张卡表。**
+（其余：`0x4b35c0` 步长 8 的两处、`0x4b36e4` 一处、`0x4ca214` 步长 `0x14` 一处。）
+所以这不是 ZUN 到处这么写，而是**这一张表被 UI 反复查**，内联把它放大了。
+
+### 4.6.2 `cmp ebx, 0x38` 也不是手写的边界
+
+```asm
+0x411469  cmp  dword ptr [edi+0x28], 0x100
+0x411470  jge  0x412da0
+0x411476  mov  ebx, [ebp+8]
+0x411479  cmp  ebx, 0x38
+0x41147c  ja   0x412da0            ; ← 与上面同一个落点
+0x411482  jmp  dword ptr [0x412dac + ebx*4]
+0x412da0: pop edi; pop esi; or eax, -1; ...; ret 8
+```
+
+`cmp/ja` 是 **MSVC 给 `switch` 生成的跳转表范围检查**，`0x38` 由最大 case 标签
+（`case ABILITY_NULL:`）自动推出。而它和「持有数 ≥ 256」共用一个 `return -1` 出口，
+说明源码里**有** `default: return -1`：
+
+```c
+if (this->num_total_cards >= 256) return -1;
+switch (id) {
+    case ABILITY_BLANK:  ... break;
+    ...
+    case ABILITY_NULL:   card = new zCardBaseClass(); break;
+    default:             return -1;
+}
+```
+
+> **订正** [`10-extensibility-limits.md`](10-extensibility-limits.md) §3 的措辞：
+> 那里说「没有 default 分支」——作为**二进制**陈述成立（没有一个可单独挂钩的 default 标签，
+> 它被编译器和 256 检查合并了），但别据此以为**源码**里也没有。源码里有。
+
+### 4.6.3 那作者到底做了什么决定？
+
+把编译器产物剥掉之后，剩下的**真·作者决定**只有三条，而且前两条都是**好设计**：
+
+| # | 决定 | 证据 | 评价 |
+| --- | --- | --- | --- |
+| 1 | **把 `id` 冻结成序列化值，与表内位置解耦** | 表**不按 id 排序**（§4.1），每行自带 `id` 字段，所以必须线性查 | ✅ 正确。id 进存档和 replay，必须稳定；表要能随便重排、按分类分组 |
+| 2 | **定长数组直接落盘** `unlocked_cards[57]`、`initial_cards[…][16]` | `+0x5f588` / `+0x5f608` 的直接位移访问 | ✅ 同人游戏常规做法，省事且快 |
+| 3 | **把哨兵 `NULL` 放在枚举末尾，并且让它同时是「空槽的值」** | `memset(初始卡组, 56, 48)`；三处 `id == 56` 分支 | ⚠️ **唯一真正制造麻烦的那一条** |
+
+第 3 条在源码里看起来完全无害——写出来大概是：
+
+```c
+enum { ABILITY_BLANK = 0, ..., ABILITY_MAGATAMA2 = 55,
+       ABILITY_NULL = 56, ABILITY_BACK = 57, ABILITY_CNT = 58 };
+
+memset(deck, ABILITY_NULL, sizeof(deck));     // 空槽
+if (entry->id == ABILITY_NULL) { ... }        // 判空
+```
+
+**问题不在于「哨兵」，而在于哨兵的数值紧挨着集合的大小。**
+`ABILITY_NULL = 56` 与「56 张真卡」是同一个数——于是「扩大集合」和「保留哨兵」
+在数值上直接冲突。如果当初写成 `ABILITY_NULL = -1` 或者放在枚举**开头**，
+今天加卡就只是往末尾追加。这是一个**在源码里毫无代价、在二进制里代价极高**的选择。
+
+### 4.6.4 所以根本上是怎么回事
+
+**编译是有损的，而且损失的正是我们需要的那部分。**
+
+源码里加一张卡大概是四处改动（enum 加一项、表加一行、switch 加一个 case、
+`ability.txt` 加一段）。编译之后，同一件事变成 132 处立即数——
+因为编译器把「一个概念」摊成了 N 份拷贝，**并且不留任何回指**。
+没有一处二进制代码说「我这个 `0x4c5f8c` 和那边那个是同一个东西」。
+
+这就是逆向改造的根本不对称：**我们付的不是作者写代码时的价，是编译器展开后的价。**
+也顺带解释了为什么 thcrap 生态里 ExpHP 那些 gameplay patch 全是「改行为」而不是「加内容」
+——改行为只要动一处，加内容要动被摊开的全部。
+
 ## 5. 边界表增补
 
 [`10-extensibility-limits.md`](10-extensibility-limits.md) §2 记了 12 处。本轮又坐实 15 处，
