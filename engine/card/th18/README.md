@@ -19,7 +19,8 @@
 | 07 | [`07-registry.md`](07-registry.md) | `zTableCardData[]` 58 项 dump + 字段语义 |
 | 08 | [`08-catalog.md`](08-catalog.md) | 逐卡效果目录（56 张可获得卡）|
 | 09 | [`09-community-crosscheck.md`](09-community-crosscheck.md) | 与 THBWiki 的逐项对账 |
-| 10 | [`10-extensibility-limits.md`](10-extensibility-limits.md) | ★ **新增卡牌的硬边界**：12 处被零售卡集合写死的地方 |
+| 10 | [`10-extensibility-limits.md`](10-extensibility-limits.md) | ★ **新增卡牌的硬边界**：被零售卡集合写死的地方（本篇 12 处 + 11 篇 15 处）|
+| 11 | [`11-sentinels-56-57.md`](11-sentinels-56-57.md) | ★ **两个哨兵 id 56/57 的真身**：查表回退行 / 空槽伪卡 / 卡背，路线 B 判死 |
 | — | [`OPEN-questions.md`](OPEN-questions.md) | 开放问题与验法 |
 
 原始素材（社区 wikitext）在 [`_sources/`](_sources/thbwiki-cards.txt)，**不是结论**。
@@ -46,7 +47,9 @@
 - 引用 TH16 结论时显式写 `th16:` 前缀，**严禁把 TH16 地址/偏移写成 TH18 事实**。
 - 「超过社区」的宣称要过额外闸门（一手到底 / 对抗证伪 / 量纲常识 / 交叉对名），复核前一律 🟡。
 - 想做运行时改造，先读 [`../../../mods/th18.v1.00a/card-rework/ROADMAP.md`](../../../mods/th18.v1.00a/card-rework/ROADMAP.md)：
-  现有结论足以指导定点实验，但**尚无已实跑的 TH18 注入补丁**。
+  现有结论足以指导定点实验；运行时底座已由
+  [`../../../mods/th18.v1.00a/mouse-control/README.md`](../../../mods/th18.v1.00a/mouse-control/README.md) 实跑验通，
+  但**尚无针对卡牌系统的注入补丁**。
 
 ## 本轮（2026-09-01）新增与订正
 
@@ -58,3 +61,5 @@
 - 空白卡（`CardChimata`）效果**一手闭合**：实现在 `AbilityShop` 的 state 3。
 - 金钱系统收支穷举，并发现 **`MONEY` 同时是计分乘数**。
 - 死亡的金钱惩罚 `min(MONEY/3, 100)`、默认决死窗口 8 帧、初始卡槽 1→2→3 的解锁条件。
+- 新增卡牌的**硬边界全表**（27 处）与**两个哨兵 id 56/57 的真身** → [`10`](10-extensibility-limits.md) / [`11`](11-sentinels-56-57.md)。
+- 注册表两处订正：**表不按 id 排序**；`+0x20`（菜单可见）与 `+0x24`（初期解禁）反出来 → [`07`](07-registry.md)。

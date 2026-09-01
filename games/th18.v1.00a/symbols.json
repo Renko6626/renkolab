@@ -23,6 +23,10 @@
    "addr": "0x00408ba0"
   },
   {
+   "name": "AbilityManager__spawn_card_icon_vm",
+   "addr": "0x004091a0"
+  },
+  {
    "cc": "__thiscall",
    "ret": "zCardBaseClass *",
    "params": [
@@ -4298,6 +4302,10 @@
    "addr": "0x00413170"
   },
   {
+   "name": "AbilityText__parse_ability_txt",
+   "addr": "0x004160b0"
+  },
+  {
    "name": "CardShop__price_for_tier",
    "addr": "0x00416dd0"
   },
@@ -4348,9 +4356,22 @@
   {
    "name": "Player__repopulate_options_and_notify_cards",
    "addr": "0x0045d5e0"
+  },
+  {
+   "name": "ScoreFile__init_unlocked_cards_from_table",
+   "addr": "0x00463670"
+  },
+  {
+   "name": "ScoreFile__load",
+   "addr": "0x004637d0"
   }
  ],
  "statics": [
+  {
+   "addr": "0x004b3600",
+   "name": "CARD_MENU_DISPLAY_ORDER",
+   "type": "undefined4"
+  },
   {
    "addr": "0x004b908c",
    "name": "SUBPIXEL_TO_PIXEL_1_over_128",
@@ -5428,6 +5449,21 @@
    "addr": "0x004ad2e4",
    "kind": "pre",
    "text": "93  CoInitialize  <<not bound>>"
+  },
+  {
+   "addr": "0x004b3600",
+   "kind": "eol",
+   "text": "卡牌菜单显示顺序表: 57 个 dword (id 0..56 的重排), 止于 0x4b36e4"
+  },
+  {
+   "addr": "0x004c5f20",
+   "kind": "eol",
+   "text": "zTableCardData[56] \"NULL\": TableCardData__get 查不到时的回退行,同时是卡组编成里的\"空槽\"伪卡(id==0x38 判定见 0x415070)"
+  },
+  {
+   "addr": "0x004c5f54",
+   "kind": "eol",
+   "text": "zTableCardData[57] \"BACK\": 图鉴里未解锁卡的卡背图(sprite 2/3),仅由 0x414494 / 0x4144d0 按 id==0x39 查到"
   }
  ],
  "structs": {
