@@ -75,8 +75,10 @@ bool __thiscall CardLife__destructor(zCardBaseClass *self)
 | `card` | 57 | `AbilityManager__allocate_new_card` |
 
 两点值得注意：`0x430d30` 我们库里**还没命名**,但它体内有 175 个 ECL opcode case——身份就此确定;
-`card` 那 57 条与 `engine/card/th18/07-registry.md` 的 58 项注册表是两边独立得出的,该做**交叉对名**(对不上就有一边错了),
-**不是**拿它去改既有结论。
+`card` 那 57 条与 `engine/card/th18/07-registry.md` 的 58 项注册表是两边独立得出的——
+**交叉对名已完成**(2026-09-01):57 条标签 = `allocate_new_card` `0x412dac` 那张 57 项跳转表,
+与注册表 58 项减去两个菜单哨兵吻合。见
+[`engine/card/th18/10-extensibility-limits.md`](../../engine/card/th18/10-extensibility-limits.md) §2。
 
 ## 这是什么 / 目标
 

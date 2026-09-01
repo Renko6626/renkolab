@@ -1,5 +1,6 @@
 # TH18 卡牌改造协作指南
 
+> **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
 > 目标：让协作者以**合法自有的 TH18 v1.00a**为样本，通过 thcrap 的运行时加载/内存补丁能力，做可复现、可审计的卡牌系统实验。
 > 本文不是可直接分发的 TH18 DLL 或补丁。仓库不含游戏二进制、Ghidra 项目或可复用的 TH18 注入地址。
 
@@ -7,7 +8,12 @@
 
 卡牌系统的**架构、注册表、主要 vtable 接缝、商店/资源路径和 58 张卡的效果目录**已足以支持“从已有卡切入”的定点研究与设计讨论；它们均限定于 **TH18 v1.00a**，并标注一手/社区证据与未决项。
 
-当前**没有**已在游戏内跑过的 TH18 thcrap patch、codecave 或 DLL，也没有可跨版本使用的地址、字节模式或 hook 模板。这不是把目标收缩为“只改已有卡”的理由；它说明完整卡牌重做必须先建立一个经过实跑验证的 TH18 运行时补丁底座。
+**运行时底座已不再是未知数**（2026-09-01）：[`mods/th18.v1.00a/mouse-control`](../mouse-control/README.md)
+是首个在游戏内实跑通过的 TH18 注入产物（thcrap 断点 + 自建 DLL），它验通了 Linux 交叉编译 →
+Windows 的交付链路、断点 ABI、以及版本守卫。平台侧的通用结论见
+[`mods/thcrap-platform.md`](../../thcrap-platform.md)。
+
+仍**没有**的是针对卡牌系统的注入补丁。完整卡牌重做要在这个底座上逐阶段建。
 
 加载层优先使用 thcrap；“DLL 注入”在这里是 thcrap 所采用的运行时加载机制。除非任务本身研究加载器，协作者无需另写裸 loader。
 
@@ -36,11 +42,23 @@
 
 ## 新增卡前必须补齐的研究
 
-- `AbilityManager__allocate_new_card` 的完整 switch/default：未知 ID 当前如何处理，以及在哪个点接入自定义分配。
-- `TableCardData__get` 和所有商店/菜单遍历的确切表边界：如何让外部表参与查询，而不覆写零售 `.rdata`。
-- 卡牌文本、图标和 HUD 精灵的资源加载链；目前只确认表内 `sprite_large/sprite_small` 字段，尚未形成可替换的资产管线。
-- `SCOREFILE` 解锁位、初始卡组的 16 个 ID 字节、replay 数组以及任何按 `card_id` 索引的数组：逐处确认上限与兼容策略。
-- 装备卡的 shooter 数据来源；若新卡要发射新弹型，`engine/card/th18/OPEN-questions.md` §1 是硬性前置。
+**这一节的前四条已在 2026-09-01 调研完成**，结论见
+[`engine/card/th18/10-extensibility-limits.md`](../../../engine/card/th18/10-extensibility-limits.md)
+（12 处硬边界全表 + 三条路线判据）。要点：
+
+- `allocate_new_card` **没有 default 分支**——`cmp ebx,0x38; ja` 在跳转表之前就把未知 id 挡掉，返回 -1。
+- 表边界是**代码里的绝对地址立即数**（`0x4c5f8c` / `0x4c5f88`），不是读表算的。
+- 卡牌文案来自归档里的 **`ability.txt`**（`0x4160b0` 解析，按内部名查表，每卡 7 行 × `0x40`）——
+  文案侧是 thcrap 的主场，几乎没有障碍。
+- 真正的拦路虎是**按 card_id 索引的数组几乎没有余量**，而其中两个在 `zScoreFile` 里
+  → **动它就动存档格式**（还有一份 backup 副本）。
+
+仍待补：
+
+- 三个卡牌 ANM 的 sprite 索引空间余量（图标资产管线）。
+- id 56/57 两个菜单哨兵能否让出（唯一不动存档格式就能真加卡的路）。
+- 装备卡的 shooter 数据来源；若新卡要发射新弹型，
+  [`engine/card/th18/OPEN-questions.md`](../../../engine/card/th18/OPEN-questions.md) §1 是硬性前置。
 
 原始社区素材在 `engine/card/th18/_sources/`，是素材不是结论，别直接抄。标为 🟡/⏳ 的字段可成为专项研究任务，但不能作为未经验证的新卡框架前提。
 
