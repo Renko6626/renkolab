@@ -1,0 +1,297 @@
+{
+  "_README": [
+    "类型绑定规则 —— 数据在这里，逻辑在 tooling/ghidra/bind_types.py。",
+    "改这个文件而不是改脚本；每条规则都要能被 diff 和 revert。",
+    "tier 1 = 高置信（签名来自 ExpHP vtable 注释，逐字），默认应用。",
+    "tier 2 = 中置信（只绑 this，其余参数保持 Ghidra 推断），--tier 2 才应用。",
+    "ambiguous / skip 里的东西**故意不绑**，理由写在 why 里 —— 那是踩过或看穿的坑。"
+  ],
+  "vtable_rules": [
+    {
+      "tier": 1,
+      "vtable": "zVTableCard",
+      "name_pattern": "^(?P<cls>Card[A-Za-z0-9]*)__(?P<slot>.+)$",
+      "this": "zCardBaseClass *",
+      "why": "zVTableCard 是 ExpHP 唯一给了逐槽 C 签名的 vtable；函数名后缀 == 槽名。this 类型直接取签名首参。",
+      "slot_aliases": {
+        "on_shoot": "on_tick_shooters",
+        "__on_shoot_2": "on_bullet_created",
+        "method_3C": "get_bomb_timer"
+      },
+      "_note_pattern": "类名字符集**不能含下划线**，否则 CardReimu1____on_load__2 会被贪婪吃成槽名 '2'。踩过。",
+      "_note_aliases": "ExpHP 的槽名与它给函数起的名不一致（槽 on_tick_shooters / 函数 __on_shoot 等）。别名按 CardBaseClass__* 的地址序逐个对过 0x413010..0x413170。",
+      "_not_bound": "CardMomoyo__on_bullet_init 疑为槽 0x28，但没逐字核对过 vtable，故意不绑。",
+      "slot_param_overrides": {
+        "_why": "ExpHP 的 vtable 注释有错/有含糊，这里按一手结论逐槽订正。null = 保持 ExpHP 的。",
+        "on_player_death_after_deathbomb": [
+          null,
+          {
+            "name": "death_save_acc",
+            "type": "uint",
+            "why": "ExpHP 标 struct zPlayer*，实为**救命累加器**：Player__on_tick__body case 4 是 acc |= vtable[0x0c](acc)，起始 0；CardEirin 0x40A4F0 判 acc==0 才出手。"
+          }
+        ],
+        "recharge": [
+          null,
+          {
+            "name": "drop_pos",
+            "type": "float *",
+            "why": "ExpHP 标 int32_t __unknown1，实为掉落坐标：Enemy__drop_items_and_notify_cards 0x430510 传的是 spawn 位置。"
+          },
+          {
+            "name": "drop_counts",
+            "type": "int *",
+            "why": "ExpHP 标 int32_t __unknown2，实为敌人逐类道具掉落数表（enemy+0x04 起）：CardYachie 0x40D630 读 drop_counts[1] 即 type2 金钱数。"
+          }
+        ]
+      }
+    }
+  ],
+  "this_rules": [
+    {
+      "tier": 2,
+      "pattern": "^AbilityManager__",
+      "this": "zAbilityManager *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^AbilityMenu__",
+      "this": "zAbilityMenu *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^AnmManager__",
+      "this": "zAnmManager *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^AnmLoaded__",
+      "this": "zAnmLoaded *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^AsciiManager__",
+      "this": "zAsciiManager *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^BulletManager__",
+      "this": "zBulletManager *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^Bullet__",
+      "this": "zBullet *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^CardBaseClass__",
+      "this": "zCardBaseClass *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^EclRunContext__",
+      "this": "zEclRunContext *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^EnemyManager__",
+      "this": "zEnemyManager *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^EnemyData__",
+      "this": "zEnemyData *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^Enemy__",
+      "this": "zEnemy *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^ItemManager__",
+      "this": "zItemManager *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^KeyConfigMenu__",
+      "this": "zKeyConfigMenu *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^LaserManager__",
+      "this": "zLaserManager *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^LaserBaseClass__",
+      "this": "zLaserBaseClass *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^LaserBeam__",
+      "this": "zLaserBeam *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^LaserCurve__",
+      "this": "zLaserCurve *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^LaserInfinite__",
+      "this": "zLaserInfinite *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^LaserLine__",
+      "this": "zLaserLine *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^MainMenu__",
+      "this": "zMainMenu *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^MenuSelect__",
+      "this": "zMenuSelect *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^OptionsMenu__",
+      "this": "zOptionsMenu *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^PopupManager__",
+      "this": "zNotice *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^ReplayManager__",
+      "this": "zReplayManager *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^Stage__",
+      "this": "zStage *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^StageInner__",
+      "this": "zStageInner *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^ScoreFileSuper__",
+      "this": "zScoreFileSuper *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^Supervisor__",
+      "this": "zSupervisor *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^GlobalsInner__",
+      "this": "zGlobalsInner *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^Timer__",
+      "this": "zTimer *"
+    },
+    {
+      "tier": 2,
+      "pattern": "^UpdateFunc__",
+      "this": "zUpdateFunc *"
+    }
+  ],
+  "ambiguous": [
+    {
+      "pattern": "^Player__",
+      "why": "this 有时是 zPlayer* 有时是 zPlayerInner*（inner 在 zPlayer+0x620）。实证：Player__on_tick__body 读 +0x476ac 走 zPlayer；而 Player__repopulate_options_and_notify_cards 的实参是 &PLAYER_PTR->inner。整族一刀切必错，要逐个定。"
+    },
+    {
+      "pattern": "^(Bomb|BombReimu|BombMarisa|BombSakuya|BombSanae)__",
+      "why": "ExpHP 没给 zBomb 结构体（只有 zVTableBomb），没有可绑的 this 类型。别把『没命名』当『不存在』——机制是有的，见 engine/card/th18/06-resource-economy.md §1。"
+    },
+    {
+      "pattern": "^(GameThread|AbilityShop|AbilityText|Gui|GuiMsgVm)__",
+      "why": "ExpHP 无对应结构体（zGui/zGuiMsgVm 有，但这些函数的 this 未核对过是不是它）。要绑先各自反一个函数确认 this。"
+    },
+    {
+      "pattern": "^(TableCardData|CardCollection|CardShop|CardData)__",
+      "why": "这些不是方法，是自由函数（第一个参数是 card_id 或 zTableCardData*，不是 this）。一刀切会把参数语义搞反。"
+    }
+  ],
+  "skip_addrs": [],
+  "overrides": [],
+  "subclass_structs": {
+    "_why": "绑到 zCardBaseClass(0x54) 会让子类字段被渲染成 self[1].card_id —— 那是误导（真身是 card+0x58）。所以给每个 >0x54 的卡类建一个同名带填充的结构体：复制 zCardBaseClass 的字段，尾部留 undefined，于是 card+0x58 显示成 field_0x58。",
+    "_provenance": "大小取自 AbilityManager__allocate_new_card 0x411460 每个 case 的 operator new 实参；类名由该 case 写入的 vtable 的 +0x50 槽（operator_delete）反查。56 个类无一有歧义。",
+    "_maintenance": "改了 zCardBaseClass 的布局要重跑 bind_types.py --apply --force，子类结构体不会自己跟。",
+    "base": "zCardBaseClass",
+    "name_template": "z{cls}",
+    "sizes": {
+      "CardAlice": "0x58",
+      "CardAya": "0x5c",
+      "CardBomb": "0x54",
+      "CardBombFragment": "0x54",
+      "CardByakuren": "0x54",
+      "CardCirno": "0x58",
+      "CardClownpiece": "0xc4",
+      "CardEirin": "0x60",
+      "CardKaguya": "0x54",
+      "CardKanako": "0x54",
+      "CardKeiki": "0xb4",
+      "CardKoishi": "0x58",
+      "CardLife": "0x54",
+      "CardLifeFragment": "0x54",
+      "CardLilyWhite": "0x58",
+      "CardMagatama": "0x54",
+      "CardMamizou": "0x58",
+      "CardMarisa1": "0x58",
+      "CardMarisa2": "0x58",
+      "CardMegumu": "0x54",
+      "CardMike": "0x54",
+      "CardMiko": "0x68",
+      "CardMisumaru": "0x5c",
+      "CardMokou": "0x54",
+      "CardMomoyo": "0x5c",
+      "CardNarumi": "0x54",
+      "CardNazrin": "0x54",
+      "CardNitori": "0x54",
+      "CardNue": "0x58",
+      "CardNull": "0x54",
+      "CardOkina": "0x58",
+      "CardPatchouli": "0x54",
+      "CardRaiko": "0x68",
+      "CardReimu1": "0x58",
+      "CardReimu2": "0x58",
+      "CardRemilia": "0x68",
+      "CardRingo": "0x54",
+      "CardSaki": "0x54",
+      "CardSakuya1": "0x58",
+      "CardSakuya2": "0x58",
+      "CardSanae1": "0x58",
+      "CardSanae2": "0x58",
+      "CardSannyo": "0x54",
+      "CardShikiEiki": "0x64",
+      "CardShinmyoumaru": "0x68",
+      "CardSumireko": "0x68",
+      "CardSuwako": "0x54",
+      "CardTakane": "0x54",
+      "CardTenshi": "0x74",
+      "CardTewi": "0x58",
+      "CardTsukasa": "0x54",
+      "CardUtusho": "0x6c",
+      "CardYachie": "0x54",
+      "CardYoumu": "0x58",
+      "CardYukari": "0x54",
+      "CardYuyuko": "0x54"
+    }
+  }
+}

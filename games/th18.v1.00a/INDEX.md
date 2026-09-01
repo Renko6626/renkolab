@@ -25,29 +25,38 @@
 - ✅ **22 条 Shift-JIS 串已认出并落库**（Ghidra 的字符串分析器认不出日文，原先一条没有）：
   标题、字体名（ＭＳ ゴシック / メイリオ / ＭＳ 明朝）、卡牌与实绩文案模板
   （`を手に入れた！` / `の実績を手に入れた`）、音乐室剧透警告。
-- ✅ **符号往返已跑通**:我们自己那层 200 条存进 [`symbols.json`](symbols.json),
+- ✅ **符号往返已跑通**:我们自己那层 **504** 条存进 [`symbols.json`](symbols.json)(含 268 条函数原型),
   全量重建后 0 漂移。见 [`tooling/ghidra/README.md`](../../tooling/ghidra/README.md) 的「两层符号」。
 - ⏳ **仍未做**:已实跑的 TH18 thcrap/DLL 改造样例；装备卡 shooter 数据存储与少数标 🟡 的字段仍待验证。
-  **结构体尚未绑到全局与函数参数**——这一步才是让反编译变可读的关键,见下节。
+  类型绑定**卡牌那 268 个已做**,`Player__*` / 各 Manager / 全局仍未绑,见下节。
 
-## ★ 让反编译变可读:绑定还没做
+## ★ 让反编译变可读:类型绑定(卡牌那 268 个已绑)
 
-ExpHP 给的是**名字 + 结构体布局**,不给**绑定**。没绑之前:
-
-```c
-void __fastcall AbilityManager__on_tick(void *param_1)
-    iVar3 = AnmManager__get_vm_with_id(ANM_MANAGER_PTR, *(uint *)((int)param_1 + 0x3c));
-```
-
-把 this 参数绑上 `zAbilityManager*` 之后(已在事务里试过,效果确认):
+ExpHP 给的是**名字 + 结构体布局**,不给**绑定**(哪个函数的哪个参数是哪个类型)。没绑之前:
 
 ```c
-void __fastcall AbilityManager__on_tick(zAbilityManager *self)
-    iVar3 = AnmManager__get_vm_with_id(ANM_MANAGER_PTR, (self->__id_3c).id);
+undefined4 __fastcall CardLife__destructor(int param_1)
+    if ((GAME_THREAD_PTR != 0) && ((*(byte *)(param_1 + 0x50) & 2) != 0)) {
 ```
 
-全库目前只有 `ABILITY_MANAGER_PTR` 等少数全局带了 `z*` 类型。**批量绑定是当前投入产出比最高的活**,
-且它的产出属于「我们那层」,干完记得 `symbols.py export th18`。
+绑上之后:
+
+```c
+bool __thiscall CardLife__destructor(zCardBaseClass *self)
+    if ((GAME_THREAD_PTR != 0) && ((self->flags & 2) != 0)) {
+```
+
+**已做**(2026-09-01,[`tooling/ghidra/bind_types.py`](../../tooling/ghidra/bind_types.py)):
+`Card*__<vtable 槽>` **268 个函数**已按 ExpHP 的 `zVTableCard` 逐槽 C 签名绑定,
+并给 31 个大于基类的卡类建了带填充的子类结构体(`zCardTenshi` 等),
+免得子类字段被渲染成 `self[1].card_id` 那种误导。规则是数据:
+[`tooling/ghidra/bindings/th18.v1.00a.json`](../../tooling/ghidra/bindings/th18.v1.00a.json)。
+
+**还没做**:`Player__*`(this 有时是 `zPlayer*` 有时是 `zPlayerInner*`,故意不一刀切)、
+各 Manager(tier 2,`--tier 2` 可开)、以及全局变量的类型绑定。
+
+产出属于「我们那层」,已在 [`symbols.json`](symbols.json)(504 条,其中 268 条带原型)。
+回退靠 [`bindings.json`](bindings.json) + `bind_types.py th18 --revert`。
 
 ## ★ labels:492 条现成的 opcode 表
 

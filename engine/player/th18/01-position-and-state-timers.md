@@ -13,7 +13,7 @@
 反编译里也只会看到 `*(float *)(param_1 + 0x620)`。
 
 （TH16 侧有对应的命名是因为那边我们自己反过并落了字段图，见
-[`th16/05-object-field-maps.md`](th16/05-object-field-maps.md)。）
+[`../th16/05-object-field-maps.md`](../th16/05-object-field-maps.md)。）
 
 ## 1. 布局（一手，按字节闭合）
 
@@ -63,12 +63,17 @@
 | 聚焦位 | `player+0x476cc` | `player+0x476cc = INPUT_HELD >> 3 & 1`（`0x45B3FA`）|
 | 决死窗口帧数 | `player+0x47908` | `zPlayerInner.num_deathbomb_frames`；`Player__die` 置 8 |
 
-## 4. 为什么反编译里还是 `param_1 + 0x620`
+## 4. 为什么 `Player__*` 的反编译里还是 `param_1 + 0x620`
 
-**库里还没做类型绑定**。ExpHP 给的是「名字 + 结构体布局」，不给「哪个函数的哪个参数是哪个类型」。
-在对 `Player__*` 系列 `set_function_type` 之前，Ghidra 只能显示裸偏移。
-批量绑定是当前投入产出比最高的活，见
-[`../../../games/th18.v1.00a/INDEX.md`](../../../games/th18.v1.00a/INDEX.md)。
+因为**它被故意排除在类型绑定之外**。`tooling/ghidra/bind_types.py` 已经把卡牌那 268 个
+函数绑好了 this 类型，但 `Player__*` 在规则文件的 `ambiguous` 里，理由就是本文 §2 的发现：
 
-本文与 `engine/card/th18/` 各篇的伪代码块，一律**保留裸偏移**（写成 `player+0x620`、
-`card->state(+0x54)`），就是为了能直接对回未绑定的反编译输出。
+> **它的 this 有时是 `zPlayer*`，有时是 `zPlayerInner*`**（`inner` 在 `+0x620`）。
+> `Player__on_tick__body` 读 `+0x476ac` 走 `zPlayer`；而
+> `Player__repopulate_options_and_notify_cards` 的实参是 `&PLAYER_PTR->inner`。
+> **整族一刀切必错**，得逐个函数定。
+
+所以要让 `Player__*` 也可读，下一步是**逐函数判定 this 是哪一个**，
+再写进 `tooling/ghidra/bindings/th18.v1.00a.json` 的 `overrides`。
+在那之前，本文与 `engine/card/th18/` 各篇的伪代码块一律**保留裸偏移**
+（写成 `player+0x620`、`card->state(+0x54)`），好直接对回反编译输出。

@@ -38,9 +38,13 @@
 | 0x58 | 装备卡（+0x54 存 option 指针）、部分被动 |
 | 0x5c–0x74 | 主动卡（+0x54 状态机、+0x58 起坐标/计数）|
 | 0xb4 | `CardKeiki`（id 30，4 个 option 槽各一份计时器）|
-| 0xc4 | `CardTenshi`（id 43，要石）|
+| 0xc4 | `CardClownpiece`（id 44，虚月）|
 
 > 逐卡大小与 vtable 地址由脚本从跳转表 `0x412dac`（57 项，id 0–56）回读，**id 57 不可构造**。
+> **56 个卡类的确切大小已落成数据**：`tooling/ghidra/bindings/th18.v1.00a.json` 的
+> `subclass_structs.sizes`（类名由该 case 写入的 vtable 的 `+0x50` 槽反查 `Card<X>__operator_delete`）。
+> 其中 31 个大于基类的，`bind_types.py` 会建同名带填充结构体（`zCardTenshi` 等），
+> 免得绑定后子类字段被渲染成 `self[1].card_id` 那种误导。
 
 ## 2. `zVTableCard`（21 槽 / 0x54 字节）
 

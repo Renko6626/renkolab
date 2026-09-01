@@ -23,12 +23,4279 @@
    "addr": "0x00408ba0"
   },
   {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00409b20"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00409b70"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x00409b80"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00409bc0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00409c10"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x00409c20"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00409c60"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00409cb0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x00409cc0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00409d00"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00409d50"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x00409d60"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00409d90"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00409de0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x00409df0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00409e40"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00409e90"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00409eb0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x00409ec0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00409ef0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00409f40"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00409fa0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x00409fb0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00409fc0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a010"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x0040a020"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040a050"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a0a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x0040a0b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040a120"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a170"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a180"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a1b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040a210"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardEirin *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a260"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardEirin *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a270"
+  },
+  {
    "name": "Card__death_save_bomb_revive",
    "addr": "0x0040a2a0"
   },
   {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardEirin *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "death_save_acc",
+     "type": "uint",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a4f0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardEirin *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a560"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardEirin *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040a6a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardTewi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a6f0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardTewi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a700"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardTewi *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "death_save_acc",
+     "type": "uint",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a720"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardTewi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040a730"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardTewi *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040a740"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardReimu1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040aab0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardReimu1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040aad0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardReimu1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040aae0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardReimu1 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ab00"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardReimu1 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040ab20"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardReimu2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040abc0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardReimu2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040abe0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardReimu2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040abf0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardReimu2 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ac10"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardReimu2 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040ac30"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMarisa1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040acd0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMarisa1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040acf0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMarisa1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ad00"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMarisa1 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ad20"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMarisa1 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040ad40"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMarisa2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ade0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMarisa2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ae00"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMarisa2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ae10"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMarisa2 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ae30"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMarisa2 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040ae50"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSakuya1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040aef0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSakuya1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040af10"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSakuya1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040af20"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSakuya1 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040af60"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSakuya1 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040af90"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSakuya2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b030"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSakuya2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b050"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSakuya2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b060"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSakuya2 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b080"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSakuya2 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040b0a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSanae1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b140"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSanae1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b160"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSanae1 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b170"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSanae1 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b190"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSanae1 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040b1b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSanae2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b250"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSanae2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b270"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSanae2 *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b280"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSanae2 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b2a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSanae2 *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040b2c0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardYoumu *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b360"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardYoumu *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b380"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardYoumu *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b390"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardYoumu *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b3c0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardYoumu *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040b3e0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardAlice *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b480"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardAlice *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b4a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardAlice *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b4b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardAlice *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b4e0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardAlice *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040b630"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardOkina *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b960"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardOkina *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b980"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardOkina *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b990"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardOkina *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040b9b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardOkina *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040ba40"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardCirno *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040bae0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardCirno *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040bb00"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardCirno *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040bb10"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardCirno *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040bb30"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardCirno *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040bb50"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardNue *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040bbf0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardNue *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040bc10"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardNue *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040bc20"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardNue *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040bc50"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardNue *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040bcb0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMisumaru *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040be80"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMisumaru *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040bea0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMisumaru *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040beb0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMisumaru *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040bf30"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMisumaru *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040bfe0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c1b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c1c0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "int",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040c1d0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040c200"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c250"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c260"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "int",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040c270"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040c2a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c2f0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c300"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "a1",
+     "type": "zPlayerBullet *",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c310"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040c3d0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c420"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c430"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "a1",
+     "type": "zPlayerBullet *",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c440"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040c4a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardAya *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c790"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardAya *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c7a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "int",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardAya *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040c7b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardAya *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040c7f0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardAya *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040cb50"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040cba0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040cbb0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "int",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040cbd0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040cbf0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKeiki *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040cc40"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKeiki *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040cc50"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "int",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKeiki *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040cc60"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKeiki *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040cd60"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKeiki *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040cef0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKeiki *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040d270"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d2c0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d2d0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d2e0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040d320"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMamizou *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d370"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMamizou *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d380"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMamizou *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x0040d390"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMamizou *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "death_save_acc",
+     "type": "uint",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d400"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMamizou *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d410"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMamizou *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040d450"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKoishi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d4a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKoishi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d4b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKoishi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d4c0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKoishi *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "death_save_acc",
+     "type": "uint",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d4e0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKoishi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d4f0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardKoishi *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040d530"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d580"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d590"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d5a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040d5c0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d610"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d620"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "drop_pos",
+     "type": "float *",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "drop_counts",
+     "type": "int *",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d630"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040d7b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShikiEiki *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d800"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShikiEiki *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040d810"
+  },
+  {
    "name": "Card__death_save_money_revive",
    "addr": "0x0040d840"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShikiEiki *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "death_save_acc",
+     "type": "uint",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040da10"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShikiEiki *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040da80"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShikiEiki *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040dbc0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardClownpiece *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040dc10"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardClownpiece *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040dc60"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardClownpiece *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040dce0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardClownpiece *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040e040"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardClownpiece *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040e2b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMiko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040e300"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMiko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040e350"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMiko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040e3d0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMiko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040e5c0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMiko *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040e7a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardTenshi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040e7f0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardTenshi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040e840"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardTenshi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040e8c0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardTenshi *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ebf0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardTenshi *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040edb0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShinmyoumaru *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ee00"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShinmyoumaru *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ee50"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShinmyoumaru *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040eed0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShinmyoumaru *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "death_save_acc",
+     "type": "uint",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040f0d0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShinmyoumaru *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040f0f0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardShinmyoumaru *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040f280"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRemilia *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040f2d0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRemilia *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040f320"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRemilia *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040f3a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRemilia *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "death_save_acc",
+     "type": "uint",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040f650"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRemilia *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040f670"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRemilia *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040f800"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardUtusho *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040f850"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardUtusho *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040f8a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardUtusho *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040f920"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardUtusho *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "death_save_acc",
+     "type": "uint",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040fb40"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardUtusho *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040fb60"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardUtusho *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040fd80"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardLilyWhite *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040fdd0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardLilyWhite *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040fde0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardLilyWhite *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040fe20"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardLilyWhite *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040fe70"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardLilyWhite *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "__unknown",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x0040ffa0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "int",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardLilyWhite *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040ffe0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardLilyWhite *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x0040fff0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRaiko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410040"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRaiko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410090"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRaiko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410110"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRaiko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410250"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardRaiko *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x004103e0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSumireko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410430"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSumireko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410480"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSumireko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410500"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSumireko *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410780"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardSumireko *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00410910"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00410960"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x004109b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00410a00"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410a50"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410a60"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410a90"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410bd0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00410d80"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410dd0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410de0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410e10"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410e60"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00410f90"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMomoyo *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410fe0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMomoyo *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00410ff0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMomoyo *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00411000"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMomoyo *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "a1",
+     "type": "zAnmId",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00411090"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMomoyo *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x004110a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMomoyo *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "__unknown",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00411350"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "int",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMomoyo *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00411360"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardMomoyo *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00411370"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x004113c0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00411410"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "zCardBaseClass *",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "should_deallocate",
+     "type": "bool",
+     "storage": "Stack[0x4]:1"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00412ed0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x00413010"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "bool",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "AL:1",
+   "addr": "0x00413020"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00413030"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "death_save_acc",
+     "type": "uint",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00413040"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00413050"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00413060"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00413070"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "short_timer",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "long_timer",
+     "type": "int",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00413080"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "int",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00413090"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x004130a0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "a1",
+     "type": "zPlayerBullet *",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x004130b0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x004130c0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "drop_pos",
+     "type": "float *",
+     "storage": "Stack[0x4]:4"
+    },
+    {
+     "name": "drop_counts",
+     "type": "int *",
+     "storage": "Stack[0x8]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x004130d0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x004130e0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "__unknown",
+     "type": "int",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x004130f0"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "int",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "EAX:4",
+   "addr": "0x00413130"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00413140"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    },
+    {
+     "name": "a1",
+     "type": "zAnmId",
+     "storage": "Stack[0x4]:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00413150"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00413160"
+  },
+  {
+   "cc": "__thiscall",
+   "ret": "void",
+   "params": [
+    {
+     "name": "self",
+     "type": "zCardBaseClass *",
+     "storage": "ECX:4"
+    }
+   ],
+   "custom_storage": true,
+   "ret_storage": "<VOID>",
+   "addr": "0x00413170"
   },
   {
    "name": "CardShop__price_for_tier",
@@ -1163,5 +5430,1596 @@
    "text": "93  CoInitialize  <<not bound>>"
   }
  ],
- "structs": {}
+ "structs": {
+  "zCardAlice": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardAya": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 92
+  },
+  "zCardCirno": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardClownpiece": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 196
+  },
+  "zCardEirin": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 96
+  },
+  "zCardKeiki": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 180
+  },
+  "zCardKoishi": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardLilyWhite": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardMamizou": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardMarisa1": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardMarisa2": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardMiko": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 104
+  },
+  "zCardMisumaru": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 92
+  },
+  "zCardNue": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardOkina": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardRaiko": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 104
+  },
+  "zCardReimu1": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardReimu2": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardRemilia": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 104
+  },
+  "zCardSakuya1": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardSakuya2": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardSanae1": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardSanae2": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardShikiEiki": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 100
+  },
+  "zCardShinmyoumaru": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 104
+  },
+  "zCardSumireko": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 104
+  },
+  "zCardTenshi": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 116
+  },
+  "zCardTewi": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  },
+  "zCardUtusho": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 108
+  },
+  "zCardYoumu": {
+   "0x0": {
+    "name": "vtable",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x1c": {
+    "name": "anm_id_for_ingame_effect",
+    "type": "zAnmId",
+    "size": 4
+   },
+   "0x20": {
+    "name": "recharge_timer",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x34": {
+    "name": "__timer_2__prolly_bomb_time",
+    "type": "zTimer",
+    "size": 20
+   },
+   "0x4": {
+    "name": "card_id",
+    "type": "int",
+    "size": 4
+   },
+   "0x48": {
+    "name": "recharge_time",
+    "type": "int",
+    "size": 4
+   },
+   "0x4c": {
+    "name": "table_entry",
+    "type": "void *32",
+    "size": 4
+   },
+   "0x50": {
+    "name": "flags",
+    "type": "int",
+    "size": 4
+   },
+   "0x8": {
+    "name": "array_index___plus_1_i_think",
+    "type": "int",
+    "size": 4
+   },
+   "0xc": {
+    "name": "list_node",
+    "type": "zCardList",
+    "size": 16
+   },
+   "__size": 88
+  }
+ }
 }

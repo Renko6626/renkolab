@@ -15,6 +15,12 @@ diff，凡逐字相同的一律剔掉——判定规则见 `_is_ours_*`。函数
 一律留下，因为 ExpHP 根本不提供这些（它给名字和结构体布局，不给绑定），而正是绑定决定了
 反编译好不好读。
 
+⚠️ **自定义存储必须连存储一起往返**。`bind_types.py` 绑 `__thiscall` 时把 this 钉在 ECX、
+其余参数排栈（`CUSTOM_STORAGE`）。若只导「名字 + 类型」，`apply` 会按动态存储重建，
+而 `__thiscall` 下 Ghidra 会自己插一个 auto `this`，把 `self` 挤到第一个**栈**参数位上——
+268 个签名一次性静默毁掉。所以 `custom_storage` / `storage` / `ret_storage` 三个字段是必需的。
+**这条是实测踩出来的**，别为了让 json 好看把它们删了。
+
 **已知盲区**：结构体字段的归属靠「字段名或长度与 ExpHP 不同」判定。如果你改了某字段的类型
 但**既没改名、也没改长度**（比如 char[4] → int），导出会漏掉它。养成改类型时顺手改名的习惯
 （本来也该改——你既然搞懂了它是什么，field_40 这名字就该退休了）。
@@ -130,8 +136,17 @@ def collect(prog, base):
         if str(f.getSignatureSource()) == "USER_DEFINED":
             rec["cc"] = f.getCallingConventionName()
             rec["ret"] = f.getReturnType().getName()
-            rec["params"] = [{"name": p.getName(), "type": p.getDataType().getName()}
+            # ⚠️ 自定义存储必须连存储一起导。bind_types.py 把 this 钉在 ECX、其余排栈；
+            # 只导「名字+类型」的话，apply 会按动态存储重建，__thiscall 下 Ghidra 会自己
+            # 插一个 auto `this`，把我们的 self 挤到第一个栈参数位上——268 个签名一次性毁掉。
+            # （实测过，这条注释就是那次的代价。）
+            custom = bool(f.hasCustomVariableStorage())
+            rec["params"] = [dict({"name": p.getName(), "type": p.getDataType().getName()},
+                                  **({"storage": str(p.getVariableStorage())} if custom else {}))
                              for p in f.getParameters()]
+            if custom:
+                rec["custom_storage"] = True
+                rec["ret_storage"] = str(f.getReturn().getVariableStorage())
         if rec:
             rec["addr"] = "0x%08x" % a
             out["funcs"].append(rec)
@@ -200,7 +215,8 @@ def collect(prog, base):
 def apply_layer(prog, data, dry=False):
     from ghidra.program.model.data import DataUtilities, PointerDataType
     from ghidra.program.model.data.DataUtilities import ClearDataMode
-    from ghidra.program.model.listing import CodeUnit, Function, ParameterImpl
+    from ghidra.program.model.listing import (CodeUnit, Function, ParameterImpl,
+                                              ReturnParameterImpl, VariableStorage)
     from ghidra.program.model.symbol import SourceType
     from ghidra.util.data.DataTypeParser import AllowedDataTypes
     from ghidra.util.data import DataTypeParser
@@ -218,6 +234,29 @@ def apply_layer(prog, data, dry=False):
         except Exception:                                            # noqa: BLE001
             return None
 
+    STACK = re.compile(r"^Stack\[(-?0[xX][0-9a-fA-F]+|-?\d+)\]:(\d+)$")
+    REG = re.compile(r"^([A-Za-z][A-Za-z0-9_]*):(\d+)$")
+
+    def storage_of(spec):
+        """把 Ghidra 的 `ECX:4` / `Stack[0x4]:1` 字符串还原成 VariableStorage。"""
+        if not spec or spec in ("<VOID>", "<UNASSIGNED>"):
+            return None
+        m = STACK.match(spec)
+        if m:
+            try:
+                return VariableStorage(prog, int(m.group(1), 0), int(m.group(2)))
+            except Exception:                                        # noqa: BLE001
+                return None
+        m = REG.match(spec)
+        if m:
+            reg = prog.getRegister(m.group(1))
+            if reg is not None:
+                try:
+                    return VariableStorage(prog, reg)
+                except Exception:                                    # noqa: BLE001
+                    return None
+        return None
+
     for r in data.get("funcs", []):
         f = fm.getFunctionAt(af(int(r["addr"], 16)))
         if f is None:
@@ -229,20 +268,37 @@ def apply_layer(prog, data, dry=False):
             n["funcs"] += 1
         if "params" in r:
             ret = dt_of(r.get("ret") or "void")
+            custom = bool(r.get("custom_storage"))
             ps, bad = [], False
             for p in r["params"]:
                 dt = dt_of(p["type"])
                 if dt is None:
                     bad = True
                     break
-                ps.append(ParameterImpl(p["name"], dt, prog))
+                if custom:
+                    vstor = storage_of(p.get("storage"))   # 别叫 st —— 外层 st 是 SymbolTable
+                    if vstor is None:
+                        bad = True
+                        break
+                    ps.append(ParameterImpl(p["name"], dt, vstor, prog))
+                else:
+                    ps.append(ParameterImpl(p["name"], dt, prog))
             if bad or ret is None:
                 n["failed"] += 1
             else:
                 if not dry:
-                    f.updateFunction(r.get("cc"), None,
-                                     Function.FunctionUpdateType.DYNAMIC_STORAGE_FORMAL_PARAMS,
-                                     True, US, ps)
+                    if custom:
+                        rst = storage_of(r.get("ret_storage"))
+                        rv = (ReturnParameterImpl(ret, rst, prog) if rst is not None
+                              else ReturnParameterImpl(ret, prog))
+                        # varargs 重载：传 python list 的那个 List<Variable> 重载匹配不上
+                        f.updateFunction(r.get("cc"), rv,
+                                         Function.FunctionUpdateType.CUSTOM_STORAGE,
+                                         True, US, *ps)
+                    else:
+                        f.updateFunction(r.get("cc"), None,
+                                         Function.FunctionUpdateType.DYNAMIC_STORAGE_FORMAL_PARAMS,
+                                         True, US, ps)
                     f.setReturnType(ret, US)
                 n["protos"] += 1
 

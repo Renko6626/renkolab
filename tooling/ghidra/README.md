@@ -74,6 +74,76 @@ th18 实测：DB 里 3724 个候选筛到 **200 条真·我们的**。
 ⚠️ **导出是手动的**，唯一的安全网是 `bootstrap.py --reanalyze` 前的漂移拦截：
 有没导出的东西就中止。平时自己记得跑 `status`。
 
+## 类型绑定：让反编译从 `param_1 + 0x54` 变成 `self->flags`
+
+ExpHP 给名字和结构体布局，**不给绑定**——哪个函数的哪个参数是哪个类型。没绑之前，
+`zCardBaseClass` 躺在库里没人用，反编译全是裸偏移。[`bind_types.py`](bind_types.py) 补这个洞。
+
+```bash
+tooling/ghidra/bind_types.py th18                # 出计划，不写库
+tooling/ghidra/bind_types.py th18 --sample 6     # 再附 6 个函数绑定前后的反编译对照
+tooling/ghidra/bind_types.py th18 --apply        # 应用 tier 1
+tooling/ghidra/bind_types.py th18 --revert       # 撤销我们下过的蛋
+```
+
+**规则是数据**，在 [`bindings/<版本目录名>.json`](bindings/th18.v1.00a.json)，入库、可 diff、可 review：
+
+| 字段 | 干什么 |
+| --- | --- |
+| `vtable_rules` | tier 1。签名**逐字取自 ExpHP 的 vtable 成员注释**，函数名后缀 == 槽名 |
+| `slot_param_overrides` | 我们的一手结论**压过** ExpHP 的注释（它不是处处可信，见下） |
+| `subclass_structs` | 给比基类大的子类建「基类字段 + 尾部填充」的结构体 |
+| `this_rules` | tier 2。只绑 this，其余参数保持 Ghidra 推断 |
+| `ambiguous` | **故意不绑**的族 + 理由 |
+
+### 覆盖面与局限（th18 实测，2026-09-01）
+
+| | 数量 | 占比 |
+| --- | --- | --- |
+| 已绑函数（tier 1） | **268** | 全库 2333 个函数的 **11.5%** |
+| 涉及类 | 58 个 `Card*` 类（含基类） | — |
+| 覆盖 vtable 槽 | **21 / 21**（每槽都有实例） | — |
+| 新建子类结构体 | **31**（含复用 ExpHP 已有的 `zCardMomoyo`） | — |
+| tier 2 已就绪未开 | 再 318 个 | 开了合计 586 ≈ 25% |
+
+槽分布的大头是样板方法（`operator_delete` 58 / `method_4C` 52 / `__on_load__2` 43），
+真正有肉的只有 `__on_tick_2` 16 / `c_press` 13 / `on_tick_shooters` 12。**别把 268 当成"读懂了 268 个函数"。**
+
+**知道自己没做什么**：
+
+1. **只覆盖卡牌，88.5% 没动**。因为 ExpHP 只给了 `zVTableCard` 一个 vtable 的逐槽签名，
+   另外 4 个（`zVTableBomb`/`Delete`/`Ecl`/`Laser`）注释全是 `void*`，取不到——**这套方法天生只能吃卡牌**。
+2. **`Player__*` 故意不绑**，tier 2 那 318 个也没开：它们的 this 类型是**按函数名前缀猜的**，
+   没有逐槽签名兜底，得每族抽验才敢开。
+3. **子类字段仍是 `self->field_0x58`**：子类结构体只有「基类字段 + 尾部填充」，`0x54` 以上没命名。
+4. **绑定不会让上游的名字变对**：`+0x34` 现在显示成 `__timer_2__prolly_bomb_time`，
+   而一手结论是它才是充能倒计时（`engine/card/th18/01-object-model.md` §3）。**更好读 ≠ 更正确。**
+5. **ExpHP 的签名可能还有错**：21 个槽里只有 5 个的调用点被一手验过参数，抓到 2 处错就是在这 5 个里。
+6. **4 个 `Card*` 函数在计划外**（真·辅助函数 + `CardMomoyo__on_bullet_init` 疑似槽 0x28 但没逐字核对）。
+
+
+### 三件必须知道的事
+
+1. **回退有三层**。①`--revert` 按 [`games/<版本>/bindings.json`](../../games/th18.v1.00a/bindings.json)
+   逐条恢复成 Ghidra 自动推断，**应用之后被人改过的一律跳过并报出来**；
+   ②绑定会被 `symbols.py export` 吸进 `symbols.json` 并入库，`git checkout` 它
+   再 `bootstrap.py --reanalyze` 就是干净重建；③默认**不覆盖既有人工签名**，要压得显式 `--force`。
+   幂等判据是「这次想要的 == 上次想要的」**且**「库里现在的 == 上次写完读回来的」，
+   所以改了规则再跑会真的重绑，没改就是 no-op。
+
+2. **ExpHP 的 vtable 签名会错**。实证两处：`zVTableCard.on_player_death_after_deathbomb`
+   的第二参标成 `struct zPlayer*`，一手是**救命累加器**（`Player__on_tick__body` case 4 是
+   `acc |= vtable[0x0c](acc)`）；`recharge` 槽的两个 `int32_t` 实为
+   `(float *掉落坐标, int *掉落计数表)`。这就是 `slot_param_overrides` 存在的理由——
+   **别把上游数据当 ground truth**。
+
+3. **子类结构体不是可选项**。只绑 `zCardBaseClass *`(0x54) 的话，子类自有字段会被 Ghidra
+   渲染成 `self[1].card_id`——那不是"读着别扭"，那是**错的**（真身是 `card+0x58`，一个浮点坐标）。
+   建了同名带填充结构体之后显示成 `self->field_0x58`，偏移可回推，不骗人。
+   大小取自 `AbilityManager__allocate_new_card` 每个 case 的 `operator new` 实参。
+
+⚠️ 改了 `zCardBaseClass` 的布局要 `--apply --force` 重跑，子类结构体不会自己跟。
+
 ## 看库里有什么：HTML 导出（不抢锁的那个视图）
 
 Ghidra 的工程锁是**工程级独占**的，只读打开程序也得先开工程。所以三条路线互斥：

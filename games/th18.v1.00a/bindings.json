@@ -1,0 +1,7904 @@
+{
+ "_README": "bind_types.py 下过的蛋，逐条记录**写完之后读回来的**签名。`bind_types.py <ver> --revert` 按它回退：签名仍等于这里记的才恢复，被人改过的一律跳过。删掉这个文件 = 放弃细粒度回退（还剩 git + bootstrap --reanalyze）。",
+ "generated_by": "tooling/ghidra/bind_types.py",
+ "rules": "tooling/ghidra/bindings/th18.v1.00a.json",
+ "tier": 1,
+ "count": 268,
+ "entries": [
+  {
+   "addr": "0x00409b20",
+   "name": "CardChimata__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409b70",
+   "name": "CardLife__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409b80",
+   "name": "CardLife__destructor",
+   "rule": "zVTableCard.destructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409bc0",
+   "name": "CardLife__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409c10",
+   "name": "CardBomb__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409c20",
+   "name": "CardBomb__destructor",
+   "rule": "zVTableCard.destructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409c60",
+   "name": "CardBomb__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409cb0",
+   "name": "CardLifeFragment__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409cc0",
+   "name": "CardLifeFragment__constructor",
+   "rule": "zVTableCard.constructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409d00",
+   "name": "CardLifeFragment__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409d50",
+   "name": "CardBombFragment__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409d60",
+   "name": "CardBombFragment__constructor",
+   "rule": "zVTableCard.constructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409d90",
+   "name": "CardBombFragment__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409de0",
+   "name": "CardMokou__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409df0",
+   "name": "CardMokou__destructor",
+   "rule": "zVTableCard.destructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409e40",
+   "name": "CardMokou__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409e90",
+   "name": "CardNarumi____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409eb0",
+   "name": "CardNarumi__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409ec0",
+   "name": "CardNarumi__destructor",
+   "rule": "zVTableCard.destructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409ef0",
+   "name": "CardNarumi__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409f40",
+   "name": "CardPatchouli____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409fa0",
+   "name": "CardPatchouli__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409fb0",
+   "name": "CardPatchouli__constructor",
+   "rule": "zVTableCard.constructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00409fc0",
+   "name": "CardPatchouli__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a010",
+   "name": "CardNazrin__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a020",
+   "name": "CardNazrin__constructor",
+   "rule": "zVTableCard.constructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a050",
+   "name": "CardNazrin__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a0a0",
+   "name": "CardRingo__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a0b0",
+   "name": "CardRingo__constructor",
+   "rule": "zVTableCard.constructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a120",
+   "name": "CardRingo__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a170",
+   "name": "CardYukari__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a180",
+   "name": "CardYukari____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a1b0",
+   "name": "CardYukari__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a210",
+   "name": "CardYukari__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a260",
+   "name": "CardEirin____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardEirin *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardEirin *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a270",
+   "name": "CardEirin__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardEirin *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardEirin *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a4f0",
+   "name": "CardEirin__on_player_death_after_deathbomb",
+   "rule": "zVTableCard.on_player_death_after_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardEirin *"
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardEirin *",
+      "auto": false
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a560",
+   "name": "CardEirin__on_tick",
+   "rule": "zVTableCard.on_tick",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardEirin *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardEirin *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a6a0",
+   "name": "CardEirin__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardEirin *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardEirin *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a6f0",
+   "name": "CardTewi__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTewi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTewi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a700",
+   "name": "CardTewi__on_player_before_deathbomb",
+   "rule": "zVTableCard.on_player_before_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTewi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTewi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a720",
+   "name": "CardTewi__on_player_death_after_deathbomb",
+   "rule": "zVTableCard.on_player_death_after_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTewi *"
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTewi *",
+      "auto": false
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a730",
+   "name": "CardTewi__on_player_death_after_deathbomb_frame_2",
+   "rule": "zVTableCard.on_player_death_after_deathbomb_frame_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTewi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTewi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040a740",
+   "name": "CardTewi__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTewi *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTewi *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040aab0",
+   "name": "CardReimu1____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040aad0",
+   "name": "CardReimu1__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040aae0",
+   "name": "CardReimu1__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ab00",
+   "name": "CardReimu1__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu1 *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu1 *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ab20",
+   "name": "CardReimu1__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu1 *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu1 *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040abc0",
+   "name": "CardReimu2____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040abe0",
+   "name": "CardReimu2__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040abf0",
+   "name": "CardReimu2__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ac10",
+   "name": "CardReimu2__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu2 *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu2 *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ac30",
+   "name": "CardReimu2__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu2 *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardReimu2 *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040acd0",
+   "name": "CardMarisa1____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040acf0",
+   "name": "CardMarisa1__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ad00",
+   "name": "CardMarisa1__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ad20",
+   "name": "CardMarisa1__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa1 *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa1 *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ad40",
+   "name": "CardMarisa1__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa1 *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa1 *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ade0",
+   "name": "CardMarisa2____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ae00",
+   "name": "CardMarisa2__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ae10",
+   "name": "CardMarisa2__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ae30",
+   "name": "CardMarisa2__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa2 *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa2 *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ae50",
+   "name": "CardMarisa2__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa2 *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMarisa2 *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040aef0",
+   "name": "CardSakuya1____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040af10",
+   "name": "CardSakuya1__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040af20",
+   "name": "CardSakuya1__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040af60",
+   "name": "CardSakuya1__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya1 *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya1 *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040af90",
+   "name": "CardSakuya1__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya1 *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya1 *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b030",
+   "name": "CardSakuya2____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b050",
+   "name": "CardSakuya2__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b060",
+   "name": "CardSakuya2__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b080",
+   "name": "CardSakuya2__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya2 *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya2 *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b0a0",
+   "name": "CardSakuya2__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya2 *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSakuya2 *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b140",
+   "name": "CardSanae1____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b160",
+   "name": "CardSanae1__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b170",
+   "name": "CardSanae1__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae1 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae1 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b190",
+   "name": "CardSanae1__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae1 *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae1 *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b1b0",
+   "name": "CardSanae1__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae1 *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae1 *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b250",
+   "name": "CardSanae2____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b270",
+   "name": "CardSanae2__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b280",
+   "name": "CardSanae2__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae2 *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae2 *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b2a0",
+   "name": "CardSanae2__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae2 *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae2 *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b2c0",
+   "name": "CardSanae2__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae2 *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSanae2 *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b360",
+   "name": "CardYoumu____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardYoumu *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardYoumu *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b380",
+   "name": "CardYoumu__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardYoumu *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardYoumu *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b390",
+   "name": "CardYoumu__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardYoumu *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardYoumu *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b3c0",
+   "name": "CardYoumu__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardYoumu *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardYoumu *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b3e0",
+   "name": "CardYoumu__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardYoumu *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardYoumu *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b480",
+   "name": "CardAlice____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAlice *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAlice *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b4a0",
+   "name": "CardAlice__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAlice *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAlice *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b4b0",
+   "name": "CardAlice__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAlice *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAlice *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b4e0",
+   "name": "CardAlice__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAlice *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAlice *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b630",
+   "name": "CardAlice__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAlice *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAlice *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b960",
+   "name": "CardOkina____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardOkina *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardOkina *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b980",
+   "name": "CardOkina__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardOkina *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardOkina *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b990",
+   "name": "CardOkina__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardOkina *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardOkina *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040b9b0",
+   "name": "CardOkina__on_tick",
+   "rule": "zVTableCard.on_tick",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardOkina *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardOkina *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ba40",
+   "name": "CardOkina__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardOkina *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardOkina *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bae0",
+   "name": "CardCirno____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardCirno *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardCirno *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bb00",
+   "name": "CardCirno__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardCirno *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardCirno *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bb10",
+   "name": "CardCirno__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardCirno *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardCirno *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bb30",
+   "name": "CardCirno__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardCirno *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardCirno *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bb50",
+   "name": "CardCirno__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardCirno *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardCirno *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bbf0",
+   "name": "CardNue____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardNue *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardNue *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bc10",
+   "name": "CardNue__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardNue *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardNue *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bc20",
+   "name": "CardNue__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardNue *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardNue *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bc50",
+   "name": "CardNue__on_tick",
+   "rule": "zVTableCard.on_tick",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardNue *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardNue *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bcb0",
+   "name": "CardNue__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardNue *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardNue *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040be80",
+   "name": "CardMisumaru____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMisumaru *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMisumaru *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bea0",
+   "name": "CardMisumaru__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMisumaru *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMisumaru *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040beb0",
+   "name": "CardMisumaru__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMisumaru *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMisumaru *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bf30",
+   "name": "CardMisumaru__on_tick",
+   "rule": "zVTableCard.on_tick",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMisumaru *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMisumaru *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040bfe0",
+   "name": "CardMisumaru__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMisumaru *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMisumaru *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c1b0",
+   "name": "CardNitori____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c1c0",
+   "name": "CardNitori__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c1d0",
+   "name": "CardNitori__on_load",
+   "rule": "zVTableCard.on_load",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c200",
+   "name": "CardNitori__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c250",
+   "name": "CardKanako____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c260",
+   "name": "CardKanako__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c270",
+   "name": "CardKanako__on_load",
+   "rule": "zVTableCard.on_load",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c2a0",
+   "name": "CardKanako__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c2f0",
+   "name": "CardSaki____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c300",
+   "name": "CardSaki__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c310",
+   "name": "CardSaki____on_shoot_2",
+   "rule": "zVTableCard.on_bullet_created",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "a1",
+      "type": "zPlayerBullet *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "a1",
+      "type": "zPlayerBullet *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c3d0",
+   "name": "CardSaki__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c420",
+   "name": "CardSuwako____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c430",
+   "name": "CardSuwako__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c440",
+   "name": "CardSuwako____on_shoot_2",
+   "rule": "zVTableCard.on_bullet_created",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "a1",
+      "type": "zPlayerBullet *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "a1",
+      "type": "zPlayerBullet *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c4a0",
+   "name": "CardSuwako__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c790",
+   "name": "CardAya____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAya *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAya *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c7a0",
+   "name": "CardAya__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAya *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAya *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c7b0",
+   "name": "CardAya__on_load",
+   "rule": "zVTableCard.on_load",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAya *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAya *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040c7f0",
+   "name": "CardAya__on_tick",
+   "rule": "zVTableCard.on_tick",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAya *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAya *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040cb50",
+   "name": "CardAya__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAya *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardAya *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040cba0",
+   "name": "CardByakuren____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040cbb0",
+   "name": "CardByakuren__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040cbd0",
+   "name": "CardByakuren__on_load",
+   "rule": "zVTableCard.on_load",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040cbf0",
+   "name": "CardByakuren__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040cc40",
+   "name": "CardKeiki____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040cc50",
+   "name": "CardKeiki__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040cc60",
+   "name": "CardKeiki__on_load",
+   "rule": "zVTableCard.on_load",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040cd60",
+   "name": "CardKeiki__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040cef0",
+   "name": "CardKeiki__on_tick",
+   "rule": "zVTableCard.on_tick",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d270",
+   "name": "CardKeiki__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKeiki *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d2c0",
+   "name": "CardKaguya____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d2d0",
+   "name": "CardKaguya__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d2e0",
+   "name": "CardKaguya__on_player_death_after_deathbomb_frame_2",
+   "rule": "zVTableCard.on_player_death_after_deathbomb_frame_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d320",
+   "name": "CardKaguya__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d370",
+   "name": "CardMamizou__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d380",
+   "name": "CardMamizou____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d390",
+   "name": "CardMamizou__destructor",
+   "rule": "zVTableCard.destructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d400",
+   "name": "CardMamizou__on_player_death_after_deathbomb",
+   "rule": "zVTableCard.on_player_death_after_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *"
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *",
+      "auto": false
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d410",
+   "name": "CardMamizou__on_player_death_after_deathbomb_frame_2",
+   "rule": "zVTableCard.on_player_death_after_deathbomb_frame_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d450",
+   "name": "CardMamizou__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMamizou *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d4a0",
+   "name": "CardKoishi____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d4b0",
+   "name": "CardKoishi__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d4c0",
+   "name": "CardKoishi____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d4e0",
+   "name": "CardKoishi__on_player_death_after_deathbomb",
+   "rule": "zVTableCard.on_player_death_after_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *"
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *",
+      "auto": false
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d4f0",
+   "name": "CardKoishi__on_player_death_after_deathbomb_frame_2",
+   "rule": "zVTableCard.on_player_death_after_deathbomb_frame_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d530",
+   "name": "CardKoishi__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardKoishi *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d580",
+   "name": "CardYuyuko____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d590",
+   "name": "CardYuyuko__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d5a0",
+   "name": "CardYuyuko____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d5c0",
+   "name": "CardYuyuko__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d610",
+   "name": "CardYachie____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d620",
+   "name": "CardYachie__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d630",
+   "name": "CardYachie__recharge",
+   "rule": "zVTableCard.recharge",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "drop_pos",
+      "type": "float *"
+     },
+     {
+      "name": "drop_counts",
+      "type": "int *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "drop_pos",
+      "type": "float *",
+      "auto": false
+     },
+     {
+      "name": "drop_counts",
+      "type": "int *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d7b0",
+   "name": "CardYachie__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d800",
+   "name": "CardShikiEiki____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShikiEiki *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShikiEiki *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040d810",
+   "name": "CardShikiEiki__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShikiEiki *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShikiEiki *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040da10",
+   "name": "CardShikiEiki__on_player_death_after_deathbomb",
+   "rule": "zVTableCard.on_player_death_after_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShikiEiki *"
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShikiEiki *",
+      "auto": false
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040da80",
+   "name": "CardShikiEiki__on_tick",
+   "rule": "zVTableCard.on_tick",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShikiEiki *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShikiEiki *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040dbc0",
+   "name": "CardShikiEiki__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShikiEiki *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShikiEiki *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040dc10",
+   "name": "CardClownpiece____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardClownpiece *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardClownpiece *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040dc60",
+   "name": "CardClownpiece__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardClownpiece *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardClownpiece *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040dce0",
+   "name": "CardClownpiece____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardClownpiece *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardClownpiece *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040e040",
+   "name": "CardClownpiece__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardClownpiece *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardClownpiece *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040e2b0",
+   "name": "CardClownpiece__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardClownpiece *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardClownpiece *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040e300",
+   "name": "CardMiko____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMiko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMiko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040e350",
+   "name": "CardMiko__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMiko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMiko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040e3d0",
+   "name": "CardMiko____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMiko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMiko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040e5c0",
+   "name": "CardMiko__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMiko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMiko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040e7a0",
+   "name": "CardMiko__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMiko *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMiko *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040e7f0",
+   "name": "CardTenshi____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTenshi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTenshi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040e840",
+   "name": "CardTenshi__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTenshi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTenshi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040e8c0",
+   "name": "CardTenshi____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTenshi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTenshi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ebf0",
+   "name": "CardTenshi__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTenshi *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTenshi *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040edb0",
+   "name": "CardTenshi__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTenshi *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardTenshi *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ee00",
+   "name": "CardShinmyoumaru____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ee50",
+   "name": "CardShinmyoumaru__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040eed0",
+   "name": "CardShinmyoumaru____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f0d0",
+   "name": "CardShinmyoumaru__on_player_death_after_deathbomb",
+   "rule": "zVTableCard.on_player_death_after_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *"
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *",
+      "auto": false
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f0f0",
+   "name": "CardShinmyoumaru__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f280",
+   "name": "CardShinmyoumaru__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardShinmyoumaru *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f2d0",
+   "name": "CardRemilia____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f320",
+   "name": "CardRemilia__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f3a0",
+   "name": "CardRemilia____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f650",
+   "name": "CardRemilia__on_player_death_after_deathbomb",
+   "rule": "zVTableCard.on_player_death_after_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *"
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *",
+      "auto": false
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f670",
+   "name": "CardRemilia__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f800",
+   "name": "CardRemilia__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRemilia *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f850",
+   "name": "CardUtusho____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f8a0",
+   "name": "CardUtusho__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040f920",
+   "name": "CardUtusho____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040fb40",
+   "name": "CardUtusho__on_player_death_after_deathbomb",
+   "rule": "zVTableCard.on_player_death_after_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *"
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *",
+      "auto": false
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040fb60",
+   "name": "CardUtusho__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040fd80",
+   "name": "CardUtusho__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardUtusho *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040fdd0",
+   "name": "CardLilyWhite____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040fde0",
+   "name": "CardLilyWhite__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040fe20",
+   "name": "CardLilyWhite____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040fe70",
+   "name": "CardLilyWhite__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ffa0",
+   "name": "CardLilyWhite__method_38",
+   "rule": "zVTableCard.method_38",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *"
+     },
+     {
+      "name": "__unknown",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *",
+      "auto": false
+     },
+     {
+      "name": "__unknown",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040ffe0",
+   "name": "CardLilyWhite__method_3C",
+   "rule": "zVTableCard.get_bomb_timer",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x0040fff0",
+   "name": "CardLilyWhite__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardLilyWhite *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410040",
+   "name": "CardRaiko____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRaiko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRaiko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410090",
+   "name": "CardRaiko__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRaiko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRaiko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410110",
+   "name": "CardRaiko____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRaiko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRaiko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410250",
+   "name": "CardRaiko__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRaiko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRaiko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x004103e0",
+   "name": "CardRaiko__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRaiko *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardRaiko *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410430",
+   "name": "CardSumireko____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSumireko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSumireko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410480",
+   "name": "CardSumireko__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSumireko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSumireko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410500",
+   "name": "CardSumireko____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSumireko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSumireko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410780",
+   "name": "CardSumireko__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSumireko *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSumireko *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410910",
+   "name": "CardSumireko__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSumireko *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardSumireko *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410960",
+   "name": "CardMike__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x004109b0",
+   "name": "CardTakane__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410a00",
+   "name": "CardSannyo__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410a50",
+   "name": "CardMegumu____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410a60",
+   "name": "CardMegumu__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410a90",
+   "name": "CardMegumu____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410bd0",
+   "name": "CardMegumu__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410d80",
+   "name": "CardMegumu__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410dd0",
+   "name": "CardTsukasa____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410de0",
+   "name": "CardTsukasa__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410e10",
+   "name": "CardTsukasa____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410e60",
+   "name": "CardTsukasa__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410f90",
+   "name": "CardTsukasa__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410fe0",
+   "name": "CardMomoyo____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00410ff0",
+   "name": "CardMomoyo__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00411000",
+   "name": "CardMomoyo____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00411090",
+   "name": "CardMomoyo__on_anm_id_assigned_to_hud",
+   "rule": "zVTableCard.on_anm_id_assigned_to_hud",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *"
+     },
+     {
+      "name": "a1",
+      "type": "zAnmId"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *",
+      "auto": false
+     },
+     {
+      "name": "a1",
+      "type": "zAnmId",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x004110a0",
+   "name": "CardMomoyo__on_draw",
+   "rule": "zVTableCard.on_draw",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00411350",
+   "name": "CardMomoyo__method_38",
+   "rule": "zVTableCard.method_38",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *"
+     },
+     {
+      "name": "__unknown",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *",
+      "auto": false
+     },
+     {
+      "name": "__unknown",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00411360",
+   "name": "CardMomoyo__method_3C",
+   "rule": "zVTableCard.get_bomb_timer",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00411370",
+   "name": "CardMomoyo__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardMomoyo *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x004113c0",
+   "name": "CardMagatama__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00411410",
+   "name": "CardNull__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00412ed0",
+   "name": "CardBaseClass__operator_delete",
+   "rule": "zVTableCard.operator_delete",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "zCardBaseClass *",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "should_deallocate",
+      "type": "bool",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413010",
+   "name": "CardBaseClass__constructor",
+   "rule": "zVTableCard.constructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413020",
+   "name": "CardBaseClass__destructor",
+   "rule": "zVTableCard.destructor",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "bool",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413030",
+   "name": "CardBaseClass__c_press",
+   "rule": "zVTableCard.c_press",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413040",
+   "name": "CardBaseClass__on_player_death_after_deathbomb",
+   "rule": "zVTableCard.on_player_death_after_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "death_save_acc",
+      "type": "uint",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413050",
+   "name": "CardBaseClass__on_player_before_deathbomb",
+   "rule": "zVTableCard.on_player_before_deathbomb",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413060",
+   "name": "CardBaseClass__on_player_death_after_deathbomb_frame_2",
+   "rule": "zVTableCard.on_player_death_after_deathbomb_frame_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413070",
+   "name": "CardBaseClass__on_power_level_change",
+   "rule": "zVTableCard.on_power_level_change",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413080",
+   "name": "CardBaseClass__on_shoot",
+   "rule": "zVTableCard.on_tick_shooters",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "short_timer",
+      "type": "int"
+     },
+     {
+      "name": "long_timer",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "short_timer",
+      "type": "int",
+      "auto": false
+     },
+     {
+      "name": "long_timer",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413090",
+   "name": "CardBaseClass__on_load",
+   "rule": "zVTableCard.on_load",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x004130a0",
+   "name": "CardBaseClass__on_tick",
+   "rule": "zVTableCard.on_tick",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x004130b0",
+   "name": "CardBaseClass____on_shoot_2",
+   "rule": "zVTableCard.on_bullet_created",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "a1",
+      "type": "zPlayerBullet *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "a1",
+      "type": "zPlayerBullet *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x004130c0",
+   "name": "CardBaseClass____on_tick_2",
+   "rule": "zVTableCard.__on_tick_2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x004130d0",
+   "name": "CardBaseClass__recharge",
+   "rule": "zVTableCard.recharge",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "drop_pos",
+      "type": "float *"
+     },
+     {
+      "name": "drop_counts",
+      "type": "int *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "drop_pos",
+      "type": "float *",
+      "auto": false
+     },
+     {
+      "name": "drop_counts",
+      "type": "int *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x004130e0",
+   "name": "CardBaseClass____on_load__2",
+   "rule": "zVTableCard.__on_load__2",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x004130f0",
+   "name": "CardBaseClass__method_38",
+   "rule": "zVTableCard.method_38",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "__unknown",
+      "type": "int"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "__unknown",
+      "type": "int",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413130",
+   "name": "CardBaseClass__method_3C",
+   "rule": "zVTableCard.get_bomb_timer",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "int",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413140",
+   "name": "CardBaseClass__method_40",
+   "rule": "zVTableCard.method_40",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413150",
+   "name": "CardBaseClass__on_anm_id_assigned_to_hud",
+   "rule": "zVTableCard.on_anm_id_assigned_to_hud",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     },
+     {
+      "name": "a1",
+      "type": "zAnmId"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     },
+     {
+      "name": "a1",
+      "type": "zAnmId",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413160",
+   "name": "CardBaseClass__on_draw",
+   "rule": "zVTableCard.on_draw",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  },
+  {
+   "addr": "0x00413170",
+   "name": "CardBaseClass__method_4C",
+   "rule": "zVTableCard.method_4C",
+   "want": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *"
+     }
+    ]
+   },
+   "sig": {
+    "cc": "__thiscall",
+    "ret": "void",
+    "params": [
+     {
+      "name": "self",
+      "type": "zCardBaseClass *",
+      "auto": false
+     }
+    ]
+   }
+  }
+ ]
+}
