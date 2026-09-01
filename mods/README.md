@@ -1,5 +1,8 @@
 # mods/ — 产物层
 
+> **动手前先读 [`thcrap-platform.md`](thcrap-platform.md)**：改动住在 patch 还是 DLL、
+> asm 怎么变成 codecave、怎么分发。选错路线的代价比写错代码大。
+
 **版本为主，死绑 build。** 一个 mod 的每个写入点都是「某个 exe 的某个地址上的某几个字节」——
 换一个 build 就全部作废。所以目录第一层是版本，不是 mod 名：
 
@@ -7,7 +10,7 @@
 mods/<版本>/<mod名>/
   README.md      这是什么 / 怎么装 / 版本约束
   TARGET.md      ★ 死绑登记:exe 哈希 + 每个写入点的 addr / expected / 调用约定
-  native/        codecave 源码(.asm / .c)
+  native/        cave 源码(.asm / .c)或插件 DLL 源码(构建产物不入库)
   assets/        成品脚本资产(.ecl / .anm / .sht) —— 用 THTK-Studio 编辑,这里存源
   patch/         thcrap patch 目录(patch.js / files.js / <版本>.js)
   AUDIT.md       对抗审计记录
@@ -28,6 +31,12 @@ mods/<版本>/<mod名>/
   [`_template/AUDIT-checklist.md`](_template/AUDIT-checklist.md)**——
   这不是形式主义，见下。
 - 加载层统一用 thcrap（它的运行时加载机制就是 DLL 注入），除非任务本身研究加载器。
+- **默认把改动写进 patch，不写 DLL**——社区实证：ExpHP 的 17 个玩法补丁零 DLL。
+  要 C 的可调试性时才上 DLL，代价是它走不了 thcrap 的包管理（只能手动放 `<thcrap>/bin`）。
+- **DLL 数量不得随 mod 数量增长。** DLL 只提供**能力**（`BP_*`、工具函数），不承载某个
+  具体 mod 的**身份与数据**——地址、`expected`、数值、开关一律住在 patch。
+  一问就能验：新加一个 mod，`bin/` 里的文件变多了吗？判据与构建链路见
+  [`thcrap-platform.md`](thcrap-platform.md) §3、§5。
 
 ## ★ 为什么强制对抗审计
 
@@ -43,5 +52,7 @@ mods/<版本>/<mod名>/
 
 | mod | 目标 | 状态 |
 | --- | --- | --- |
+| [`th18.v1.00a/mouse-control`](th18.v1.00a/mouse-control/README.md) | 鼠标控制自机 + 左/右/中键映射 | ✅ **实跑通过**(2026-09-01) |
+| [`th18.v1.00a/runtime-probe`](th18.v1.00a/runtime-probe/README.md) | 只读探针:汇报玩家坐标与状态位 | 已编译 + 静态审计通过，**未实跑** |
 | [`th16.v1.00a/tracking-laser`](th16.v1.00a/tracking-laser/README.md) | 重指 SHT tick 槽注入追踪激光 | 静态审计通过，**未实跑** |
 | [`th18.v1.00a/card-rework`](th18.v1.00a/card-rework/ROADMAP.md) | 卡牌系统改造 | 路线图，**无已实跑补丁** |

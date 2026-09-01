@@ -21,6 +21,9 @@ local/
 │   └── ghidra_projects/  ★ 主工程 th18.exe.{gpr,rep}
 ├── vendor/               第三方仓库克隆(只记来源，不转发源码)
 │   ├── th-re-data/       ★★ ExpHP 逐版本符号金矿(funcs/statics/structs)
+│   ├── thcrap/           ★ thcrap 一手源码(插件/breakpoint/binhack 机制的权威)
+│   ├── thcrap-patches/   ★ ExpHP 的 17 个玩法补丁(零 DLL 的真实范例 + keystone 构建链)
+│   ├── thpages/          ★ ExpHP 指令参考站源码(ANM 渲染管线/坐标系/MSG 指令表)
 │   ├── thtk/             thecl/thanm/thmsg/thstd/thdat
 │   ├── sht-webedit/      SHT 字节布局的社区事实标准
 │   ├── shmupcc-sht/      另一个 SHT 参考实现

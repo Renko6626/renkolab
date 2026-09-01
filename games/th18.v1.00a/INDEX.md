@@ -9,8 +9,9 @@
 ## 当前状态:✅ 基础建设与卡牌主线已完成，符号往返已跑通(2026-09-01)
 
 > 新会话**无需重做导入**。要重建或补齐，一条命令：`tooling/ghidra/bootstrap.py th18`(幂等)。
-> 若目标是协作制作运行时卡牌改造，先读 [ROADMAP](../../mods/th18.v1.00a/card-rework/ROADMAP.md)：
-> 现有结论可指导 TH18 v1.00a 的定点实验，但尚无已实跑的 TH18 注入补丁。
+> 若目标是协作制作运行时卡牌改造，先读 [ROADMAP](../../mods/th18.v1.00a/card-rework/ROADMAP.md)。
+> 注入链路本身已不再是未知数——见 [`mods/th18.v1.00a/mouse-control`](../../mods/th18.v1.00a/mouse-control/README.md)
+> (首个实跑通过的 TH18 注入产物)与 [`mods/thcrap-platform.md`](../../mods/thcrap-platform.md)。
 
 - ✅ **th18.exe 已全量分析**(Ghidra headless,函数 **2333** 个,已命名 **1366**)。
 - ✅ **ExpHP 名字已套满**:`skipped=874 missing=1`。原先漏掉的 63 个只经 vtable 进入的回调
@@ -27,7 +28,10 @@
   （`を手に入れた！` / `の実績を手に入れた`）、音乐室剧透警告。
 - ✅ **符号往返已跑通**:我们自己那层 **504** 条存进 [`symbols.json`](symbols.json)(含 268 条函数原型),
   全量重建后 0 漂移。见 [`tooling/ghidra/README.md`](../../tooling/ghidra/README.md) 的「两层符号」。
-- ⏳ **仍未做**:已实跑的 TH18 thcrap/DLL 改造样例；装备卡 shooter 数据存储与少数标 🟡 的字段仍待验证。
+- ✅ **首个实跑通过的 TH18 注入产物**:[`mods/th18.v1.00a/mouse-control`](../../mods/th18.v1.00a/mouse-control/README.md)
+  (thcrap 断点 + 自建 DLL,鼠标操自机 + 左/右/中键映射,2026-09-01 实跑)。
+  它同时验通了 Linux 交叉编译 → Windows 的交付链路,以及 `engine/player/th18/01` 的坐标结论在活进程上成立。
+- ⏳ **仍未做**:装备卡 shooter 数据存储与少数标 🟡 的字段仍待验证。
   类型绑定**卡牌那 268 个已做**,`Player__*` / 各 Manager / 全局仍未绑,见下节。
 
 ## ★ 让反编译变可读:类型绑定(卡牌那 268 个已绑)
