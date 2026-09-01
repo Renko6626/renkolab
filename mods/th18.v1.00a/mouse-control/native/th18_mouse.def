@@ -1,0 +1,6 @@
+LIBRARY th18_mouse.dll
+EXPORTS
+	thcrap_plugin_init	@1
+	th18_mouse_mod_exit	@2
+	BP_mouse_move		@3
+	BP_mouse_buttons	@4
