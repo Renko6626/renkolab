@@ -317,9 +317,45 @@ def verify_patch(path, text, text_va):
     return len(doc["binhacks"]), bad
 
 
+def conflicts(ours_path, other_paths):
+    """和**同一 patch 栈里其它 patch** 的 hackpoint 求区间交集。
+
+    100 处 5–7 字节的写入点，任何一处被别的 binhack / breakpoint 覆盖都是冲突：
+    后应用的那个会看到「expected 不匹配」然后**静默跳过**。
+    `base_tsa`（本 mod 声明的依赖）不在仓库 vendor 里，得拿装机上的
+    `<thcrap>/repos/nmlgc/base_tsa/th18.v1.00a.js` 来跑。
+    """
+    ours = json.load(open(ours_path, encoding="utf-8"))["binhacks"]
+    mine = [(int(b["addr"], 16), int(b["addr"], 16) + len(bytes.fromhex(b["expected"])), n)
+            for n, b in ours.items()]
+    found, checked = [], 0
+    for path in other_paths:
+        d = json.load(open(path, encoding="utf-8"))
+        for sect in ("binhacks", "breakpoints", "codecaves"):
+            for name, item in (d.get(sect) or {}).items():
+                if not isinstance(item, dict) or item.get("addr") is None:
+                    continue
+                addrs = item["addr"] if isinstance(item["addr"], list) else [item["addr"]]
+                for a in addrs:
+                    if isinstance(a, dict):
+                        a = a.get("addr")
+                    if not isinstance(a, str) or not a.lower().startswith("0x"):
+                        continue
+                    lo = int(a, 16)
+                    size = item.get("cavesize") or \
+                        (len(bytes.fromhex(item["expected"])) if item.get("expected") else 5)
+                    checked += 1
+                    for mlo, mhi, mname in mine:
+                        if lo < mhi and mlo < lo + size:
+                            found.append((os.path.basename(os.path.dirname(path)) or path,
+                                          sect, name, a, mname))
+    return checked, found
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["list", "check", "gen", "verify"])
+    ap.add_argument("cmd", choices=["list", "check", "gen", "verify", "conflicts"])
+    ap.add_argument("others", nargs="*", help="conflicts：其它 patch 的 th18.v1.00a.js")
     ap.add_argument("--rows", type=int, default=ROW_COUNT,
                     help="新表行数（第 1 步用 58 = 行为零变化）")
     ap.add_argument("-o", "--out")
@@ -339,6 +375,16 @@ def main():
     sites = collect_sites(inst, walks)
     uncovered = audit_uncovered(text, text_va, sites)
     secs, in_text, in_data = audit_interior(EXE, sites)
+
+    if a.cmd == "conflicts":
+        if not a.others:
+            raise SystemExit("用法：sites.py conflicts <其它 patch 的 th18.v1.00a.js>…")
+        path = os.path.join(HERE, "..", "patch", "%s.js" % VERSION)
+        n, found = conflicts(path, a.others)
+        print("对照 %d 个外部 hackpoint，与我们 100 处重叠的：%d" % (n, len(found)))
+        for f in found:
+            print("   ❌ %s / %s / %s @ %s  撞上  %s" % f)
+        return 1 if found else 0
 
     if a.cmd == "verify":
         path = a.out or os.path.join(HERE, "..", "patch", "%s.js" % VERSION)

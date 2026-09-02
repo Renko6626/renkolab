@@ -28,3 +28,8 @@ files:
 
 clean:
 	rm -f $(PATCH)
+
+## conflicts —— 与同一 patch 栈里其它 patch 求交集（base_tsa 要拿装机上的文件）
+##   make conflicts OTHERS="<thcrap>/repos/nmlgc/base_tsa/th18.v1.00a.js"
+conflicts:
+	python3 sites.py conflicts $(OTHERS)

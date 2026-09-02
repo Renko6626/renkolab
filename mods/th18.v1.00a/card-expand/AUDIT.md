@@ -64,6 +64,60 @@ C3 是补的：C2 只扫三小段，扫不到「直接引用第 12 行」这种�
 骨架不同，被 C1 漏掉。补进 `find_walks()` 后总数从 99 变 100。
 **这条审计路径必须留着。**
 
+## C′. 阶段性复审（2026-09-02）—— 「覆盖够不够」从四个方向攻
+
+审计 C 证的是「表的每一处引用都在 100 处里」。但用户问的是另一件事：
+**卡牌子系统有没有哪块逻辑绕过了这 100 处、仍然在读旧表？** 分四个方向攻：
+
+### C′1. 从函数名单反推 —— 没有游离的读表者
+
+卡牌子系统 51 个已命名函数里，**9 个**含站点；另有 **4 个**调用非内联的
+`TableCardData__get` `0x407d70`（`allocate_new_card`、`AbilityMenu__on_tick`、
+`CardShop__pick_weighted_random_offer`、`FUN_00419170`）——函数本体已 patch，等价覆盖。
+其余 38 个不碰表：它们要么只用 `card->id` 与对象自身字段，要么用
+**别处查表得到的指针**（`zAbilityMenu.__card_ptrs_0xfec`、商店 offer 数组）——
+那些指针来自已 patch 的查表，指向新表，行为一致。
+
+**结论：CONFIRMED** —— 不存在「既不含站点、又不调 get、却读表」的函数，
+因为 C3 已证 `.text` 里对表区间的引用只有那 100 处。
+
+### C′2. 三种「不经查表也会碰表」的写法 —— 都不存在
+
+| 写法 | 长什么样 | 会落在哪段 | 实测 |
+| --- | --- | --- | --- |
+| 指针 → 下标 | `sub reg, 0x4c53c0` / `imul`+`div` | 表基段的**非 mov/add/lea** 立即数 | **0 处** |
+| 与 NULL 行指针比较 | `cmp reg, 0x4c5f20` | 回退段的 **cmp** | **0 处**（25 处全是 `mov`）|
+| 静态存的行指针 | `.data` 里的 `zTableCardData*` | 数据节 4 字节对齐指向表内 | **0 处** |
+
+第二条顺带说明游戏判「查不到」靠的是 `entry->id == 56` 或 `entry->+0x0c == 4`
+（[`engine/card/th18/11`](../../../engine/card/th18/11-sentinels-56-57.md) §2），
+**不是**比较指针。搬表不会改变这个判定。
+
+### C′3. 有符号比较的隐患 —— 不成立
+
+25 处 END 之后都是 **`jl`（有符号）**。codecave 若落在 ≥ `0x80000000`，
+`cmp p, END; jl` 会翻转。核对 PE：`Characteristics = 0x0103`，
+**无 LARGEADDRESSAWARE** → 32 位进程用户空间 < `0x80000000`，`VirtualAlloc` 给不出高地址。
+**REFUTED（不构成问题）**，但换 build 若加了 LAA 要重看。
+
+### C′4. 与其它 patch 撞车 —— vendor 内 0 处，`base_tsa` 待用户实测
+
+100 处 5–7 字节写入点，任何一处被别的 binhack/breakpoint 覆盖，后应用的那个会
+「expected 不匹配 → 静默跳过」。新增 `sites.py conflicts <其它.js>` 做区间交集。
+
+- vendor 里的 ExpHP 5 个 th18 patch（9 个 hackpoint）：**0 处重叠**。
+- **`base_tsa`（本 mod 声明的依赖）不在 vendor 里** —— **OPEN**，
+  用户需拿装机上的 `<thcrap>/repos/nmlgc/base_tsa/th18.v1.00a.js` 跑一次
+  `make conflicts OTHERS=…`。它的断点多挂在文本/字体/存档 I/O，
+  撞上查表内联点的概率低，但**必须实测，不接受「概率低」**。
+
+### C′5. 第 1 步刻意**不**覆盖的（这不是漏）
+
+行数仍 58，所以 [`11`](../../../engine/card/th18/11-sentinels-56-57.md) §5 的另外 33 处
+边界（字面 56/57、`mgr+0xc84` 数组、`zAbilityMenu.__card_ids`、存档数组）**一处不动**，
+它们的语义在 58 行下与香草完全相同。这些是战线 B–E 的事，见
+[`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)。
+
 ## D. 量纲 / 算术
 
 | # | claim | 结论 |
