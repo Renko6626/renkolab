@@ -1,12 +1,12 @@
 # card-expand —— 没有 C 代码要编，全部产物由 sites.py 从真 exe 生成。
-ROWS ?= 58
+ROWS ?= 255
 PATCH := ../patch/th18.v1.00a.js
 
 .PHONY: all check gen verify files clean
 
 all: gen verify dll
 
-## step1 —— 第 1 步交付态：58 行，行为零变化（仓库里 patch/ 提交的就是这个）
+## step1 —— 第 1 步交付态：58 行，行为零变化（只进 dist/patch-step1；仓库里 patch/ 提交的是 255 行 = step3）
 step1:
 	$(MAKE) ROWS=58 gen verify dll dllx87 files
 
@@ -79,7 +79,6 @@ dist:
 	cp $(DLL) $(DIST)/bin/ && cp ../patch/*.js $(DIST)/patch-step1/ && cp ../patch-test/*.js $(DIST)/patch-test/
 	$(MAKE) -s ROWS=255 gen files >/dev/null
 	cp ../patch/*.js $(DIST)/patch-step3/
-	$(MAKE) -s ROWS=58  gen files >/dev/null
 	cp ../DIST-README.txt $(DIST)/README.txt
 	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test README.txt
 	@echo "dist/ 就绪："; ls $(DIST)
