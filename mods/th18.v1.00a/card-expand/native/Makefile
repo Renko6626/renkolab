@@ -48,7 +48,7 @@ CC        := $(TOOLCHAIN)/bin/i686-w64-mingw32-gcc
 OBJDUMP   := $(TOOLCHAIN)/bin/i686-w64-mingw32-objdump
 DLL       := th18_card_expand.dll
 CFLAGS    := -O2 -Wall -Wextra -mfpmath=sse -msse2
-LDFLAGS   := -shared -static-libgcc -s -lkernel32
+LDFLAGS   := -shared -static-libgcc -s -lkernel32 -Wl,--no-insert-timestamp
 
 ## dll    —— 编 DLL（依赖 gen 出的 sites_gen.h）
 dll: $(DLL)
@@ -83,3 +83,7 @@ dist:
 	cp ../DIST-README.txt $(DIST)/README.txt
 	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test README.txt
 	@echo "dist/ 就绪："; ls $(DIST)
+
+## release —— 构建 dist，同步进发布仓库 local/vendor/th18_modkit 并提交；PUSH=1 再推
+release: dist
+	python3 release.py

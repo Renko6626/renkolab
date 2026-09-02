@@ -32,7 +32,10 @@ mods/<版本>/<mod名>/
   这不是形式主义，见下。
 - 加载层统一用 thcrap（它的运行时加载机制就是 DLL 注入），除非任务本身研究加载器。
 - **默认把改动写进 patch，不写 DLL**——社区实证：ExpHP 的 17 个玩法补丁零 DLL。
-  要 C 的可调试性时才上 DLL，代价是它走不了 thcrap 的包管理（只能手动放 `<thcrap>/bin`）。
+  要 C 的可调试性时才上 DLL，代价是它走不了 thcrap 的包管理（只能手动放 `<thcrap>/bin`）——
+  这一层由发布仓库 [`th18_modkit`](https://github.com/Renko6626/th18_modkit) 的启动器接管：
+  `mods/*.dll` 勾选式装进 `bin/`。**开发在 renkolab，发布进 modkit**，见
+  [`th18.v1.00a/card-expand/README.md`](th18.v1.00a/card-expand/README.md) 的「发布」。
 - **DLL 数量不得随 mod 数量增长。** DLL 只提供**能力**（`BP_*`、工具函数），不承载某个
   具体 mod 的**身份与数据**——地址、`expected`、数值、开关一律住在 patch。
   一问就能验：新加一个 mod，`bin/` 里的文件变多了吗？判据与构建链路见

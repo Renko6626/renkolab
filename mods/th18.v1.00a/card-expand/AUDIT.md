@@ -106,10 +106,12 @@ C3 是补的：C2 只扫三小段，扫不到「直接引用第 12 行」这种�
 「expected 不匹配 → 静默跳过」。新增 `sites.py conflicts <其它.js>` 做区间交集。
 
 - vendor 里的 ExpHP 5 个 th18 patch（9 个 hackpoint）：**0 处重叠**。
-- **`base_tsa`（本 mod 声明的依赖）不在 vendor 里** —— **OPEN**，
-  用户需拿装机上的 `<thcrap>/repos/nmlgc/base_tsa/th18.v1.00a.js` 跑一次
-  `make conflicts OTHERS=…`。它的断点多挂在文本/字体/存档 I/O，
-  撞上查表内联点的概率低，但**必须实测，不接受「概率低」**。
+- **`base_tsa`：已实测 —— CONFIRMED，0 重叠。**发布仓库 `th18_modkit` 自带
+  thcrap 2024-11-06 及其 `base_tsa/th18.js` + `th18.v1.00a.js`（`addr` 与 `cavesize`
+  分在两个文件、地址用 `Rx` 记法——`conflicts` 已改为认这两样）。
+  对 base_tsa 70 处 + `th18_mouse_control` + `renko`：**0 重叠**。
+  顺带：base_tsa 在 `0x41669c` / `0x4167b0` 挂了卡牌文案（`gentext#card_name/desc`）的
+  翻译钩子，紧邻 `imul $0x1c0` 的文案读取——**战线 E 搬文案缓冲时要与它对账**。
 
 ### C′5. 第 1 步刻意**不**覆盖的（这不是漏）
 
@@ -165,6 +167,9 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 | H8 | 导出无装饰名 / 32 位 / 只依赖 kernel32+msvcrt / 自身零 x87 | **CONFIRMED** —— `make dllverify dllx87`；x87 只查我们自己的目标文件（整个 DLL 的 42 条来自 static-libgcc 运行时）|
 | H10 | 自检①：`thcrap_plugin_init` 验零售表签名（行 0 id==0、行 56 id==56、名字 `"NULL"`），不符则返回 1 自卸载 | **CONFIRMED** —— `dll_main.c`；`IsBadReadPtr` 兜住名字指针非法的情况 |
 | H9 | 拿不到 thcrap 导出时的行为 | 降级：写 `th18_card_expand.log`，**不填表**并明说 —— 宁可不装，不静默 |
+| H11 | 发布仓库那份 thcrap（2024-11-06 stable）支持本 mod 用到的三样 | **CONFIRMED** —— 拉 GitHub 同日提交 `aeb9155` 的源码核对：`GetCodecaveAddress` 有 `+` 偏移解析、`binhack.cpp` 有 `patch_func_init`、`init.cpp:416` 有 `post_init`；DLL 里 `strings` 也见 `_patch_` 与 `func_get`/`log_printf` |
+| H12 | 两个行数的 patch 同时进栈 | **兜住** —— 搬表只有先到者生效，但分配器上界 binhack 两边都能打上；DLL 检出 `rows` 与上界不符即 FAIL 并把 `0x411479` 写回 `0x38`（`restore_alloc_bound`） |
+| H13 | DLL 构建可复现 | **CONFIRMED** —— `-Wl,--no-insert-timestamp`，两次构建 md5 相同；否则每次 `release` 都会产生只差时间戳的假提交 |
 
 **这一节把「表空」「binhack 漏了」两种静默失败都变成了日志里的一行红字。**
 

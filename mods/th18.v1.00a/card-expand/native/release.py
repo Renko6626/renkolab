@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""把 card-expand 的构建产物同步进发布仓库 th18_modkit，并提交。
+
+    make release          # 构建 dist → 同步 → 在 modkit 里提交（不推）
+    make release PUSH=1   # 同上，再 push
+
+renkolab 是开发仓库，th18_modkit 是发布仓库（朋友 clone 下来一键启动）。
+Windows 那边只负责 `git pull`。
+
+只覆盖**生成物**：三个 patch 的 th18.v1.00a.js、它们的 files.js、DLL。
+patch.js / 侧车 .json / README 是 modkit 里手工维护的文案，这里**不碰**。
+"""
+import json, os, subprocess, sys, zlib, hashlib
+
+HERE   = os.path.dirname(os.path.abspath(__file__))
+REPO   = os.path.abspath(os.path.join(HERE, "..", "..", "..", ".."))
+DIST   = os.path.join(HERE, "..", "dist")
+MODKIT = os.path.join(REPO, "local", "vendor", "th18_modkit")
+R      = os.path.join(MODKIT, "thcrap", "repos", "Renko_1055")
+
+MAP = {                                   # dist 里的 → modkit 里的
+    "patch-step1/th18.v1.00a.js": "thcrap/repos/Renko_1055/th18_card_expand/th18.v1.00a.js",
+    "patch-step3/th18.v1.00a.js": "thcrap/repos/Renko_1055/th18_card_expand_255/th18.v1.00a.js",
+    "patch-test/th18.v1.00a.js":  "thcrap/repos/Renko_1055/th18_card_expand_test/th18.v1.00a.js",
+    "bin/th18_card_expand.dll":   "mods/th18_card_expand.dll",
+}
+PATCH_DIRS = ("th18_card_expand", "th18_card_expand_255", "th18_card_expand_test")
+
+
+def sh(*args, cwd=None, check=True):
+    return subprocess.run(args, cwd=cwd, check=check, text=True, capture_output=True).stdout.strip()
+
+
+def main():
+    push = os.environ.get("PUSH") == "1"
+    if not os.path.isdir(os.path.join(MODKIT, ".git")):
+        raise SystemExit("找不到发布仓库：%s\n先 git clone https://github.com/Renko6626/th18_modkit.git 到 local/vendor/" % MODKIT)
+    for src in MAP:
+        if not os.path.exists(os.path.join(DIST, src)):
+            raise SystemExit("dist 不完整，缺 %s —— 先 make dist" % src)
+
+    # 发布仓库必须干净、且在 main 的最新
+    if sh("git", "status", "--porcelain", cwd=MODKIT):
+        raise SystemExit("th18_modkit 工作区不干净，先处理掉再发布")
+    sh("git", "fetch", "-q", "origin", cwd=MODKIT)
+    behind = sh("git", "rev-list", "--count", "HEAD..origin/main", cwd=MODKIT)
+    if behind != "0":
+        sh("git", "pull", "-q", "--ff-only", "origin", "main", cwd=MODKIT)
+        print("th18_modkit：已快进 %s 个远端提交" % behind)
+
+    changed = []
+    for src, dst in MAP.items():
+        s, d = os.path.join(DIST, src), os.path.join(MODKIT, dst)
+        os.makedirs(os.path.dirname(d), exist_ok=True)
+        data = open(s, "rb").read()
+        if not os.path.exists(d) or open(d, "rb").read().replace(b"\r\n", b"\n") != data.replace(b"\r\n", b"\n"):
+            open(d, "wb").write(data)
+            changed.append(dst)
+    for p in PATCH_DIRS:
+        d = os.path.join(R, p)
+        out = {n: zlib.crc32(open(os.path.join(d, n), "rb").read()) & 0xffffffff
+               for n in sorted(os.listdir(d)) if n.endswith(".js") and n != "files.js"}
+        f = os.path.join(d, "files.js")
+        txt = json.dumps(out, indent=2) + "\n"
+        if not os.path.exists(f) or open(f, encoding="utf-8").read().replace("\r\n", "\n") != txt:
+            open(f, "w", encoding="utf-8").write(txt)
+            changed.append("thcrap/repos/Renko_1055/%s/files.js" % p)
+
+    if not sh("git", "status", "--porcelain", cwd=MODKIT):
+        print("th18_modkit 已是最新，无需提交")
+        return 0
+    dll_md5 = hashlib.md5(open(os.path.join(DIST, "bin/th18_card_expand.dll"), "rb").read()).hexdigest()[:8]
+    src_sha = sh("git", "rev-parse", "--short", "HEAD", cwd=REPO)
+    msg = ("card-expand: 同步构建产物（renkolab %s）\n\n"
+           "DLL md5 %s…\n改动：\n  %s\n\n由 renkolab mods/th18.v1.00a/card-expand/native/release.py 生成。"
+           % (src_sha, dll_md5, "\n  ".join(changed)))
+    sh("git", "add", "-A", cwd=MODKIT)
+    sh("git", "-c", "user.name=Renko6626", "-c", "user.email=renko6626@gmail.com",
+       "commit", "-q", "-m", msg, cwd=MODKIT)
+    print("th18_modkit 已提交：%s" % sh("git", "log", "--oneline", "-1", cwd=MODKIT))
+    if push:
+        print(sh("git", "push", "origin", "main", cwd=MODKIT, check=False) or "已推送")
+        print("origin/main =", sh("git", "log", "--oneline", "-1", "origin/main", cwd=MODKIT))
+    else:
+        print("未推送。要推：make release PUSH=1")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

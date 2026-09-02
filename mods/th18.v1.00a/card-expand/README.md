@@ -118,7 +118,35 @@ trace: allocate_new_card(id=58, mode=1)  <- NEW ID
 ⚠️ **战线 C 之前只能测 id 58**：公共尾段 `0x412d42` 写 `owned[id]` 到 `mgr+0xc84+id*4`，
 58 落在对象末尾那 12 字节余量的最后一个 dword（`+0xd6c`），**59 就越界了**。
 
-## 装法
+## 发布 —— 一条命令，Windows 只负责拉
+
+renkolab 是**开发仓库**，[`Renko6626/th18_modkit`](https://github.com/Renko6626/th18_modkit)
+是**发布仓库**（自带 thcrap 2024-11-06 + 勾选式启动器，朋友 clone 下来放好 exe 就能一键启动）。
+它的克隆在 `local/vendor/th18_modkit`。
+
+```bash
+cd native
+make release          # 构建 dist（DLL 可复现,无时间戳）→ 同步进 modkit → 在那边提交
+make release PUSH=1   # 再 push
+```
+
+`release.py` 只覆盖**生成物**（三个 patch 的 `th18.v1.00a.js`、`files.js`、DLL）；
+`patch.js`、侧车 `.json`、README 是 modkit 里手工维护的文案，**不碰**。
+发布仓库不干净或落后于远端时它会拒绝/先快进。幂等：没变化就不提交。
+
+modkit 里的对应关系：
+
+| renkolab `dist/` | modkit |
+| --- | --- |
+| `patch-step1/` | `thcrap/repos/Renko_1055/th18_card_expand/` |
+| `patch-step3/` | `thcrap/repos/Renko_1055/th18_card_expand_255/` |
+| `patch-test/`  | `thcrap/repos/Renko_1055/th18_card_expand_test/` |
+| `bin/th18_card_expand.dll` | `mods/th18_card_expand.dll` |
+
+启动器里：**步骤 1 与步骤 3 二选一，DLL 必勾**；`_test` 只在验证战线 B 时叠上。
+两个 patch 同时勾了也不会崩——DLL 会检出来、把分配器上界还原回零售值并记 `mitigation:`。
+
+## 装法（不用 modkit 时）
 
 | 放哪 | 什么 |
 | --- | --- |
