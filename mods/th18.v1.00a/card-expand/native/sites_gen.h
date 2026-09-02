@@ -131,3 +131,25 @@ static const ce_grow_t CE_GROW[] = {
     { 0x01716b, 6, CE_G_SHOP_END }, { 0x017527, 6, CE_G_SHOP_END }, { 0x0175e7, 6, CE_G_SHOP_END },
 };
 #define CE_NGROW (sizeof(CE_GROW)/sizeof(CE_GROW[0]))
+
+#define CE_UNLOCKED_OFF   0x5f588
+#define CE_UNLOCKED_CAVE_NAME "codecave:th18_card_unlocked"
+#define CE_RETAIL_UNLOCKED 57
+#define CE_SAVEDIR_RVA    0x168c61   /* %%APPDATA%%\ShanghaiAlice\th18\ ，游戏 chdir 用的缓冲，尾带反斜杠 */
+#define CE_SCOREFILE_PTR_RVA 0x0cf41c
+#define CE_BP_UNLOCK_WRITE_RVA 0x018e04
+#define CE_BP_SAVE_LOADED_RVA  0x06398a
+#define CE_BP_UNLOCK_ALL_RVA   0x0648fe
+typedef struct { uint32_t rva; uint8_t len, pre_len, post_len, pre[2], post[2]; } ce_unlock_t;
+static const ce_unlock_t CE_UNLOCK[] = {
+    { 0x01440b, 7, 2, 1, { 0x38, 0x8a }, { 0x90, 0 } },
+    { 0x0149ec, 8, 2, 2, { 0x80, 0xbe }, { 0x00, 0x90 } },
+    { 0x016590, 8, 2, 2, { 0x80, 0xbb }, { 0x00, 0x90 } },
+    { 0x01694e, 8, 2, 2, { 0x80, 0xba }, { 0x00, 0x90 } },
+    { 0x016e3d, 7, 2, 1, { 0x38, 0x82 }, { 0x90, 0 } },
+    { 0x017125, 8, 2, 2, { 0x80, 0xbe }, { 0x00, 0x90 } },
+    { 0x017ea3, 8, 2, 2, { 0x80, 0xb9 }, { 0x00, 0x90 } },
+    { 0x018df6, 8, 2, 2, { 0x80, 0xbf }, { 0x00, 0x90 } },
+    { 0x018e15, 7, 2, 1, { 0x8a, 0x80 }, { 0x90, 0 } },
+};
+#define CE_NUNLOCK (sizeof(CE_UNLOCK)/sizeof(CE_UNLOCK[0]))

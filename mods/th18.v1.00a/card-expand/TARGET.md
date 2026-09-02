@@ -66,17 +66,51 @@
 | `0x416f8f` `0x41744a` `0x417535` | `mov r,0xc84` | `0xd70` |
 | `0x41716b` `0x417527` `0x4175e7` | `cmp r,0xd64` | `0xe50`（**只跟到 56**，见 README）|
 
+## 写入点：战线 D（仅 `ROWS > 58`；9 处改 ModRM，短 1 字节 nop 补齐）
+
+| 地址 | 原 | 改（`S` = `<codecave:th18_card_unlocked>`）| 存档指针在 |
+| --- | --- | --- | --- |
+| `0x41440b` | `cmp [eax+edx+0x5f588],cl` | `cmp [edx+S],cl` | eax |
+| `0x4149ec` | `cmp byte [esi+eax+0x5f588],0` | `cmp byte [esi+S],0` | **eax（index）** |
+| `0x416590` | `cmp byte [eax+ebx+0x5f588],0` | `cmp byte [ebx+S],0` | eax |
+| `0x41694e` | `cmp byte [eax+edx+0x5f588],0` | `cmp byte [edx+S],0` | eax |
+| `0x416e3d` | `cmp [edx+ecx+0x5f588],al` | `cmp [edx+S],al` | **ecx（index）** |
+| `0x417125` | `cmp byte [eax+esi+0x5f588],0` | `cmp byte [esi+S],0` | eax |
+| `0x417ea3` | `cmp byte [ecx+eax+0x5f588],0` | `cmp byte [ecx+S],0` | **eax（index）** |
+| `0x418df6` | `cmp byte [esi+edi+0x5f588],0` | `cmp byte [edi+S],0` | esi |
+| `0x418e15` | `mov al,[esi+eax+0x5f588]` | `mov al,[eax+S]` | esi |
+
+「存档指针在哪个寄存器」由生成器从站点前 48 字节内最近一条 `mov r32,[0x4cf41c]` 取，
+**不按 SIB 槽位推**（3 处存档指针在 index，见 AUDIT §K2）。
+
+战线 D 的死绑量：
+
+| 量 | 值 | 出处 |
+| --- | --- | --- |
+| `unlocked_cards` 偏移 | `0x5f588`（`uint8_t[0x39]`）| ExpHP `type-structs-own.json`；`engine/card/th18/11` §1 |
+| `SCOREFILE_PTR` | `0x4cf41c` | `ScoreFile__load` `0x463984` 写入 |
+| 存档目录缓冲 | `0x568c61`（RVA `0x168c61`）| `Window__sub_4726a0`，`%APPDATA%\ShanghaiAlice\th18\` |
+| `mark_obtained` | `0x418de0`（测试钩子调它）| `CardCollection__mark_obtained_and_notify` |
+
+## hook 点：战线 D 的三个断点（`_255` patch 里）
+
+| 名 | 地址 | 原字节 | 长 | 干什么 |
+| --- | --- | --- | --- | --- |
+| `ce_unlock_write` | `0x418e04` | `c6 84 3e 88 f5 05 00 01` | 8 | 影子[edi]=1；id<57 放行原指令，否则写 side-car 并跳过 |
+| `ce_save_loaded` | `0x46398a` | `8d b3 b8 f4 05 00` | 6 | 影子 ← 零售存档（ebx）+ side-car |
+| `ce_unlock_all` | `0x4648fe` | `8d 83 88 f5 05 00` | 6 | 影子[0..55]=1 |
+
 ## 写入点：patch-test（只在验证时进栈）
 
 | 地址 | 原字节 | 改成 | 说明 |
 | --- | --- | --- | --- |
 | `0x407ee3` | `0f b6 84 30 08 f6 05 00` | `e8 [cave] 90 90 90` | 8 字节；cave 里先执行原 `movzx`，再把 56 改 58 |
-| `0x411469` | `81 7f 28 00 01 00 00` | thcrap 断点，`cavesize` 7 | `BP_ce_trace_alloc`，只读 `[ebp+8]`/`[ebp+0xc]` |
+| `0x411469` | `81 7f 28 00 01 00 00` | thcrap 断点，`cavesize` 7 | `BP_ce_trace_alloc`，读 `[ebp+8]`/`[ebp+0xc]`；新 id 第一次出现时调 `mark_obtained(id,1)` |
 
-## hook 点
+## hook 点小结
 
-正式 patch **没有 hook 点**：申请 codecave，改常量，完。
-断点只有 patch-test 里那一个（上表），正式 patch 不声明它。
+第 1 步 patch **没有 hook 点**：申请 codecave，改常量，完（自检门 `ce_gate` 除外）。
+`_255` 多三个断点（战线 D，上表）；patch-test 再多一个追踪断点。
 
 DLL 只有一个被 thcrap 调用的入口 `th18_card_expand_mod_post_init`
 （`init.cpp:420` `mod_func_run_all("post_init")`），跑在 thcrap 初始化线程上、

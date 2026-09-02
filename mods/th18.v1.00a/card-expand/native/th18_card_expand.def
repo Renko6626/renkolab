@@ -3,3 +3,6 @@ EXPORTS
 	thcrap_plugin_init	@1
 	BP_ce_gate			@2
 	BP_ce_trace_alloc	@3
+	BP_ce_save_loaded	@4
+	BP_ce_unlock_write	@5
+	BP_ce_unlock_all	@6

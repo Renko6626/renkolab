@@ -135,8 +135,12 @@ card_id 在存档（`initial_cards_per_shottype`，`0x407ee3  movzbl`）和 repl
 
 ### 战线 D — 存档：影子数组 + side-car，**绝不写 `scoreth18.dat`**
 
-> **下一个要做的**。交接页：[`../card-expand/NEXT.md`](../card-expand/NEXT.md)，
-> 含一条本轮补的设计决定（id < 57 回写零售存档，否则卸载后丢零售卡的解锁）。
+> **已做**（2026-09-02，静态审计通过、待实跑）：[`../card-expand/native/unlocked.c`](../card-expand/native/unlocked.c)，
+> 审计 [`../card-expand/AUDIT.md`](../card-expand/AUDIT.md) §K。实现与下文三点不同：
+> ① 写入点走 thcrap **断点**而不是手写 cave（id<57 放行原指令写零售存档，id≥57 写 side-car）；
+> ② `unlock_all` 加断点镜像到影子；③ ⚠️ **下表「改写后」一列有 3 行留错了寄存器**
+> （`0x4149ec` 应留 esi、`0x416e3d` 应留 edx、`0x417ea3` 应留 ecx——存档指针恰在 SIB 的 index 格），
+> 生成器改为从上下文反推，见 AUDIT §K2。表保留作历史记录。
 
 `unlocked_cards` 是 `uint8_t[57]` @ `+0x5f588`，后面只有 71 字节空档，
 放不下 255。而它在 `zScoreFile` 里，动它就动存档格式**和别人的存档**。

@@ -90,6 +90,15 @@ static void init_log_path(void)
         strcpy(s_logpath, "th18_card_expand.log");     /* 兜底：只会在 exe 路径异常时发生 */
 }
 
+void ce_log_dir(char *out, size_t cap)
+{
+    const char *slash = strrchr(s_logpath, '\\');
+    size_t n = slash ? (size_t)(slash + 1 - s_logpath) : 0;
+    if (n >= cap) n = 0;
+    memcpy(out, s_logpath, n);
+    out[n] = 0;
+}
+
 int __stdcall thcrap_plugin_init(void)
 {
     init_log_path();

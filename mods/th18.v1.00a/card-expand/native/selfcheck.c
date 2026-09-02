@@ -154,6 +154,8 @@ int ce_selfcheck(uint8_t *base)
     if (!fill_table(base, cave, rows)) { restore_alloc_bound(base); return 0; }
     if (alloc && !fill_jumptable(base, jt, rows)) { restore_alloc_bound(base); return 0; }
     if (alloc && !check_grow(base, rows))          { restore_alloc_bound(base); return 0; }
+    /* 战线 D 与 B/C 同进退：_255 patch 里一定带影子数组。核对 9 处读 + 3 个断点。 */
+    if (alloc) { ce_unlock_init(base); if (!ce_unlock_check(base)) { restore_alloc_bound(base); return 0; } }
 
     unsigned ok = 0, bad = 0, first_bad = 0;
     for (unsigned i = 0; i < CE_NSITES; ++i) {
@@ -167,7 +169,7 @@ int ce_selfcheck(uint8_t *base)
     }
     if (bad == 0) {
         ce_verdict("OK: table filled (%u rows @ %p)%s, %u/%u sites verified",
-                   rows, cave, alloc ? ", allocator relocated, manager grown" : "", ok, (unsigned)CE_NSITES);
+                   rows, cave, alloc ? ", allocator relocated, manager grown, unlocked shadowed" : "", ok, (unsigned)CE_NSITES);
         return 1;
     }
     const ce_site_t *s = &CE_SITES[first_bad];

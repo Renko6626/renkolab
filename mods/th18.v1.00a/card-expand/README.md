@@ -14,7 +14,8 @@
 | 2 | 255 行，仍零变化 | ✅ **实跑通过** |
 | 3 / 战线 B | 分配器搬迁 + 验证钩子（`make step3`） | ✅ **实跑通过**：`allocate_new_card(id=58)` 真的发到手上 |
 | C | `zAbilityManager` 扩容，`owned[]` 255 项（并入 `_255`）| 静态审计通过，**待实跑** |
-| D / E | 影子存档 / 图鉴文案图 | 未做。新卡目前「未获取」是 D 的事 |
+| D | 存档影子数组 + side-car（并入 `_255`）| 静态审计通过，**待实跑**。见下「战线 D」 |
+| E | 图鉴 / 顺序表 / 文案 / 图 / 商店筛选 | 未做。解锁后的新卡名字是乱码就是它 |
 
 第 1 步的价值不在功能，而在用「和香草没差别」这个最容易判定的标准，
 一次性验证 100 处搬迁 + 生成器 + 对账器 + 开机自检。
@@ -116,12 +117,41 @@ HIT_ARM 还指旧表时，`下标 * 0x34 + 旧基址` 会返回**另一张卡的
 
 DLL 的 `check_grow` 按运行时 rows 现算这 12 处的改后字节逐一核对。
 
+## 战线 D —— 存档：影子数组 + side-car（并入 `_255`）
+
+`unlocked_cards` 是 `zScoreFile` 里的 `uint8_t[57]`，后面没余量，又在存档里。所以：
+
+- **读**（9 处）改成读 codecave `th18_card_unlocked`（256 字节，下标 = id）。改的是 ModRM（去掉 SIB），
+  每处短 1 字节 nop 补齐。⚠️ `[base+index]` 里存档指针放哪一格是随机的（3/9 在 index），
+  生成器从站点前面那条 `mov r32,[SCOREFILE_PTR]` 决定丢哪个寄存器，对账器独立再算一遍（AUDIT §K2）。
+- **写**（`mark_obtained` `0x418e04`）改成断点 `BP_ce_unlock_write`：影子[id]=1；**id<57 放行原指令**
+  （零售数组照常写，`scoreth18.dat` 逐字节与香草一致）；id≥57 跳过原指令、立刻写 side-car。
+- **初始化**：断点 `BP_ce_save_loaded`（`ScoreFile__load` 尾段）把零售 57 项拷进影子，再从 side-car 读 57..254。
+- **作弊解锁** `unlock_all` 多一个断点镜像到影子（否则读写分家到重启）。
+
+side-car：`%APPDATA%\ShanghaiAlice\th18\th18_card_expand.sav`（路径取自游戏自己的存档目录缓冲，
+取不到退到 exe 目录）。271 字节：`"TH18CEXP"` + 版本 + 255 + 255 个字节。**只有 id≥57 那段被读回**。
+每次解锁新 id 立刻写盘（先 `.tmp` 再原子替换），所以不用管 `scoreth18.dat` 何时落盘。
+
+**没有 DLL 时**影子全零 ⇒ 所有卡「未获取」。`_255` 本来就要 DLL（B 的兜底也在里面），启动器里 DLL 必勾。
+
+**验收**（叠 `patch-test`，DLL 会在第一次分配到新 id 时替你调 `mark_obtained(58,1)`）：
+
+1. 第一次启动：日志有 `unlocked: shadow @ …, 57 retail (N set) + side-car (0 new ids set)`；
+   开一局（第一格留空）→ 弹「获得卡牌」通知 → 日志 `unlock: id=58 (NEW; shadow + side-car saved)`；
+   存档目录出现 `th18_card_expand.sav`。
+2. **退出再进**：日志 `side-car (1 new ids set)`；进局后卡列表里那张不再是「まだ手に入れてない」，
+   名字栏是**乱码或空白**——预期（文案缓冲只有 57 张，战线 E）。
+3. `scoreth18.dat` 的 md5 与打补丁前**相同**（除非这局解锁了零售卡）。
+4. 结论行变成 `OK: … allocator relocated, manager grown, unlocked shadowed, 100/100 sites verified`，
+   前面多一行 `unlocked: shadow @ …, 9 read sites + 3 breakpoints verified; side-car = <路径>`。
+
 ### 验证钩子 `patch-test/`（只在测试时进栈）
 
 | 钩子 | 干什么 |
 | --- | --- |
 | `0x407ee3` binhack → `th18_ce_test_deck58` | `reset_cards` 读初始卡组时，**空槽(56) 改发 id 58**。不写存档、不改文件 |
-| `0x411469` 断点 → `BP_ce_trace_alloc` | 每次 `allocate_new_card(id, mode)` 记进日志 |
+| `0x411469` 断点 → `BP_ce_trace_alloc` | 每次 `allocate_new_card(id, mode)` 记进日志；**新 id 第一次出现时调 `mark_obtained(id,1)`**（战线 D 的验收，否则没有路能解锁新卡）|
 
 **流程**：`make step3` → `patch/` 进栈（DLL 不用换），再把 `patch-test/` 叠在上面 →
 卡组编成里把**第一格清空**（选那个空白项）→ 开一局。日志里应出现：
@@ -208,7 +238,7 @@ OK: table filled (58 rows @ 0x…), 100/100 sites verified
 ```
 card-expand/
 ├── README.md          # 你在这
-├── NEXT.md            # ★ 下一个会话从这里开始（战线 D）
+├── NEXT.md            # ★ 下一个会话从这里开始（战线 E）
 ├── TARGET.md          # ★ 死绑登记
 ├── AUDIT.md           # 对抗审计
 ├── native/
@@ -219,8 +249,9 @@ card-expand/
 │   ├── sites_gen.h    生成物:DLL 用的站点表
 │   ├── card_expand.h  DLL 内部共用声明
 │   ├── dll_main.c     入口 / 日志 / thcrap API / 自检①(零售表签名)
-│   ├── selfcheck.c    ★ 自检②:post_init 填表(+跳转表) + 回读站点
-│   ├── bp_trace.c     测试断点:记录 allocate_new_card(id, mode)
+│   ├── selfcheck.c    ★ 自检②:BP_ce_gate 填表(+跳转表) + 回读站点
+│   ├── unlocked.c     ★ 战线 D:影子数组 + side-car + 三个断点
+│   ├── bp_trace.c     测试断点:记录 allocate_new_card(id, mode);新 id 顺手 mark_obtained
 │   ├── thcrap_bp.h    断点 ABI(与 mouse-control 同一份)
 │   ├── th18_card_expand.def
 │   └── Makefile

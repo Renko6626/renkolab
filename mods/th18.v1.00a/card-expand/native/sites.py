@@ -17,7 +17,7 @@
   x86imm.py —— **完整性审计**，扫出所有撞上这些值的地方，
                 凡不在已匹配站点内的都列出来人工过目。
 """
-import argparse, hashlib, json, os, struct, sys
+import argparse, hashlib, json, os, re, struct, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -60,6 +60,14 @@ TEST_MOVZX  = 0x407ee3    # reset_cards 读初始卡组：movzx eax, byte [eax+e
 TEST_TRACE  = 0x411469    # allocate_new_card 序言：cmp [edi+0x28], 0x100（7 字节）
 # 自检门的断点：ScoreFile__load 入口，只被调一次(0x452cde)，是最早碰卡表的函数
 GATE_ADDR   = 0x4637d0    # 55 8b ec 6a ff = push ebp; mov ebp,esp; push -1（5 字节，无相对寻址）
+# ---- 战线 D：存档影子数组（PLAN-255-ids §2 战线 D；NEXT.md）----
+UNLOCKED_OFF   = 0x5f588  # zScoreFile.unlocked_cards：uint8_t[57]（ExpHP type-structs-own.json）
+UNLOCKED_CAVE  = "th18_card_unlocked"   # 影子数组：256 字节，下标 = card id
+UNLOCK_WRITE   = 0x418e04 # mark_obtained 的写：mov byte [esi+edi+0x5f588], 1（8 字节）→ 断点
+SAVE_LOADED    = 0x46398a # ScoreFile__load 尾段：lea esi,[ebx+0x5f4b8]（6 字节），SCOREFILE_PTR 刚写好，ebx = 存档
+UNLOCK_ALL     = 0x4648fe # ScoreFile__unlock_all：lea eax,[ebx+0x5f588]（6 字节），下一条就是 memset(…,1,0x38)
+SUBOBJ_A_OFF   = 0x5f4b8  # unlocked_cards 所在子对象（init_from_table 的 this）；影子初始化只用 0x5f588
+SCOREFILE_PTR  = 0x4cf41c # 全局 SCOREFILE_PTR；每处读的前几条里都有一条 mov r32,[0x4cf41c]
 
 PART_ORDER = ("start", "end", "fallback", "hit")
 
@@ -310,6 +318,10 @@ def emit_codecaves(rows, alloc):
         ]
         out[JT_CODECAVE] = {"size": "0x%x" % (rows * 4), "access": "RW",
                             "title": "allocate_new_card 跳转表搬迁目标（%d 项）" % rows}
+        # 战线 D：影子数组。thcrap 把只给 size 的 codecave 清零；内容由 DLL 在
+        # BP_ce_save_loaded 里填（零售存档 + side-car）。没有 DLL = 全部「未获取」。
+        out[UNLOCKED_CAVE] = {"size": "0x100", "access": "RW",
+                              "title": "unlocked_cards 影子数组（256 字节，下标 = card id；DLL 填）"}
     code += ["61", "c3"]                             # popad ; ret
     out[CAVE_INIT] = {"code": "".join(code), "export": True, "access": "RX",
                       "title": "开机把零售表（与跳转表）拷进 codecave；DLL 的 post_init 是权威，这里是保险"}
@@ -359,6 +371,197 @@ def emit_grow_binhacks(rows):
         bh(a, reg + le(shop_end), reg + le(OWNED_OLD + SHOP_ENTRIES * 4),
            "商店循环上界 → +0x%x（仍只看前 %d 个 id）" % (shop_end, SHOP_ENTRIES))
     return B
+
+
+
+# ---- 战线 D：影子数组 ----------------------------------------------------------
+# 9 处读全是 `op [base+idx+0x5f588]` 的 SIB 形态。改成 `op [idx+SHADOW]`：去掉 SIB、
+# disp32 换成影子数组的绝对地址，每处短 1 字节，nop 补齐。这是本 mod 第一次改 ModRM
+# 而不只是换常量，所以生成器与对账器各带一份**独立**的解码：生成器从原指令算新指令，
+# 对账器把 patch 里的新旧两条都拆开来比字段。
+
+_REG8 = ("al", "cl", "dl", "bl", "ah", "ch", "dh", "bh")
+_REG32 = ("eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi")
+
+
+def decode_sib_byte_op(b):
+    """解 `op ModRM SIB disp32 [imm8]`，只认本战线用到的四种 opcode。
+
+    返回 {op, reg, base, index, disp, imm, len}；base/index 是寄存器号。
+    只接受 mod=10（disp32）、scale=1、rm=100（有 SIB）的形态——其余一律报错，
+    因为那说明扫描器抓到了不该抓的东西。
+    """
+    op = b[0]
+    has_imm = op == 0x80                      # 80 /7 ib = cmp r/m8, imm8
+    if op not in (0x3a, 0x38, 0x8a, 0x80):
+        raise ShapeError("0x%02x：不是战线 D 认识的 opcode" % op)
+    modrm = b[1]
+    mod, reg, rm = modrm >> 6, (modrm >> 3) & 7, modrm & 7
+    if mod != 2 or rm != 4:
+        raise ShapeError("ModRM %02x：不是 [base+idx+disp32] 形态" % modrm)
+    if has_imm and reg != 7:
+        raise ShapeError("80 /%d：不是 cmp" % reg)
+    sib = b[2]
+    scale, index, base = sib >> 6, (sib >> 3) & 7, sib & 7
+    if scale != 0 or index == 4 or base == 5:
+        raise ShapeError("SIB %02x：scale/index/base 不在预期内" % sib)
+    disp = struct.unpack_from("<I", b, 3)[0]
+    n = 7 + (1 if has_imm else 0)
+    return {"op": op, "reg": reg, "base": base, "index": index, "disp": disp,
+            "imm": b[7] if has_imm else None, "len": n}
+
+
+def decode_disp32_op(b):
+    """解 `op ModRM disp32 [imm8]`（改写后的形态）。返回同上结构，base=None。"""
+    op = b[0]
+    has_imm = op == 0x80
+    modrm = b[1]
+    mod, reg, rm = modrm >> 6, (modrm >> 3) & 7, modrm & 7
+    if mod != 2 or rm in (4, 5):
+        raise ShapeError("ModRM %02x：不是 [reg+disp32] 形态" % modrm)
+    disp = struct.unpack_from("<I", b, 2)[0]
+    n = 6 + (1 if has_imm else 0)
+    return {"op": op, "reg": reg, "base": None, "index": rm, "disp": disp,
+            "imm": b[6] if has_imm else None, "len": n}
+
+
+def _looks_like_jcc_rel32(text, p):
+    """p 指向一个 4 字节 imm 的起点：前面若是 `0f 8x`（jcc rel32），那就是位移撞上了值。"""
+    return p >= 2 and text[p - 2] == 0x0f and 0x80 <= text[p - 1] <= 0x8f
+
+
+def scorefile_reg_before(text, p, window=48):
+    """站点 p 之前 window 字节内最近一条 `mov r32, [SCOREFILE_PTR]` 装进了哪个寄存器。
+
+    ★ 为什么必须看上下文：`[base+index*1+disp]` 的 base/index 在语义上是对称的，
+    编译器把存档指针放哪一格是随机的——9 处里有 3 处放在 index。只按 SIB 槽位
+    决定「留哪个寄存器」会把 3 处改成用存档指针去下标影子数组（不崩、全错）。
+    编码：`a1 imm32` = mov eax；`8b /r` mod=00 rm=101 = mov r32,[disp32]。
+    窗口 48 字节：最远的一处是 0x418e15（装载在 45 字节前的函数序言）。这里不做
+    「中间没有改写该寄存器」的证明——9 处的中间指令已人工过目（AUDIT §K）；
+    换 build 后要重看。
+    """
+    needle = struct.pack("<I", SCOREFILE_PTR)
+    found = []
+    for q in range(max(0, p - window), p):
+        if text[q:q + 4] != needle:
+            continue
+        if q >= 1 and text[q - 1] == 0xa1 and q + 4 <= p:
+            found.append((q, 0))                                  # eax
+        elif q >= 2 and text[q - 2] == 0x8b and (text[q - 1] & 0xc7) == 0x05 and q + 4 <= p:
+            found.append((q, (text[q - 1] >> 3) & 7))
+    if not found:
+        raise ShapeError("0x%x 之前 %d 字节内没有 mov r32,[SCOREFILE_PTR]" % (p, window))
+    return found[-1][1]
+
+
+def find_unlock_sites(text, text_va):
+    """扫 .text 里所有 imm32 == 0x5f588 的位置，按能否解成 SIB 读分成两堆。
+
+    返回 (reads, others)：reads 是 10 处可改写的读；others 是撞上同一值但**不是**
+    这种形态的（写入点 0x418e04、unlock_all 的 lea、以及 jcc rel32 的假阳性），
+    全部列出来让人过目——它们要么走断点，要么本来就不该动。
+    """
+    needle = struct.pack("<I", UNLOCKED_OFF)
+    reads, others = [], []
+    p = text.find(needle)
+    while p >= 0:
+        va = text_va + p
+        start = p - 3                         # op modrm sib 之后才是 disp32
+        try:
+            d = decode_sib_byte_op(text[start:start + 8])
+            sf = scorefile_reg_before(text, start)
+            if sf == d["base"]:
+                d["keep"] = d["index"]
+            elif sf == d["index"]:
+                d["keep"] = d["base"]
+            else:
+                raise ShapeError("0x%06x：存档指针在 %s，既不是 base 也不是 index" % (va - 3, _REG32[sf]))
+            reads.append((va - 3, d, text[start:start + d["len"]]))
+        except (ShapeError, IndexError):
+            d = None
+        if d is None:
+            others.append((va, text[p - 3:p + 5].hex()))
+        p = text.find(needle, p + 1)
+    return reads, others
+
+
+def encode_unlock_rewrite(d):
+    """从解出来的原指令算改写后的 (前缀字节, 后缀字节)；中间 4 字节是影子数组地址。"""
+    modrm = (2 << 6) | (d["reg"] << 3) | d["keep"]
+    pre = bytes([d["op"], modrm])
+    post = bytes([d["imm"]]) if d["imm"] is not None else b""
+    post += b"\x90" * (d["len"] - (len(pre) + 4 + len(post)))
+    assert len(pre) + 4 + len(post) == d["len"]
+    return pre, post
+
+
+def emit_unlock_binhacks(reads):
+    """战线 D 的 9 处读。expected 是 exe 原字节；code = 前缀 + <codecave> + 后缀。"""
+    B = {}
+    for va, d, raw in reads:
+        pre, post = encode_unlock_rewrite(d)
+        B["unlock_%06x" % va] = {
+            "addr": "0x%06x" % va,
+            "code": pre.hex() + "<codecave:%s>" % UNLOCKED_CAVE + post.hex(),
+            "expected": raw.hex(),
+            "title": "unlocked_cards 读 → 影子数组：%s [%s+%s+0x5f588] → [%s+SHADOW]（%s = 存档指针）" % (
+                {0x3a: "cmp r8,m8", 0x38: "cmp m8,r8", 0x8a: "mov r8,m8", 0x80: "cmp m8,imm8"}[d["op"]],
+                _REG32[d["base"]], _REG32[d["index"]], _REG32[d["keep"]],
+                _REG32[d["index"] if d["keep"] == d["base"] else d["base"]]),
+        }
+    return B
+
+
+def emit_unlock_breakpoints(text, text_va):
+    """战线 D 的三个断点。expected 从 exe 现取，cavesize = 指令长。"""
+    def bp(name, va, n, title):
+        raw = text[va - text_va:va - text_va + n]
+        return name, {"addr": "0x%06x" % va, "cavesize": n, "expected": raw.hex(), "title": title}
+    return dict([
+        bp("ce_unlock_write", UNLOCK_WRITE, 8,
+           "mark_obtained 的写 → BP_ce_unlock_write：影子[id]=1；id<57 放行原指令写零售存档，否则写 side-car"),
+        bp("ce_save_loaded", SAVE_LOADED, 6,
+           "ScoreFile__load 尾段 → BP_ce_save_loaded：影子[0..56] ← 零售存档，[57..] ← side-car"),
+        bp("ce_unlock_all", UNLOCK_ALL, 6,
+           "ScoreFile__unlock_all → BP_ce_unlock_all：影子[0..55]=1（镜像紧接着的 memset）"),
+    ])
+
+
+def verify_unlock_binhack(name, bh, text, text_va):
+    """对账战线 D 的一条：把 expected（原）和 code（新）各自解开，逐字段比。"""
+    bad = []
+    va = int(bh["addr"], 16); off = va - text_va
+    exp = bytes.fromhex(bh["expected"])
+    if text[off:off + len(exp)] != exp:
+        return ["%s：exe 里是 %s" % (name, text[off:off + len(exp)].hex())]
+    code = bh["code"]
+    m = re.fullmatch(r"([0-9a-f]*)<codecave:%s>([0-9a-f]*)" % UNLOCKED_CAVE, code)
+    if not m:
+        return ["%s：code 不是「前缀 + <codecave:%s> + 后缀」" % (name, UNLOCKED_CAVE)]
+    pre, post = bytes.fromhex(m.group(1)), bytes.fromhex(m.group(2))
+    rendered = pre + b"\0\0\0\0" + post
+    if len(rendered) != len(exp):
+        bad.append("%s：code 渲染 %d 字节 != expected %d" % (name, len(rendered), len(exp)))
+        return bad
+    try:
+        o = decode_sib_byte_op(exp)
+        n = decode_disp32_op(rendered)
+    except ShapeError as e:
+        return ["%s：解码失败 %s" % (name, e)]
+    if o["disp"] != UNLOCKED_OFF:
+        bad.append("%s：原指令 disp 不是 0x5f588" % name)
+    if n["op"] != o["op"] or n["reg"] != o["reg"] or n["imm"] != o["imm"]:
+        bad.append("%s：opcode / reg / imm8 变了" % name)
+    sf = scorefile_reg_before(text, off)
+    keep = {o["base"], o["index"]} - {sf}
+    if len(keep) != 1 or n["index"] not in keep:
+        bad.append("%s：★ 留下的寄存器不对：新指令用 %s，存档指针在 %s，原指令 [%s+%s]"
+                   % (name, _REG32[n["index"]], _REG32[sf], _REG32[o["base"]], _REG32[o["index"]]))
+    tail = rendered[n["len"]:]
+    if tail != b"\x90" * len(tail):
+        bad.append("%s：补位不是 nop" % name)
+    return bad
 
 
 def emit_test_patch():
@@ -416,6 +619,9 @@ def verify_patch(path, text, text_va):
         if bp["cavesize"] != len(exp):
             bad.append("断点 %s：cavesize %d != expected 长度 %d" % (name, bp["cavesize"], len(exp)))
     for name, bh in doc["binhacks"].items():
+        if name.startswith("unlock_"):
+            bad += verify_unlock_binhack(name, bh, text, text_va)
+            continue
         if name.startswith(("alloc_", "grow_")):
             va = int(bh["addr"], 16); off = va - text_va
             exp = bytes.fromhex(bh["expected"])
@@ -513,7 +719,7 @@ def conflicts(ours_path, other_paths):
     return checked, found
 
 
-def emit_header(sites):
+def emit_header(sites, unlock_reads):
     """给 DLL 生成站点表 —— **与行数无关**，所以一个 DLL 配所有 patch。
 
     每个站点只记：RVA、长度、opcode 前缀（已在 patch 的 expected 里）、
@@ -566,6 +772,24 @@ def emit_header(sites):
               "    { 0x016f8f, 5, CE_G_SHOP_START }, { 0x01744a, 5, CE_G_SHOP_START }, { 0x017535, 5, CE_G_SHOP_START },",
               "    { 0x01716b, 6, CE_G_SHOP_END }, { 0x017527, 6, CE_G_SHOP_END }, { 0x0175e7, 6, CE_G_SHOP_END },",
               "};", "#define CE_NGROW (sizeof(CE_GROW)/sizeof(CE_GROW[0]))", ""]
+    # 战线 D：9 处读，改后字节 = pre + cave + post；三个断点的地址给 DLL 核对「已挂上」（首字节 e8）。
+    lines += ["#define CE_UNLOCKED_OFF   0x%x" % UNLOCKED_OFF,
+              "#define CE_UNLOCKED_CAVE_NAME \"codecave:%s\"" % UNLOCKED_CAVE,
+              "#define CE_RETAIL_UNLOCKED 57",
+              "#define CE_SAVEDIR_RVA    0x168c61   /* %%APPDATA%%\\ShanghaiAlice\\th18\\ ，游戏 chdir 用的缓冲，尾带反斜杠 */",
+              "#define CE_SCOREFILE_PTR_RVA 0x0cf41c",
+              "#define CE_BP_UNLOCK_WRITE_RVA 0x%06x" % (UNLOCK_WRITE - 0x400000),
+              "#define CE_BP_SAVE_LOADED_RVA  0x%06x" % (SAVE_LOADED - 0x400000),
+              "#define CE_BP_UNLOCK_ALL_RVA   0x%06x" % (UNLOCK_ALL - 0x400000),
+              "typedef struct { uint32_t rva; uint8_t len, pre_len, post_len, pre[2], post[2]; } ce_unlock_t;",
+              "static const ce_unlock_t CE_UNLOCK[] = {"]
+    for va, d, raw in unlock_reads:
+        pre, post = encode_unlock_rewrite(d)
+        assert len(pre) == 2 and len(post) <= 2
+        lines.append("    { 0x%06x, %d, %d, %d, { 0x%02x, 0x%02x }, { %s } },"
+                     % (va - 0x400000, d["len"], len(pre), len(post), pre[0], pre[1],
+                        ", ".join("0x%02x" % b for b in post) + (", 0" * (2 - len(post)))))
+    lines += ["};", "#define CE_NUNLOCK (sizeof(CE_UNLOCK)/sizeof(CE_UNLOCK[0]))", ""]
     return "\n".join(lines)
 
 
@@ -594,6 +818,16 @@ def main():
     sites = collect_sites(inst, walks)
     uncovered = audit_uncovered(text, text_va, sites)
     secs, in_text, in_data = audit_interior(EXE, sites)
+    unlock_reads, unlock_others = find_unlock_sites(text, text_va)
+    # 战线 D 的全集：9 处 SIB 读 + 写入点 + unlock_all 的 lea；其余撞上 0x5f588 的只能是
+    # jcc rel32 之类的假阳性（它们的「前 3 字节」解不成任何一种 SIB 读）。多一处少一处都停。
+    unlock_known = {UNLOCK_WRITE + 3, UNLOCK_ALL + 2}
+    unlock_unexplained = [(va, hx) for va, hx in unlock_others
+                          if va not in unlock_known and not _looks_like_jcc_rel32(text, va - text_va)]
+    if len(unlock_reads) != 9 or unlock_unexplained:
+        bad.append("战线 D：0x5f588 的读有 %d 处（应 9）；无法解释的命中 %d 处：%s"
+                   % (len(unlock_reads), len(unlock_unexplained),
+                      ", ".join("0x%06x(%s)" % x for x in unlock_unexplained)))
 
     if a.cmd == "conflicts":
         if not a.others:
@@ -609,7 +843,7 @@ def main():
         path = a.out or os.path.join(HERE, "..", "patch", "%s.js" % VERSION)
         n, bad = verify_patch(path, text, text_va)
         print("对账 %s：%d 条 binhack" % (os.path.relpath(path, REPO), n))
-        n_alloc = sum(1 for k in json.load(open(path, encoding="utf-8"))["binhacks"] if k.startswith(("alloc_", "grow_")))
+        n_alloc = sum(1 for k in json.load(open(path, encoding="utf-8"))["binhacks"] if k.startswith(("alloc_", "grow_", "unlock_")))
         if n - n_alloc != len(sites):
             bad.append("patch 里 %d 条搬表 binhack，扫描器认为应有 %d 条" % (n - n_alloc, len(sites)))
         for b in bad:
@@ -638,6 +872,12 @@ def main():
                 for k in PART_ORDER:
                     print("        %-9s 0x%06x  %-22s %s"
                           % (k, p[k]["va"], p[k]["text"], p[k]["bytes"].hex()))
+        print("\n战线 D：unlocked_cards（0x5f588）的读 %d 处（→ 影子数组）：" % len(unlock_reads))
+        for va, d, raw in unlock_reads:
+            print("   0x%06x  %-24s [%s+%s+0x5f588] → [%s+SHADOW]" % (
+                va, raw.hex(), _REG32[d["base"]], _REG32[d["index"]], _REG32[d["keep"]]))
+        print("   其它命中（写入点 / unlock_all 走断点；jcc 假阳性不动）：%s"
+              % ", ".join("0x%06x" % va for va, _ in unlock_others))
         print("\n⛔ 撞上同样的值但**不在查表骨架里**的 %d 处（这些不该改）：" % len(uncovered))
         for va, v, kind, desc in uncovered:
             print("   0x%06x  值 0x%06x  %-5s %s" % (va, v, kind, desc))
@@ -678,6 +918,8 @@ def main():
     if alloc:
         doc["binhacks"].update(emit_alloc_binhacks(a.rows))
         doc["binhacks"].update(emit_grow_binhacks(a.rows))
+        doc["binhacks"].update(emit_unlock_binhacks(unlock_reads))
+        doc["breakpoints"].update(emit_unlock_breakpoints(text, text_va))
     txt = json.dumps(doc, indent=2, ensure_ascii=False)
     if a.out:
         out = a.out if os.path.isabs(a.out) else os.path.join(HERE, a.out)
@@ -686,7 +928,7 @@ def main():
               % (len(doc["binhacks"]), len(doc["codecaves"]), out,
                  a.rows, a.rows * ROW_SIZE))
         hdr = os.path.join(HERE, "sites_gen.h")
-        open(hdr, "w", encoding="utf-8").write(emit_header(sites))
+        open(hdr, "w", encoding="utf-8").write(emit_header(sites, unlock_reads))
         print("写出 DLL 站点表 -> %s（与行数无关）" % hdr)
         if True:   # 测试 patch 与行数无关，总是产出，便于入库
             tp = os.path.join(os.path.dirname(out), "..", "patch-test", "%s.js" % VERSION)

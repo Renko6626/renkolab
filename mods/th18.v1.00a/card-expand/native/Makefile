@@ -52,7 +52,7 @@ LDFLAGS   := -shared -static-libgcc -s -lkernel32 -Wl,--no-insert-timestamp
 
 ## dll    —— 编 DLL（依赖 gen 出的 sites_gen.h）
 dll: $(DLL)
-SRCS      := dll_main.c selfcheck.c bp_trace.c
+SRCS      := dll_main.c selfcheck.c unlocked.c bp_trace.c
 OBJS      := $(SRCS:.c=.o)
 %.o: %.c card_expand.h sites_gen.h thcrap_bp.h
 	$(CC) $(CFLAGS) -c -o $@ $<
