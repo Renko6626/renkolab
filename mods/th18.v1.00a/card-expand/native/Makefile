@@ -2,9 +2,9 @@
 ROWS ?= 255
 PATCH := ../patch/th18.v1.00a.js
 
-.PHONY: all check gen verify files clean
+.PHONY: all check gen verify files clean test-host
 
-all: gen verify dll
+all: gen verify test-host dll
 
 ## step1 —— 第 1 步交付态：58 行，行为零变化（只进 dist/patch-step1；仓库里 patch/ 提交的是 255 行 = step3）
 step1:
@@ -12,7 +12,7 @@ step1:
 
 ## step3 —— 战线 B 验证态：255 行 + 分配器搬迁 + patch-test（空槽→id 58 + 追踪断点）
 step3:
-	$(MAKE) ROWS=255 gen verify dll dllx87 files
+	$(MAKE) ROWS=255 gen verify test-host dll dllx87 files
 
 ## check  —— 只扫描 + 校验两条不变式，不产出
 check:
@@ -52,12 +52,19 @@ LDFLAGS   := -shared -static-libgcc -s -lkernel32 -Wl,--no-insert-timestamp
 
 ## dll    —— 编 DLL（依赖 gen 出的 sites_gen.h）
 dll: $(DLL)
-SRCS      := dll_main.c selfcheck.c unlocked.c text.c cards.c menu.c bp_trace.c
+SRCS      := dll_main.c selfcheck.c unlocked.c text.c cards_def.c cards.c menu.c bp_trace.c
 OBJS      := $(SRCS:.c=.o)
-%.o: %.c card_expand.h sites_gen.h thcrap_bp.h
+%.o: %.c card_expand.h sites_gen.h thcrap_bp.h cards_def.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(DLL): $(OBJS) th18_card_expand.def
 	$(CC) $(CFLAGS) -o $@ $(OBJS) th18_card_expand.def $(LDFLAGS)
+
+## test-host —— 纯逻辑（cards_def.c）的主机单测，Linux gcc 直接跑
+HOSTCC ?= cc
+test-host:
+	@mkdir -p tests/build
+	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_cards_def tests/test_cards_def.c cards_def.c
+	./tests/build/test_cards_def
 
 ## x87 自检 —— 只看我们自己的目标文件
 dllx87: $(OBJS)
