@@ -3,6 +3,7 @@
 > **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
 
 把 `zTableCardData[]` 从 `.data` 搬进 codecave，为「加新卡」腾出行数。
+**「加一张卡到底改了什么」的追溯表在 [`MAP.md`](MAP.md)**——150 条 binhack、7 个断点、5 个 codecave 各自的出处。
 方案全貌见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)，
 边界依据见 [`engine/card/th18/11-sentinels-56-57.md`](../../../engine/card/th18/11-sentinels-56-57.md)。
 
@@ -15,7 +16,7 @@
 | 3 / 战线 B | 分配器搬迁 + 验证钩子（`make step3`） | ✅ **实跑通过**：`allocate_new_card(id=58)` 真的发到手上 |
 | C | `zAbilityManager` 扩容，`owned[]` 255 项（并入 `_255`）| ✅ **实跑通过** |
 | D | 存档影子数组 + side-car（并入 `_255`）| ✅ **实跑通过**：id 58 获得 → 重启仍解锁。见下「战线 D」 |
-| E | 图鉴 / 顺序表 / 文案 / 图 / 商店筛选 | **第一块**（文案重定向，「测试卡牌 N」）✅ 实跑通过；其余未做 |
+| E | 图鉴 / 顺序表 / 文案 / 图 / 商店筛选 | 文案重定向 ✅ 实跑；**图鉴 + 编成**（顺序表 / `zAbilityMenu` 扩容）静态审计通过 **待实跑**；商店、图、数据未做 |
 
 第 1 步的价值不在功能，而在用「和香草没差别」这个最容易判定的标准，
 一次性验证 100 处搬迁 + 生成器 + 对账器 + 开机自检。
@@ -154,6 +155,22 @@ side-car：`%APPDATA%\ShanghaiAlice\th18\th18_card_expand.sav`（路径取自游
 「加上基址后落进 DLL 缓冲」的偏移。缓冲现在是占位文案「测试卡牌 N」（UTF-8，thcrap 的 textdisp
 先按 UTF-8 解），战线 E 的真数据落地时就用这块缓冲。⚠️ 名字会被当 printf 格式串，文案里不能有 `%`。
 
+## 战线 E 第二块 —— 图鉴 / 编成里出现新卡（并入 `_255`）
+
+两个菜单都按**显示顺序表**（`0x4b3600`，57 个 id）走；图鉴的条目数是写死的 56，编成按
+「可见且已解锁」动态收集，收进 `zAbilityMenu.__card_ids[56]`。所以：
+
+- 顺序表搬进 codecave `th18_card_order`（255 项）；DLL 在门里重排成
+  `[零售 0..55, 已注册新 id…, 56(空槽), 其余 57(BACK，两处都不可见)]`。
+- `zAbilityMenu` 从 `0x13fc` 扩到 `0x17f8`，`__card_ids` 搬到 `+0x13fc`（16 处，含两处游标相对寻址）。
+- 图鉴条目数 7 处立即数由 DLL **按 56 + N 现写**（N = 注册表 `cards.c` 里的新卡数），
+  两处是 `cmp r,imm8` → 条目数 ≤ 127。PLAN 里「→0xff」是错的（符号扩展成 −1）。
+
+**验收**：图鉴最后多出一格（锁着显示卡背；解锁后是 NULL 图标 + 「测试卡牌 58」）；
+解锁后编成列表里空槽前多一张，可以直接选进卡组——从此不再需要 `_test` 来把它塞进空槽。
+日志：`menu: order table @ … rebuilt (56 retail + 1 new + NULL, rest BACK); encyclopedia entries = 57`，
+结论行多 `menu extended`。
+
 ### 验证钩子 `patch-test/`（只在测试时进栈）
 
 | 钩子 | 干什么 |
@@ -247,6 +264,7 @@ OK: table filled (58 rows @ 0x…), 100/100 sites verified
 card-expand/
 ├── README.md          # 你在这
 ├── NEXT.md            # ★ 下一个会话从这里开始（战线 E）
+├── MAP.md             # ★ 追溯表:一张卡要经过的 10 段路,每条 binhack/断点/codecave 的出处
 ├── TARGET.md          # ★ 死绑登记
 ├── AUDIT.md           # 对抗审计
 ├── native/
@@ -260,6 +278,8 @@ card-expand/
 │   ├── selfcheck.c    ★ 自检②:BP_ce_gate 填表(+跳转表) + 回读站点
 │   ├── unlocked.c     ★ 战线 D:影子数组 + side-car + 三个断点
 │   ├── text.c         战线 E 第一块:id≥57 文案重定向(三个断点)
+│   ├── cards.c        新卡注册表(现在编译进 DLL:{58})
+│   ├── menu.c         战线 E 第二块:顺序表重排 + 图鉴条目数 + 站点核对
 │   ├── bp_trace.c     测试断点:记录 allocate_new_card(id, mode);新 id 顺手 mark_obtained
 │   ├── thcrap_bp.h    断点 ABI(与 mouse-control 同一份)
 │   ├── th18_card_expand.def

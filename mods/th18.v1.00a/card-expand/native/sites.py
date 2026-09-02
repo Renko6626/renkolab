@@ -71,6 +71,29 @@ SCOREFILE_PTR  = 0x4cf41c # 全局 SCOREFILE_PTR；每处读的前几条里都�
 # ---- 战线 E（第一块）：文案重定向。zAbilityText 只有 57 张 × 0x1c0，id≥57 的文案改指向 DLL 自己的缓冲 ----
 ABILITY_TXT_PTR = 0x4cf29c  # 全局 ABILITY_TXT_PTR
 TEXT_ENTRY      = 0x1c0     # 7 行 × 0x40
+# ---- 战线 E 第二块：图鉴 / 编成 —— 显示顺序表搬迁 + zAbilityMenu.__card_ids 扩容 ----
+ORDER_TABLE = 0x4b3600      # 显示顺序表：57 dword（id），.rdata；紧接着 0x4b36e4 是另一张表（0x4337f7 用）
+ORDER_COUNT = 57
+CE_MAX_ROWS = 255           # 与 sites_gen.h 的 CE_MAX_ROWS 同义
+ORDER_END   = ORDER_TABLE + ORDER_COUNT * 4          # 0x4b36e4，只有 0x414b54 的 cmp 用它当尾界
+ORDER_RVA   = ORDER_TABLE - 0x400000
+ORDER_CAVE  = "th18_card_order"                      # 255 dword；DLL 重排：[零售 0..55, 新 id…, 56, 57 填充]
+ORDER_EXCLUDE = {0x4337f7}                           # ★ 同值不同表：mov eax,[eax*4+0x4b36e4]，不许改
+MENU_SIZE     = 0x13fc      # zAbilityMenu 大小（operator new / memset / sized delete）
+CARD_IDS_OLD  = 0x304       # __card_ids int32[0x38]，后面紧跟 num_total_cards，原地扩不了
+CARD_IDS_NEW  = 0x13fc      # 搬到对象尾部，255 项
+MENU_CLEAR    = 0x41495c    # 编成前清 anm id 数组的循环：mov edi,0x38 → 0xff（数组本来就是 [0x100]）
+# 图鉴条目数 0x38 的 7 处：patch 不动，DLL 在门里按「56 + 已注册新卡数」现写。
+#   两处是 cmp r,imm8（符号扩展）→ 条目数 ≤ 127 → 新卡 ≤ 71。超了得把这两处改成断点。
+MENU_COUNT_SITES = (        # (地址, 原字节, 立即数偏移, 宽度)
+    (0x4137bb, "c787c401000038000000", 6, 4),   # initialize: [this+0x1c4] = 0x38
+    (0x414394, "c7870003000038000000", 6, 4),   # 图鉴 fill: [this+0x300] = 0x38
+    (0x41439e, "c787c401000038000000", 6, 4),   # 图鉴 fill: [this+0x1c4] = 0x38
+    (0x4145e2, "83f838", 2, 1),                  # 图鉴 fill 循环: cmp eax,0x38
+    (0x41570d, "b838000000", 1, 4),              # 行数 = 0x38 / 列数
+    (0x4157cb, "83fa38", 2, 1),                  # 高亮循环: cmp edx,0x38
+    (0x415817, "bf38000000", 1, 4),              # 退出时遍历 vm: mov edi,0x38
+)
 TEXT_SITES = (              # 三处 `imul r, id, 0x1c0`，后面紧跟 add 基址；断点里按 id 改写 r
     ("ce_text_name",   0x416694, 6, "69cbc0010000",   "FUN_00416540 卡名：imul ecx, ebx, 0x1c0"),
     ("ce_text_desc",   0x416779, 7, "69450cc0010000", "FUN_00416540 说明 6 行：imul eax, [ebp+0xc], 0x1c0"),
@@ -330,6 +353,19 @@ def emit_codecaves(rows, alloc):
         # BP_ce_save_loaded 里填（零售存档 + side-car）。没有 DLL = 全部「未获取」。
         out[UNLOCKED_CAVE] = {"size": "0x100", "access": "RW",
                               "title": "unlocked_cards 影子数组（256 字节，下标 = card id；DLL 填）"}
+        # 战线 E：显示顺序表。保险：57 项原样拷 + 其余填 57（BACK：编成里不可见、图鉴按条目数不会走到）。
+        # DLL 权威：[零售 0..55, 新 id…, 56, 57…] 并把图鉴条目数写成 56+N。
+        code += [
+            "bf<codecave:%s>" % ORDER_CAVE,
+            "be<Rx%x>" % ORDER_RVA,
+            "b9%s" % struct.pack("<I", ORDER_COUNT).hex(),
+            "f3a5",
+            "b8%s" % struct.pack("<I", 57).hex(),
+            "b9%s" % struct.pack("<I", rows - ORDER_COUNT).hex(),
+            "f3ab",
+        ]
+        out[ORDER_CAVE] = {"size": "0x%x" % (rows * 4), "access": "RW",
+                           "title": "显示顺序表搬迁目标（%d 项；DLL 重排并追加新卡）" % rows}
     code += ["61", "c3"]                             # popad ; ret
     out[CAVE_INIT] = {"code": "".join(code), "export": True, "access": "RX",
                       "title": "开机把零售表（与跳转表）拷进 codecave；DLL 的 post_init 是权威，这里是保险"}
@@ -536,6 +572,76 @@ def emit_unlock_breakpoints(text, text_va):
     ])
 
 
+def find_order_sites(text, text_va):
+    """扫 .text 里落在 [顺序表基, 尾界] 的 imm32：6 处引用 + 1 处尾界 + 1 处别的表（排除）。
+
+    返回 [(va_of_instruction, prefix_bytes, value)]。前缀 = 该指令 imm32 之前的字节，
+    由 x86imm 归类保证它确实是一条以该 imm32 收尾的指令。
+    """
+    out, seen = [], []
+    for v in range(ORDER_TABLE, ORDER_END + 1, 4):
+        needle = struct.pack("<I", v); p = text.find(needle)
+        while p >= 0:
+            va = text_va + p
+            if va in ORDER_EXCLUDE:
+                seen.append(va)
+            else:
+                info = classify(text, p, text_va, 0)          # 不认识就抛 → 停
+                ins_va = info["va"]; pre = text[ins_va - text_va:p]
+                out.append((ins_va, pre, v))
+            p = text.find(needle, p + 1)
+    if sorted(seen) != sorted(ORDER_EXCLUDE):
+        raise ShapeError("顺序表：预期要排除的站点没扫到：%s" % [hex(x) for x in ORDER_EXCLUDE])
+    if len(out) != 7 or sum(1 for _, _, v in out if v == ORDER_END) != 1:
+        raise ShapeError("顺序表：扫到 %d 处（应 6 引用 + 1 尾界）" % len(out))
+    return sorted(out)
+
+
+def emit_order_binhacks(order_sites):
+    """顺序表 6 处引用 → cave，尾界 → cave+0x3fc（255 项）。全部只换 imm32。"""
+    B = {}
+    for va, pre, v in order_sites:
+        off = CE_MAX_ROWS * 4 if v == ORDER_END else v - ORDER_TABLE
+        assert off == 0 or v == ORDER_END
+        ref = "<codecave:%s%s>" % (ORDER_CAVE, ("+%x" % off) if off else "")
+        B["order_%06x" % va] = {"addr": "0x%06x" % va, "code": pre.hex() + ref,
+                                "expected": (pre + struct.pack("<I", v)).hex(),
+                                "title": "显示顺序表 → codecave（%s）" % ("尾界 = 255 项" if v == ORDER_END else "引用")}
+    return B
+
+
+MENU_SITES = (   # zAbilityMenu：(地址, 原字节, 新字节)。全部同长。
+    (0x413817, "68fc130000", None), (0x413831, "68fc130000", None), (0x413abb, "68fc130000", None),   # 大小
+    (MENU_CLEAR, "bf38000000", "bfff000000"),                                                            # 清 255 槽
+    (0x4145d2, "898618fbffff", "8986100c0000"),   # __card_ids[i] 经 +0x7ec 游标：-0x4e8 → +0xc10
+    (0x414b3f, "89b018f7ffff", "89b010080000"),   # __card_ids[n] 经 +0xbec 游标：-0x8e8 → +0x810
+) + tuple((a, None, None) for a in (0x414b81, 0x414beb, 0x414e9f, 0x414eba, 0x415049, 0x415115, 0x415129,
+                                     0x41514a, 0x4151ef, 0x41520c, 0x4152b4, 0x4152d5, 0x415868, 0x415e83))
+
+
+def emit_menu_binhacks(text, text_va):
+    """zAbilityMenu 扩容：3 处大小、16 处 __card_ids、1 处清理上界。新旧字节各自从 exe 现取/现算。"""
+    new_size = MENU_SIZE + CE_MAX_ROWS * 4
+    B = {}
+    for va, exp, new in MENU_SITES:
+        off = va - text_va
+        if exp is None:                       # +0x304 的直接引用：disp32 在指令末 4 字节，长度靠归类
+            info = classify(text, off + 2 if text[off] == 0x8d else off + 3, text_va, 0)
+            n = info["len"]; raw = text[off:off + n]
+            d = raw.find(struct.pack("<I", CARD_IDS_OLD))
+            assert d >= 0 and d + 4 == n, "0x%06x：不是以 +0x304 收尾的指令" % va
+            new_b = raw[:d] + struct.pack("<I", CARD_IDS_NEW)
+        else:
+            raw = bytes.fromhex(exp)
+            if text[off:off + len(raw)] != raw:
+                raise ShapeError("0x%06x：exe 里是 %s" % (va, text[off:off + len(raw)].hex()))
+            new_b = bytes.fromhex(new) if new else b"\x68" + struct.pack("<I", new_size)
+        assert len(new_b) == len(raw)
+        B["menu_%06x" % va] = {"addr": "0x%06x" % va, "code": new_b.hex(), "expected": raw.hex(),
+                               "title": "zAbilityMenu 扩容 / __card_ids → +0x%x" % CARD_IDS_NEW}
+    return B
+
+
 def emit_text_breakpoints(text, text_va):
     """战线 E 第一块：三处 imul 挂断点。expected 写死在表里，这里再与 exe 核对一遍。"""
     out = {}
@@ -642,7 +748,7 @@ def verify_patch(path, text, text_va):
         if name.startswith("unlock_"):
             bad += verify_unlock_binhack(name, bh, text, text_va)
             continue
-        if name.startswith(("alloc_", "grow_")):
+        if name.startswith(("alloc_", "grow_", "menu_")):
             va = int(bh["addr"], 16); off = va - text_va
             exp = bytes.fromhex(bh["expected"])
             if text[off:off + len(exp)] != exp:
@@ -739,7 +845,7 @@ def conflicts(ours_path, other_paths):
     return checked, found
 
 
-def emit_header(sites, unlock_reads):
+def emit_header(sites, unlock_reads, order_sites, menu_binhacks):
     """给 DLL 生成站点表 —— **与行数无关**，所以一个 DLL 配所有 patch。
 
     每个站点只记：RVA、长度、opcode 前缀（已在 patch 的 expected 里）、
@@ -807,6 +913,27 @@ def emit_header(sites, unlock_reads):
               "#define CE_BP_TEXT_NAME_RVA   0x%06x" % (TEXT_SITES[0][1] - 0x400000),
               "#define CE_BP_TEXT_DESC_RVA   0x%06x" % (TEXT_SITES[1][1] - 0x400000),
               "#define CE_BP_TEXT_NOTIFY_RVA 0x%06x" % (TEXT_SITES[2][1] - 0x400000),
+              "#define CE_ORDER_RVA      0x%06x" % ORDER_RVA,
+              "#define CE_ORDER_COUNT    %d" % ORDER_COUNT,
+              "#define CE_ORDER_CAVE_NAME \"codecave:%s\"" % ORDER_CAVE,
+              "typedef struct { uint32_t rva; uint8_t pre_len, is_end; } ce_order_t;",
+              "static const ce_order_t CE_ORDER[] = {",
+              ] + ["    { 0x%06x, %d, %d }," % (va - 0x400000, len(pre), int(v == ORDER_END)) for va, pre, v in order_sites] + [
+              "};", "#define CE_NORDER (sizeof(CE_ORDER)/sizeof(CE_ORDER[0]))",
+              "#define CE_MENU_SIZE      0x%x" % MENU_SIZE,
+              "#define CE_CARD_IDS_NEW   0x%x" % CARD_IDS_NEW,
+              "#define CE_MENU_COUNT_RETAIL 56",
+              "#define CE_MENU_COUNT_MAX 127   /* 两处 cmp r,imm8 */",
+              "typedef struct { uint32_t rva; uint8_t imm_off, width; } ce_count_site_t;",
+              "static const ce_count_site_t CE_MENU_COUNT[] = {",
+              ] + ["    { 0x%06x, %d, %d }," % (a - 0x400000, o, w) for a, _, o, w in MENU_COUNT_SITES] + [
+              "};", "#define CE_NMENU_COUNT (sizeof(CE_MENU_COUNT)/sizeof(CE_MENU_COUNT[0]))",
+              "typedef struct { uint32_t rva; uint8_t len; uint8_t want[7]; } ce_menu_t;",
+              "static const ce_menu_t CE_MENU[] = {",
+              ] + ["    { 0x%06x, %d, { %s } }," % (int(b["addr"], 16) - 0x400000, len(bytes.fromhex(b["code"])),
+                                                  ", ".join("0x%02x" % x for x in bytes.fromhex(b["code"])) + ", 0" * (7 - len(bytes.fromhex(b["code"]))))
+                   for b in menu_binhacks.values()] + [
+              "};", "#define CE_NMENU (sizeof(CE_MENU)/sizeof(CE_MENU[0]))",
               "typedef struct { uint32_t rva; uint8_t len, pre_len, post_len, pre[2], post[2]; } ce_unlock_t;",
               "static const ce_unlock_t CE_UNLOCK[] = {"]
     for va, d, raw in unlock_reads:
@@ -869,7 +996,7 @@ def main():
         path = a.out or os.path.join(HERE, "..", "patch", "%s.js" % VERSION)
         n, bad = verify_patch(path, text, text_va)
         print("对账 %s：%d 条 binhack" % (os.path.relpath(path, REPO), n))
-        n_alloc = sum(1 for k in json.load(open(path, encoding="utf-8"))["binhacks"] if k.startswith(("alloc_", "grow_", "unlock_")))
+        n_alloc = sum(1 for k in json.load(open(path, encoding="utf-8"))["binhacks"] if k.startswith(("alloc_", "grow_", "unlock_", "order_", "menu_")))
         if n - n_alloc != len(sites):
             bad.append("patch 里 %d 条搬表 binhack，扫描器认为应有 %d 条" % (n - n_alloc, len(sites)))
         for b in bad:
@@ -945,6 +1072,8 @@ def main():
         doc["binhacks"].update(emit_alloc_binhacks(a.rows))
         doc["binhacks"].update(emit_grow_binhacks(a.rows))
         doc["binhacks"].update(emit_unlock_binhacks(unlock_reads))
+        doc["binhacks"].update(emit_order_binhacks(find_order_sites(text, text_va)))
+        doc["binhacks"].update(emit_menu_binhacks(text, text_va))
         doc["breakpoints"].update(emit_unlock_breakpoints(text, text_va))
         doc["breakpoints"].update(emit_text_breakpoints(text, text_va))
     txt = json.dumps(doc, indent=2, ensure_ascii=False)
@@ -955,7 +1084,7 @@ def main():
               % (len(doc["binhacks"]), len(doc["codecaves"]), out,
                  a.rows, a.rows * ROW_SIZE))
         hdr = os.path.join(HERE, "sites_gen.h")
-        open(hdr, "w", encoding="utf-8").write(emit_header(sites, unlock_reads))
+        open(hdr, "w", encoding="utf-8").write(emit_header(sites, unlock_reads, find_order_sites(text, text_va), emit_menu_binhacks(text, text_va)))
         print("写出 DLL 站点表 -> %s（与行数无关）" % hdr)
         if True:   # 测试 patch 与行数无关，总是产出，便于入库
             tp = os.path.join(os.path.dirname(out), "..", "patch-test", "%s.js" % VERSION)

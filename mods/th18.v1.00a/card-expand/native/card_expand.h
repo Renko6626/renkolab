@@ -5,6 +5,8 @@
  *   selfcheck.c   开机自检②：BP_ce_gate 里填表（+跳转表）+ 回读站点 + 写结论
  *   unlocked.c    战线 D：unlocked_cards 影子数组 + side-car；三个断点
  *   text.c        战线 E 第一块：id≥57 的文案重定向到 DLL 缓冲（三个断点）
+ *   cards.c       新卡注册表（哪些 id≥57 真的是卡）
+ *   menu.c        战线 E 第二块：顺序表重排 + 图鉴条目数 + zAbilityMenu 站点核对
  *   bp_trace.c    测试用断点：记录每次 allocate_new_card(id, mode)，新 id 顺手 mark_obtained（只在 patch-test 进栈时挂）
  *   （后续）       数据激活门、新卡注册 …
  */
@@ -32,3 +34,8 @@ uint8_t *ce_unlock_init(uint8_t *module_base);
 int ce_unlock_check(uint8_t *module_base);
 /* 战线 E 第一块（text.c）：核对三个文案重定向断点 */
 int ce_text_check(uint8_t *module_base);
+/* 新卡注册表（cards.c） */
+unsigned ce_new_card_count(void);
+uint32_t ce_new_card_id(unsigned i);
+/* 战线 E 第二块（menu.c）：顺序表重排、图鉴条目数、站点核对 */
+int ce_menu_setup(uint8_t *module_base);
