@@ -18,7 +18,7 @@
  * 编码：UTF-8。thcrap 的 textdisp 把 TextOutA 一类换成先按 UTF-8 解、失败再退 Shift-JIS
  * （win32_utf8 MultiByteToWideCharU），base_tsa 是本 patch 的依赖，所以 UTF-8 一定走得通。
  *
- * 现在的内容是占位（「测试卡牌 N」）；战线 E 的新卡数据落地时由同一个缓冲承载。
+ * 未注册 id 的内容是占位（「测试卡牌 N」）；已注册的新卡由 cards.c 经 ce_text_set 覆盖成 cards.js 里的文案。
  */
 #include <stdio.h>
 #include <string.h>
@@ -45,6 +45,20 @@ static void fill_placeholders(void)
         snprintf(e + 0x40 * 2, 0x40, "id %u 还没有真正的卡牌数据", id);
         snprintf(e + 0x40 * 3, 0x40, "战线 E 会把它换掉");
     }
+}
+
+/* 装载器（cards.c）用：覆盖一张已注册新卡的文案。行 0 = 名字，行 1..ndesc = 说明。
+ * 只清这一条目，其他 id 仍是占位。id 越界 / 长度超 0x3f 由 cards_def 的校验挡在前面，这里只兜底截断。*/
+void ce_text_set(uint32_t id, const char *name, const char (*desc)[CE_CARD_TEXT_LINE], unsigned ndesc)
+{
+    if (id < CE_TEXT_ENTRIES || id >= CE_MAX_ROWS) { ce_log("text: ce_text_set(id=%u) out of range — ignored", id); return; }
+    fill_placeholders();
+    char *e = (char *)s_ext[id - CE_TEXT_ENTRIES];
+    memset(e, 0, CE_TEXT_ENTRY);
+    snprintf(e, CE_CARD_TEXT_LINE, "%s", name);
+    if (ndesc > CE_CARD_DESC_LINES) ndesc = CE_CARD_DESC_LINES;
+    for (unsigned i = 0; i < ndesc; ++i)
+        snprintf(e + CE_CARD_TEXT_LINE * (i + 1), CE_CARD_TEXT_LINE, "%s", desc[i]);
 }
 
 /* 断点核心：算出让 `基址 + r` 落到正确条目的 r。*/
