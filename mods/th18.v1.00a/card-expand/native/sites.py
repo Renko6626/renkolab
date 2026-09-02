@@ -47,6 +47,14 @@ CASE56_RVA  = 0x011489    # case 56 的函数体：new(0x54) → memset → 挂�
 ALLOC_CMP   = 0x411479    # cmp ebx, 0x38   (83 fb 38)
 ALLOC_JMP   = 0x411482    # jmp [0x412dac + ebx*4]   (ff 24 9d ac 2d 41 00)
 JT_CODECAVE = "th18_card_jumptable"
+# ---- 战线 C：zAbilityManager 扩容（PLAN-255-ids §2 战线 C）----
+MGR_SIZE      = 0xd70     # operator_new / memset / sized delete 的实参
+OWNED_OLD     = 0xc84     # 「本局是否拥有」int[56]，止于 0xd64，对象止于 0xd70
+OWNED_NEW     = 0xd70     # 搬到对象尾部
+SHOP_ENTRIES  = 56        # ★ 商店两处循环只跟到 56：NULL 行与全部 NULL 副本都能通过
+                          #   第一轮筛选(+0x14==0 且 unlocked[56]==1)，会把 ~198 个候选
+                          #   写进 57 槽的栈数组 [ebp-0xe4]。新卡进商店池是战线 E 的事，
+                          #   届时要加「查表命中才算」的 codecave 筛选。
 # 测试钩子（只进 patch-test）
 TEST_MOVZX  = 0x407ee3    # reset_cards 读初始卡组：movzx eax, byte [eax+esi+0x5f608]（8 字节）
 TEST_TRACE  = 0x411469    # allocate_new_card 序言：cmp [edi+0x28], 0x100（7 字节）
@@ -327,6 +335,32 @@ def emit_alloc_binhacks(rows):
     }
 
 
+def emit_grow_binhacks(rows):
+    """战线 C：zAbilityManager 扩容。12 处，全部同长（push imm32 / disp32 / imm32）。
+
+    新大小 = 0xd70 + rows*4；owned[] 从 +0xc84 搬到 +0xd70（旧区留着不用）；
+    reset_cards 的 rep stosd 清 rows 项；商店循环起点跟着搬、**上界只跟到 56**（见 SHOP_ENTRIES）。
+    """
+    new_size = MGR_SIZE + rows * 4
+    shop_end = OWNED_NEW + SHOP_ENTRIES * 4
+    le = lambda v: struct.pack("<I", v).hex()
+    B = {}
+    def bh(addr, code, expected, title):
+        B["grow_%06x" % addr] = {"addr": "0x%06x" % addr, "code": code, "expected": expected, "title": title}
+    for a, what in ((0x4082d6, "operator_new 分配"), (0x4082ec, "operator_new 的 memset"), (0x40860a, "sized delete")):
+        bh(a, "68" + le(new_size), "68" + le(MGR_SIZE), "zAbilityManager %s：0x%x → 0x%x" % (what, MGR_SIZE, new_size))
+    bh(0x407eb0, "8dbb" + le(OWNED_NEW), "8dbb" + le(OWNED_OLD), "reset_cards：lea edi,[mgr+owned]")
+    bh(0x407eb6, "b9" + le(rows),        "b9" + le(56),         "reset_cards：rep stosd 项数 56 → %d" % rows)
+    bh(0x412d42, "c78487" + le(OWNED_NEW) + "01000000", "c78487" + le(OWNED_OLD) + "01000000",
+       "allocate_new_card 尾段：owned[id] = 1")
+    for a, reg in ((0x416f8f, "b9"), (0x41744a, "bb"), (0x417535, "bb")):
+        bh(a, reg + le(OWNED_NEW), reg + le(OWNED_OLD), "商店循环起点 → +0x%x" % OWNED_NEW)
+    for a, reg in ((0x41716b, "81f9"), (0x417527, "81fb"), (0x4175e7, "81fb")):
+        bh(a, reg + le(shop_end), reg + le(OWNED_OLD + SHOP_ENTRIES * 4),
+           "商店循环上界 → +0x%x（仍只看前 %d 个 id）" % (shop_end, SHOP_ENTRIES))
+    return B
+
+
 def emit_test_patch():
     """patch-test：只在验证战线 B 时进栈。两个钩子：
 
@@ -337,14 +371,18 @@ def emit_test_patch():
     ② 0x411469 `cmp [edi+0x28], 0x100`（7 字节）挂 thcrap 断点 → BP_ce_trace_alloc
        把每次 allocate_new_card(id, mode) 记进日志。定论用它，不靠肉眼。
     """
+    # 空槽改发的 id 从 codecave `th18_ce_test_id` 读（一个 dword），改 patch 里那一个字节
+    # 就能测别的 id（战线 C 之后 59..254 都合法）。
     cave = ("0fb6843008f60500"       # movzx eax, byte [eax+esi+0x5f608]  ← 原指令原样
             "83f838"                 # cmp eax, 0x38
-            "7505"                   # jne +5
-            "b83a000000"             # mov eax, 0x3a (58)
+            "7505"                   # jne +5 (跳过 5 字节的 mov eax,[imm32])
+            "a1<codecave:th18_ce_test_id>"   # mov eax, [test_id]
             "c3")                    # ret
     return {
         "codecaves": {"th18_ce_test_deck58": {"code": cave, "access": "RX",
-                      "title": "测试：初始卡组的空槽(56) → id 58"}},
+                      "title": "测试：初始卡组的空槽(56) → th18_ce_test_id 里的 id"},
+                      "th18_ce_test_id": {"code": "3a000000", "access": "RW",
+                      "title": "测试：空槽改发哪个 id（默认 0x3a = 58；改这个 dword 测 59..254）"}},
         "binhacks": {"test_deck58_%06x" % TEST_MOVZX: {
             "addr": "0x%06x" % TEST_MOVZX,
             "code": "e8[codecave:th18_ce_test_deck58]909090",
@@ -378,7 +416,7 @@ def verify_patch(path, text, text_va):
         if bp["cavesize"] != len(exp):
             bad.append("断点 %s：cavesize %d != expected 长度 %d" % (name, bp["cavesize"], len(exp)))
     for name, bh in doc["binhacks"].items():
-        if name.startswith("alloc_"):
+        if name.startswith(("alloc_", "grow_")):
             va = int(bh["addr"], 16); off = va - text_va
             exp = bytes.fromhex(bh["expected"])
             if text[off:off + len(exp)] != exp:
@@ -515,6 +553,19 @@ def emit_header(sites):
                      % (va - 0x400000, rec["len"], len(pre), pfx,
                         s_["part"].upper(), rec["value"] - base))
     lines += ["};", "#define CE_NSITES (sizeof(CE_SITES)/sizeof(CE_SITES[0]))", ""]
+    # 战线 C 的 12 处：改后字节不依赖 codecave 地址，但依赖 rows —— DLL 按运行时 rows 现算。
+    # 这里只给 RVA / 长度 / 原字节；DLL 里按同一套公式算出改后字节再比对。
+    lines += ["typedef struct { uint32_t rva; uint8_t len; uint8_t kind; } ce_grow_t;",
+              "enum { CE_G_SIZE = 0, CE_G_OWNED_LEA = 1, CE_G_STOSD = 2, CE_G_OWNED_DISP = 3, CE_G_SHOP_START = 4, CE_G_SHOP_END = 5 };",
+              "#define CE_MGR_SIZE    0x%x" % MGR_SIZE,
+              "#define CE_OWNED_NEW   0x%x" % OWNED_NEW,
+              "#define CE_SHOP_ENTRIES %d" % SHOP_ENTRIES,
+              "static const ce_grow_t CE_GROW[] = {",
+              "    { 0x0082d6, 5, CE_G_SIZE }, { 0x0082ec, 5, CE_G_SIZE }, { 0x00860a, 5, CE_G_SIZE },",
+              "    { 0x007eb0, 6, CE_G_OWNED_LEA }, { 0x007eb6, 5, CE_G_STOSD }, { 0x012d42, 11, CE_G_OWNED_DISP },",
+              "    { 0x016f8f, 5, CE_G_SHOP_START }, { 0x01744a, 5, CE_G_SHOP_START }, { 0x017535, 5, CE_G_SHOP_START },",
+              "    { 0x01716b, 6, CE_G_SHOP_END }, { 0x017527, 6, CE_G_SHOP_END }, { 0x0175e7, 6, CE_G_SHOP_END },",
+              "};", "#define CE_NGROW (sizeof(CE_GROW)/sizeof(CE_GROW[0]))", ""]
     return "\n".join(lines)
 
 
@@ -558,7 +609,7 @@ def main():
         path = a.out or os.path.join(HERE, "..", "patch", "%s.js" % VERSION)
         n, bad = verify_patch(path, text, text_va)
         print("对账 %s：%d 条 binhack" % (os.path.relpath(path, REPO), n))
-        n_alloc = sum(1 for k in json.load(open(path, encoding="utf-8"))["binhacks"] if k.startswith("alloc_"))
+        n_alloc = sum(1 for k in json.load(open(path, encoding="utf-8"))["binhacks"] if k.startswith(("alloc_", "grow_")))
         if n - n_alloc != len(sites):
             bad.append("patch 里 %d 条搬表 binhack，扫描器认为应有 %d 条" % (n - n_alloc, len(sites)))
         for b in bad:
@@ -626,6 +677,7 @@ def main():
                "title": "自检门：ScoreFile__load 入口 → BP_ce_gate（填表 + 回读验证 + 写日志）"}}}
     if alloc:
         doc["binhacks"].update(emit_alloc_binhacks(a.rows))
+        doc["binhacks"].update(emit_grow_binhacks(a.rows))
     txt = json.dumps(doc, indent=2, ensure_ascii=False)
     if a.out:
         out = a.out if os.path.isabs(a.out) else os.path.join(HERE, a.out)

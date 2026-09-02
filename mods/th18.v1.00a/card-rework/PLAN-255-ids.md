@@ -103,6 +103,12 @@ card_id 在存档（`initial_cards_per_shottype`，`0x407ee3  movzbl`）和 repl
 
 ### 战线 C — 按 id 索引的运行时数组（对象扩容，全部同长）
 
+> **`zAbilityManager` 部分已实现**（并入 `card-expand` 的 `_255`，2026-09-02）。
+> ⚠️ 实现时发现：商店循环上界**不能**直接抬到 255——NULL 行与全部 NULL 副本都能过第一轮筛选
+> （`+0x14==0` 且 `unlocked[56]==1`），候选会打穿 57 槽的栈数组 `[ebp-0xe4]`。
+> 上界保持 56；新卡进商店池要在 E 里加「查表命中才算」的 codecave 筛选，并处理该栈数组（边界 #34）。
+> `zAbilityMenu.__card_ids` 的扩容与顺序表耦合，一并归 E。
+
 **三个对象都是 `operator new` 出来的，所以「扩容」= 改一个 `push $imm32`。**
 
 | 对象 | 大小处 | 现值 | 新值 | 数组从 → 到 |

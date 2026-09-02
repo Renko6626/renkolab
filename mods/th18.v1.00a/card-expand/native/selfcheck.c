@@ -102,6 +102,33 @@ static int fill_jumptable(uint8_t *base, uint32_t *jt, unsigned rows)
     return 1;
 }
 
+/* 战线 C：zAbilityManager 扩容的 12 处，改后字节按运行时 rows 现算再比对 */
+static int check_grow(uint8_t *base, unsigned rows)
+{
+    uint32_t new_size = CE_MGR_SIZE + rows * 4;
+    uint32_t shop_end = CE_OWNED_NEW + CE_SHOP_ENTRIES * 4;
+    unsigned bad = 0;
+    for (unsigned i = 0; i < CE_NGROW; ++i) {
+        const ce_grow_t *g = &CE_GROW[i];
+        const uint8_t *p = base + g->rva;
+        uint32_t v, want;
+        int ok;
+        switch (g->kind) {
+        case CE_G_SIZE:       memcpy(&v, p + 1, 4); want = new_size;     ok = p[0] == 0x68 && v == want; break;
+        case CE_G_OWNED_LEA:  memcpy(&v, p + 2, 4); want = CE_OWNED_NEW; ok = p[0] == 0x8d && v == want; break;
+        case CE_G_STOSD:      memcpy(&v, p + 1, 4); want = rows;         ok = p[0] == 0xb9 && v == want; break;
+        case CE_G_OWNED_DISP: memcpy(&v, p + 3, 4); want = CE_OWNED_NEW; ok = p[0] == 0xc7 && v == want; break;
+        case CE_G_SHOP_START: memcpy(&v, p + 1, 4); want = CE_OWNED_NEW; ok = (p[0] == 0xb9 || p[0] == 0xbb) && v == want; break;
+        default:              memcpy(&v, p + 2, 4); want = shop_end;     ok = p[0] == 0x81 && v == want; break;
+        }
+        if (!ok) { ++bad; ce_log("grow: site 0x%08x NOT patched (kind %u, read %08x want %08x)", 0x400000u + g->rva, g->kind, v, want); }
+    }
+    if (bad) { ce_verdict("FAIL: zAbilityManager growth — %u/%u sites not patched", bad, (unsigned)CE_NGROW); return 0; }
+    ce_log("grow: zAbilityManager 0x%x -> 0x%x, owned[] at +0x%x (%u entries), shop loops still %u",
+           (unsigned)CE_MGR_SIZE, new_size, (unsigned)CE_OWNED_NEW, rows, (unsigned)CE_SHOP_ENTRIES);
+    return 1;
+}
+
 int ce_selfcheck(uint8_t *base)
 {
     if (!ce_func_get) {
@@ -126,6 +153,7 @@ int ce_selfcheck(uint8_t *base)
 
     if (!fill_table(base, cave, rows)) { restore_alloc_bound(base); return 0; }
     if (alloc && !fill_jumptable(base, jt, rows)) { restore_alloc_bound(base); return 0; }
+    if (alloc && !check_grow(base, rows))          { restore_alloc_bound(base); return 0; }
 
     unsigned ok = 0, bad = 0, first_bad = 0;
     for (unsigned i = 0; i < CE_NSITES; ++i) {
@@ -139,7 +167,7 @@ int ce_selfcheck(uint8_t *base)
     }
     if (bad == 0) {
         ce_verdict("OK: table filled (%u rows @ %p)%s, %u/%u sites verified",
-                   rows, cave, alloc ? ", allocator relocated" : "", ok, (unsigned)CE_NSITES);
+                   rows, cave, alloc ? ", allocator relocated, manager grown" : "", ok, (unsigned)CE_NSITES);
         return 1;
     }
     const ce_site_t *s = &CE_SITES[first_bad];

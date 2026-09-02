@@ -118,3 +118,16 @@ static const ce_site_t CE_SITES[] = {
     { 0x0636d0, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x24 },
 };
 #define CE_NSITES (sizeof(CE_SITES)/sizeof(CE_SITES[0]))
+
+typedef struct { uint32_t rva; uint8_t len; uint8_t kind; } ce_grow_t;
+enum { CE_G_SIZE = 0, CE_G_OWNED_LEA = 1, CE_G_STOSD = 2, CE_G_OWNED_DISP = 3, CE_G_SHOP_START = 4, CE_G_SHOP_END = 5 };
+#define CE_MGR_SIZE    0xd70
+#define CE_OWNED_NEW   0xd70
+#define CE_SHOP_ENTRIES 56
+static const ce_grow_t CE_GROW[] = {
+    { 0x0082d6, 5, CE_G_SIZE }, { 0x0082ec, 5, CE_G_SIZE }, { 0x00860a, 5, CE_G_SIZE },
+    { 0x007eb0, 6, CE_G_OWNED_LEA }, { 0x007eb6, 5, CE_G_STOSD }, { 0x012d42, 11, CE_G_OWNED_DISP },
+    { 0x016f8f, 5, CE_G_SHOP_START }, { 0x01744a, 5, CE_G_SHOP_START }, { 0x017535, 5, CE_G_SHOP_START },
+    { 0x01716b, 6, CE_G_SHOP_END }, { 0x017527, 6, CE_G_SHOP_END }, { 0x0175e7, 6, CE_G_SHOP_END },
+};
+#define CE_NGROW (sizeof(CE_GROW)/sizeof(CE_GROW[0]))

@@ -220,12 +220,28 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 | I11 | 追踪断点只读 | **CONFIRMED** —— 读 `[ebp+8]`/`[ebp+0xc]`（序言 `push ebp; mov ebp,esp` 已执行），返回 1 照常执行；不调 thcrap API，零 x87 |
 | I12 | `0x407ee3` 与 `0x411469` 不与正式 patch 的站点重叠 | **CONFIRMED** —— 前者在 `reset_cards`（无站点），后者在 `0x411479` 之前 7 字节，不相交 |
 
+## J. 战线 C —— `zAbilityManager` 扩容
+
+| # | claim | 结论 |
+| --- | --- | --- |
+| J1 | 12 处全部同长 | **CONFIRMED** —— `push imm32`×3、`lea r,[r+disp32]`、`mov r,imm32`×4、`mov [r+r*4+disp32],imm32`、`cmp r,imm32`×3；`make verify` 逐条核对原字节 |
+| J2 | `0xd70` 在 `.text` 只有这 3 处与本对象有关 | **CONFIRMED** —— 全二进制扫 `$0xd70`：另一处在 CRT 的 `parse_integer`，无关 |
+| J3 | 没有代码用 `+0xd6c`（旧余量）或旧区 `0xc84`–`0xd64` 以外的偏移 | **CONFIRMED** —— `0xd6c(` 的两处在 `Bullet__*`，别的对象；`0xc84(` 的 5 处在 `ItemManager`，别的对象 |
+| J4 | 商店循环上界抬到 255 会崩 | **REFUTED（所以没抬）** —— 第一轮筛选 `owned==0 → is_available==1 → +0x14==0`；NULL 行与全部 NULL 副本（回退到同一行，`is_available` 读的是**回退行的 id 56**）都能过，候选数 ~198 > 栈数组 `[ebp-0xe4]` 的 57 槽。上界保持 56 项（`+0xe50`），与香草等价 |
+| J5 | `reset_cards` 清 255 项不越界 | **CONFIRMED** —— `rep stosd` 写 `+0xd70`..`+0x116c` = 新对象末尾 |
+| J6 | 旧区 `0xc84`–`0xd64` 留着不用是否有害 | **CONFIRMED 无害** —— 无人再读写；ExpHP 把 `0xc68` 起 32 字节标成 `__thread`，与 `0xc84` 重叠是它的标注误差，不是我们的写入 |
+| J7 | DLL 核对 | **CONFIRMED** —— `check_grow` 按运行时 rows 算改后字节逐条比对，任一不符 FAIL 并还原分配器上界 |
+
+**新登记的边界（#34）**：商店候选数组 `[ebp-0xe4]`（`AbilityShop__initialize`）57 槽、
+`pick_weighted_random_offer` 的 `0x8c0` 局部缓冲——**同时可进商店的卡 ≤ 57**，是栈帧大小，
+战线 E 让新卡进商店池时必须一并处理。
+
 ## G. OPEN —— 还没解决的
 
 | # | 事项 | 说明 |
 | --- | --- | --- |
 | G1 | ~~游戏内未实跑~~ | **三步实跑通过**，见 §0 |
 | G2 | ~~全有或全无的门还没做~~ **已做**（2026-09-02） | 见 §H。触发原因是用户复审指出的一种「日志一切正常」的静默失败 |
-| G3 | 扩容还要动的东西 | 战线 B 已做（§I）；C–E 未做，见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)。**C 之前只能测 id 58**（I6）|
+| G3 | 扩容还要动的东西 | B（§I）、C（§J，manager 部分）已做；`zAbilityMenu` 的 `__card_ids` 扩容与顺序表耦合，归 E；D、E 未做 |
 | G5 | 新卡在卡组编成里「未获取」 | **预期**。`unlocked_cards` 是 `zScoreFile` 里的 `uint8_t[57]`，`[58]` 落在其后的未知区（`+0x5f5c2`），读出 0。这是战线 D（影子数组 + side-car）的事，不是 bug |
 | G4 | MSVC 换 build 后骨架是否仍然一致 | 未验证。`make check` 的锚点数会立刻暴露（不是 25 就停） |
