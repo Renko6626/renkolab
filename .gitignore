@@ -20,3 +20,4 @@ mods/**/native/*.o
 *-funcs.json
 mods/**/native/*.bin
 mods/**/native/__pycache__/
+mods/**/dist/
