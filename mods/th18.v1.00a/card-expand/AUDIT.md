@@ -6,7 +6,17 @@
 
 ## 0. 状态
 
-**静态审计通过；游戏内未实跑。**产出两态：第 1 步（58 行，行为零变化）与战线 B 验证态（255 行 + patch-test）。
+**三步全部实跑通过（2026-09-02，用户 Windows 实机，thcrap 2024-11-06 stable）。**
+
+| 步 | patch | 日志关键行 | 游戏内 |
+| --- | --- | --- | --- |
+| 1 | `th18_card_expand` | `OK: table filled (58 rows @ 03850000), 100/100 sites verified` | 与香草无差别 |
+| 2 | `th18_card_expand_255` | `jumptable: 255 entries … allocator bound = 254` → `OK … 255 rows … allocator relocated, 100/100` | 与香草无差别 |
+| 3 | + `th18_card_expand_test` | `trace: allocate_new_card(id=58, mode=1)  <- NEW ID`（×4，两次 reset_cards 各两张）| 不崩；卡组编成选它时提示「未获取」——**预期**，见 G5 |
+
+`gate: BP_ce_gate fired at ScoreFile__load` 每次都在——断点门成立。
+第 3 步的 trace 里 `id=42` 是默认卡组的 KOZUCHI，`id=16 / 24` 是局中获得的卡，
+`reset_cards` 每次过场跑两遍所以成对出现。
 
 ## A. ABI / 栈平衡
 
@@ -214,7 +224,8 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 
 | # | 事项 | 说明 |
 | --- | --- | --- |
-| G1 | **游戏内未实跑** | 静态审计通过 ≠ 能跑。第 1 步的验收标准见 [`README.md`](README.md) |
+| G1 | ~~游戏内未实跑~~ | **三步实跑通过**，见 §0 |
 | G2 | ~~全有或全无的门还没做~~ **已做**（2026-09-02） | 见 §H。触发原因是用户复审指出的一种「日志一切正常」的静默失败 |
 | G3 | 扩容还要动的东西 | 战线 B 已做（§I）；C–E 未做，见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)。**C 之前只能测 id 58**（I6）|
+| G5 | 新卡在卡组编成里「未获取」 | **预期**。`unlocked_cards` 是 `zScoreFile` 里的 `uint8_t[57]`，`[58]` 落在其后的未知区（`+0x5f5c2`），读出 0。这是战线 D（影子数组 + side-car）的事，不是 bug |
 | G4 | MSVC 换 build 后骨架是否仍然一致 | 未验证。`make check` 的锚点数会立刻暴露（不是 25 就停） |

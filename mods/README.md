@@ -57,7 +57,7 @@ mods/<版本>/<mod名>/
 | --- | --- | --- |
 | [`th18.v1.00a/mouse-control`](th18.v1.00a/mouse-control/README.md) | 鼠标控制自机 + 左/右/中键映射 | ✅ **实跑通过**(2026-09-01) |
 | [`th18.v1.00a/runtime-probe`](th18.v1.00a/runtime-probe/README.md) | 只读探针:汇报玩家坐标与状态位 | 已编译 + 静态审计通过，**未实跑** |
-| [`th18.v1.00a/card-expand`](th18.v1.00a/card-expand/README.md) | 卡表搬迁 / 扩容（战线 A） | 🔧 生成器 + 100 处 binhack 已出，**未实跑** |
+| [`th18.v1.00a/card-expand`](th18.v1.00a/card-expand/README.md) | 卡表搬迁 / 扩容（战线 A） | ✅ **步骤 1–3 实跑通过**（2026-09-02）：搬表 + 255 行 + 分配 id 58 |
 | [`th18.v1.00a/card-rework`](th18.v1.00a/card-rework/ROADMAP.md) | 卡牌系统改造 | 📋 调研与方案，见 [`PLAN-255-ids.md`](th18.v1.00a/card-rework/PLAN-255-ids.md) |
 | [`th16.v1.00a/tracking-laser`](th16.v1.00a/tracking-laser/README.md) | 重指 SHT tick 槽注入追踪激光 | 静态审计通过，**未实跑** |
 | [`th18.v1.00a/card-rework`](th18.v1.00a/card-rework/ROADMAP.md) | 卡牌系统改造 | 路线图，**无已实跑补丁** |
