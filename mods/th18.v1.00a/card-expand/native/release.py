@@ -7,7 +7,7 @@
 renkolab 是开发仓库，th18_modkit 是发布仓库（朋友 clone 下来一键启动）。
 Windows 那边只负责 `git pull`。
 
-只覆盖**生成物**：三个 patch 的 th18.v1.00a.js、它们的 files.js、DLL。
+只覆盖**生成物**：三个 patch 的 th18.v1.00a.js、它们的 files.js、DLL，以及 _test 的示范卡 th18/cards.js。
 patch.js / 侧车 .json / README 是 modkit 里手工维护的文案，这里**不碰**。
 """
 import json, os, subprocess, sys, zlib, hashlib
@@ -22,6 +22,7 @@ MAP = {                                   # dist 里的 → modkit 里的
     "patch-step1/th18.v1.00a.js": "thcrap/repos/Renko_1055/th18_card_expand/th18.v1.00a.js",
     "patch-step3/th18.v1.00a.js": "thcrap/repos/Renko_1055/th18_card_expand_255/th18.v1.00a.js",
     "patch-test/th18.v1.00a.js":  "thcrap/repos/Renko_1055/th18_card_expand_test/th18.v1.00a.js",
+    "patch-test/th18/cards.js":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/cards.js",
     "bin/th18_card_expand.dll":   "mods/th18_card_expand.dll",
 }
 PATCH_DIRS = ("th18_card_expand", "th18_card_expand_255", "th18_card_expand_test")
@@ -58,8 +59,13 @@ def main():
             changed.append(dst)
     for p in PATCH_DIRS:
         d = os.path.join(R, p)
-        out = {n: zlib.crc32(open(os.path.join(d, n), "rb").read()) & 0xffffffff
-               for n in sorted(os.listdir(d)) if n.endswith(".js") and n != "files.js"}
+        out = {}
+        for root, _dirs, names in os.walk(d):           # 递归：th18/cards.js 这类子目录文件也要进清单
+            for n in sorted(names):
+                rel = os.path.relpath(os.path.join(root, n), d).replace(os.sep, "/")
+                if rel.endswith(".js") and rel != "files.js":
+                    out[rel] = zlib.crc32(open(os.path.join(root, n), "rb").read()) & 0xffffffff
+        out = dict(sorted(out.items()))
         f = os.path.join(d, "files.js")
         txt = json.dumps(out, indent=2) + "\n"
         if not os.path.exists(f) or open(f, encoding="utf-8").read().replace("\r\n", "\n") != txt:

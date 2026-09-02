@@ -30,7 +30,7 @@ gen:
 verify:
 	python3 sites.py verify
 
-## files  —— 刷新 patch/files.js 的 crc32 清单
+## files  —— 刷新 patch/ 与 patch-test/ 的 files.js（crc32 清单，递归子目录）
 files:
 	python3 mkfiles.py
 
@@ -83,7 +83,7 @@ DIST := ../dist
 dist:
 	rm -rf $(DIST) && mkdir -p $(DIST)/bin $(DIST)/patch-step1 $(DIST)/patch-step3 $(DIST)/patch-test
 	$(MAKE) -s ROWS=58  gen dll files >/dev/null
-	cp $(DLL) $(DIST)/bin/ && cp ../patch/*.js $(DIST)/patch-step1/ && cp ../patch-test/*.js $(DIST)/patch-test/
+	cp $(DLL) $(DIST)/bin/ && cp ../patch/*.js $(DIST)/patch-step1/ && cp -r ../patch-test/. $(DIST)/patch-test/
 	$(MAKE) -s ROWS=255 gen files >/dev/null
 	cp ../patch/*.js $(DIST)/patch-step3/
 	cp ../DIST-README.txt $(DIST)/README.txt
