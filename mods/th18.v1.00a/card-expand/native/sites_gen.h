@@ -123,7 +123,6 @@ typedef struct { uint32_t rva; uint8_t len; uint8_t kind; } ce_grow_t;
 enum { CE_G_SIZE = 0, CE_G_OWNED_LEA = 1, CE_G_STOSD = 2, CE_G_OWNED_DISP = 3, CE_G_SHOP_START = 4, CE_G_SHOP_END = 5 };
 #define CE_MGR_SIZE    0xd70
 #define CE_OWNED_NEW   0xd70
-#define CE_SHOP_ENTRIES 56
 static const ce_grow_t CE_GROW[] = {
     { 0x0082d6, 5, CE_G_SIZE }, { 0x0082ec, 5, CE_G_SIZE }, { 0x00860a, 5, CE_G_SIZE },
     { 0x007eb0, 6, CE_G_OWNED_LEA }, { 0x007eb6, 5, CE_G_STOSD }, { 0x012d42, 11, CE_G_OWNED_DISP },

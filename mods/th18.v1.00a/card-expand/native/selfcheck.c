@@ -106,7 +106,7 @@ static int fill_jumptable(uint8_t *base, uint32_t *jt, unsigned rows)
 static int check_grow(uint8_t *base, unsigned rows)
 {
     uint32_t new_size = CE_MGR_SIZE + rows * 4;
-    uint32_t shop_end = CE_OWNED_NEW + CE_SHOP_ENTRIES * 4;
+    uint32_t shop_end = CE_OWNED_NEW + rows * 4;             /* 商店三处循环上界 = rows（AUDIT §N）*/
     unsigned bad = 0;
     for (unsigned i = 0; i < CE_NGROW; ++i) {
         const ce_grow_t *g = &CE_GROW[i];
@@ -124,8 +124,8 @@ static int check_grow(uint8_t *base, unsigned rows)
         if (!ok) { ++bad; ce_log("grow: site 0x%08x NOT patched (kind %u, read %08x want %08x)", 0x400000u + g->rva, g->kind, v, want); }
     }
     if (bad) { ce_verdict("FAIL: zAbilityManager growth — %u/%u sites not patched", bad, (unsigned)CE_NGROW); return 0; }
-    ce_log("grow: zAbilityManager 0x%x -> 0x%x, owned[] at +0x%x (%u entries), shop loops still %u",
-           (unsigned)CE_MGR_SIZE, new_size, (unsigned)CE_OWNED_NEW, rows, (unsigned)CE_SHOP_ENTRIES);
+    ce_log("grow: zAbilityManager 0x%x -> 0x%x, owned[] at +0x%x (%u entries), shop loops %u ids",
+           (unsigned)CE_MGR_SIZE, new_size, (unsigned)CE_OWNED_NEW, rows, rows);
     return 1;
 }
 

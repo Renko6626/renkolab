@@ -51,10 +51,9 @@ JT_CODECAVE = "th18_card_jumptable"
 MGR_SIZE      = 0xd70     # operator_new / memset / sized delete 的实参
 OWNED_OLD     = 0xc84     # 「本局是否拥有」int[56]，止于 0xd64，对象止于 0xd70
 OWNED_NEW     = 0xd70     # 搬到对象尾部
-SHOP_ENTRIES  = 56        # ★ 商店两处循环只跟到 56：NULL 行与全部 NULL 副本都能通过
-                          #   第一轮筛选(+0x14==0 且 unlocked[56]==1)，会把 ~198 个候选
-                          #   写进 57 槽的栈数组 [ebp-0xe4]。新卡进商店池是战线 E 的事，
-                          #   届时要加「查表命中才算」的 codecave 筛选。
+SHOP_RETAIL   = 56        # 零售商店三处循环只看 id 0..55（止于 +0xd64）。现在上界 = rows：
+                          #   幻影 id 查表回落到 NULL 行 56，装载器把 cave 里 56/57 两行的 +0x14 写成 6，
+                          #   三个循环（≠0&&≠6 / ==0 / dmode 1-5）就都过不了。AUDIT §N1。
 # 测试钩子（只进 patch-test）
 TEST_MOVZX  = 0x407ee3    # reset_cards 读初始卡组：movzx eax, byte [eax+esi+0x5f608]（8 字节）
 TEST_TRACE  = 0x411469    # allocate_new_card 序言：cmp [edi+0x28], 0x100（7 字节）
@@ -395,10 +394,10 @@ def emit_grow_binhacks(rows):
     """战线 C：zAbilityManager 扩容。12 处，全部同长（push imm32 / disp32 / imm32）。
 
     新大小 = 0xd70 + rows*4；owned[] 从 +0xc84 搬到 +0xd70（旧区留着不用）；
-    reset_cards 的 rep stosd 清 rows 项；商店循环起点跟着搬、**上界只跟到 56**（见 SHOP_ENTRIES）。
+    reset_cards 的 rep stosd 清 rows 项；商店循环起点跟着搬、上界 = rows（幻影由 +0x14=6 排除，见 SHOP_RETAIL）。
     """
     new_size = MGR_SIZE + rows * 4
-    shop_end = OWNED_NEW + SHOP_ENTRIES * 4
+    shop_end = OWNED_NEW + rows * 4
     le = lambda v: struct.pack("<I", v).hex()
     B = {}
     def bh(addr, code, expected, title):
@@ -412,8 +411,8 @@ def emit_grow_binhacks(rows):
     for a, reg in ((0x416f8f, "b9"), (0x41744a, "bb"), (0x417535, "bb")):
         bh(a, reg + le(OWNED_NEW), reg + le(OWNED_OLD), "商店循环起点 → +0x%x" % OWNED_NEW)
     for a, reg in ((0x41716b, "81f9"), (0x417527, "81fb"), (0x4175e7, "81fb")):
-        bh(a, reg + le(shop_end), reg + le(OWNED_OLD + SHOP_ENTRIES * 4),
-           "商店循环上界 → +0x%x（仍只看前 %d 个 id）" % (shop_end, SHOP_ENTRIES))
+        bh(a, reg + le(shop_end), reg + le(OWNED_OLD + SHOP_RETAIL * 4),
+           "商店循环上界 → +0x%x（%d 个 id；幻影由 NULL/BACK 行 +0x14=6 排除）" % (shop_end, rows))
     return B
 
 
@@ -891,7 +890,6 @@ def emit_header(sites, unlock_reads, order_sites, menu_binhacks):
               "enum { CE_G_SIZE = 0, CE_G_OWNED_LEA = 1, CE_G_STOSD = 2, CE_G_OWNED_DISP = 3, CE_G_SHOP_START = 4, CE_G_SHOP_END = 5 };",
               "#define CE_MGR_SIZE    0x%x" % MGR_SIZE,
               "#define CE_OWNED_NEW   0x%x" % OWNED_NEW,
-              "#define CE_SHOP_ENTRIES %d" % SHOP_ENTRIES,
               "static const ce_grow_t CE_GROW[] = {",
               "    { 0x0082d6, 5, CE_G_SIZE }, { 0x0082ec, 5, CE_G_SIZE }, { 0x00860a, 5, CE_G_SIZE },",
               "    { 0x007eb0, 6, CE_G_OWNED_LEA }, { 0x007eb6, 5, CE_G_STOSD }, { 0x012d42, 11, CE_G_OWNED_DISP },",

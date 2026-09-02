@@ -696,21 +696,21 @@
     },
     "grow_41716b": {
       "addr": "0x41716b",
-      "code": "81f9500e0000",
+      "code": "81f96c110000",
       "expected": "81f9640d0000",
-      "title": "商店循环上界 → +0xe50（仍只看前 56 个 id）"
+      "title": "商店循环上界 → +0x116c（255 个 id；幻影由 NULL/BACK 行 +0x14=6 排除）"
     },
     "grow_417527": {
       "addr": "0x417527",
-      "code": "81fb500e0000",
+      "code": "81fb6c110000",
       "expected": "81fb640d0000",
-      "title": "商店循环上界 → +0xe50（仍只看前 56 个 id）"
+      "title": "商店循环上界 → +0x116c（255 个 id；幻影由 NULL/BACK 行 +0x14=6 排除）"
     },
     "grow_4175e7": {
       "addr": "0x4175e7",
-      "code": "81fb500e0000",
+      "code": "81fb6c110000",
       "expected": "81fb640d0000",
-      "title": "商店循环上界 → +0xe50（仍只看前 56 个 id）"
+      "title": "商店循环上界 → +0x116c（255 个 id；幻影由 NULL/BACK 行 +0x14=6 排除）"
     },
     "unlock_41440b": {
       "addr": "0x41440b",
