@@ -1,120 +1,120 @@
-/* 由 sites.py 生成，不要手改。*/
+/* 由 sites.py 生成，不要手改。与行数无关。*/
 #pragma once
 #include <stdint.h>
-#define CE_ROWS        58
 #define CE_ROW_SIZE    0x34
 #define CE_ROW_COUNT   58
 #define CE_NULL_ROW    56
+#define CE_MAX_ROWS    255
 #define CE_TABLE_RVA   0x0c53c0
 #define CE_CAVE_NAME   "codecave:th18_card_table"
-#define CE_ALLOC       0
 #define CE_JT_RVA      0x012dac
 #define CE_JT_COUNT    57
 #define CE_CASE56_RVA  0x011489
 #define CE_JT_CAVE_NAME "codecave:th18_card_jumptable"
 #define CE_ALLOC_CMP_RVA 0x011479
 #define CE_ALLOC_JMP_RVA 0x011482
-typedef struct { uint32_t rva; uint8_t len, prefix_len, prefix[3]; uint32_t off; } ce_site_t;
+enum { CE_K_START = 0, CE_K_HIT = 1, CE_K_FALLBACK = 2, CE_K_END = 3 };
+typedef struct { uint32_t rva; uint8_t len, prefix_len, prefix[3], kind; uint32_t field; } ce_site_t;
 static const ce_site_t CE_SITES[] = {
-    { 0x007d72, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x007d7f, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x007d86, 5, 1, { 0xb8, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x007d8f, 5, 1, { 0x05, 0, 0 }, 0x0 },  /* hit */
-    { 0x009321, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x00932f, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x009336, 7, 3, { 0xc7, 0x45, 0x0c }, 0xb90 },  /* fallback */
-    { 0x009342, 5, 1, { 0x05, 0, 0 }, 0x30 },  /* hit */
-    { 0x014412, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x014428, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x01442f, 5, 1, { 0xb8, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x014439, 5, 1, { 0x05, 0, 0 }, 0x0 },  /* hit */
-    { 0x014457, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x014468, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x01446f, 5, 1, { 0xb8, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x014483, 5, 1, { 0x05, 0, 0 }, 0x0 },  /* hit */
-    { 0x01449d, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x0144a4, 5, 1, { 0xb8, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x0144ae, 5, 1, { 0x05, 0, 0 }, 0x0 },  /* hit */
-    { 0x0144c9, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x0144d9, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x0144e0, 5, 1, { 0xb8, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x0144ea, 5, 1, { 0x05, 0, 0 }, 0x0 },  /* hit */
-    { 0x0149b4, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x0149c8, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x0149cf, 5, 1, { 0xb8, 0, 0 }, 0xb80 },  /* fallback */
-    { 0x0149d9, 5, 1, { 0x05, 0, 0 }, 0x20 },  /* hit */
-    { 0x0149fc, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x014a09, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x014a10, 5, 1, { 0xb8, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x014a1a, 5, 1, { 0x05, 0, 0 }, 0x0 },  /* hit */
-    { 0x014a62, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x014a6f, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x014a76, 5, 1, { 0xb8, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x014a80, 5, 1, { 0x05, 0, 0 }, 0x0 },  /* hit */
-    { 0x01612f, 5, 1, { 0xbe, 0, 0 }, 0x0 },  /* start */
-    { 0x01616d, 6, 2, { 0x81, 0xfe, 0 }, 0xbc8 },  /* end */
-    { 0x016175, 5, 1, { 0xbb, 0, 0 }, 0xb64 },  /* fallback */
-    { 0x01617f, 6, 2, { 0x81, 0xc3, 0 }, 0x4 },  /* hit */
-    { 0x016960, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x01696d, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x016974, 5, 1, { 0xb8, 0, 0 }, 0xb6c },  /* fallback */
-    { 0x01697e, 6, 2, { 0x8d, 0x80, 0 }, 0xc },  /* hit */
-    { 0x016fad, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x016fba, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x016fc1, 5, 1, { 0xb8, 0, 0 }, 0xb7c },  /* fallback */
-    { 0x016fcb, 6, 2, { 0x8d, 0x80, 0 }, 0x1c },  /* hit */
-    { 0x016fdc, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x016fe9, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x016ff0, 5, 1, { 0xb9, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x016ffa, 6, 2, { 0x81, 0xc1, 0 }, 0x0 },  /* hit */
-    { 0x017010, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x01701d, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x017024, 5, 1, { 0xb8, 0, 0 }, 0xb70 },  /* fallback */
-    { 0x01702e, 6, 2, { 0x8d, 0x80, 0 }, 0x10 },  /* hit */
-    { 0x017044, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x017058, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x01705f, 5, 1, { 0xb8, 0, 0 }, 0xb70 },  /* fallback */
-    { 0x017069, 6, 2, { 0x8d, 0x80, 0 }, 0x10 },  /* hit */
-    { 0x01707c, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x017089, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x017090, 5, 1, { 0xb8, 0, 0 }, 0xb74 },  /* fallback */
-    { 0x01709a, 6, 2, { 0x8d, 0x80, 0 }, 0x14 },  /* hit */
-    { 0x0170ab, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x0170b8, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x0170bf, 5, 1, { 0xb8, 0, 0 }, 0xb74 },  /* fallback */
-    { 0x0170c9, 6, 2, { 0x8d, 0x80, 0 }, 0x14 },  /* hit */
-    { 0x01745d, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x01746a, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x017471, 5, 1, { 0xb8, 0, 0 }, 0xb7c },  /* fallback */
-    { 0x01747b, 6, 2, { 0x8d, 0x80, 0 }, 0x1c },  /* hit */
-    { 0x01748c, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x017499, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x0174a0, 5, 1, { 0xb9, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x0174aa, 6, 2, { 0x81, 0xc1, 0 }, 0x0 },  /* hit */
-    { 0x0174bc, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x0174c9, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x0174d0, 5, 1, { 0xb8, 0, 0 }, 0xb74 },  /* fallback */
-    { 0x0174da, 6, 2, { 0x8d, 0x80, 0 }, 0x14 },  /* hit */
-    { 0x0174e7, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x0174f8, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x0174ff, 5, 1, { 0xb9, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x017509, 6, 2, { 0x81, 0xc1, 0 }, 0x0 },  /* hit */
-    { 0x01754d, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x01755a, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x017561, 5, 1, { 0xb8, 0, 0 }, 0xb7c },  /* fallback */
-    { 0x01756b, 6, 2, { 0x8d, 0x80, 0 }, 0x1c },  /* hit */
-    { 0x017578, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x017588, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x01758f, 5, 1, { 0xb9, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x017599, 6, 2, { 0x81, 0xc1, 0 }, 0x0 },  /* hit */
-    { 0x0175ab, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x0175b8, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x0175bf, 5, 1, { 0xb9, 0, 0 }, 0xb60 },  /* fallback */
-    { 0x0175c9, 6, 2, { 0x81, 0xc1, 0 }, 0x0 },  /* hit */
-    { 0x018e0e, 5, 1, { 0xba, 0, 0 }, 0x4 },  /* start */
-    { 0x0636b2, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */
-    { 0x0636bf, 5, 1, { 0x3d, 0, 0 }, 0xbcc },  /* end */
-    { 0x0636c6, 5, 1, { 0xb8, 0, 0 }, 0xb84 },  /* fallback */
-    { 0x0636d0, 5, 1, { 0x05, 0, 0 }, 0x24 },  /* hit */
+    { 0x007d72, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x007d7f, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x007d86, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x007d8f, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x0 },
+    { 0x009321, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x00932f, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x009336, 7, 3, { 0xc7, 0x45, 0x0c }, CE_K_FALLBACK, 0x30 },
+    { 0x009342, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x30 },
+    { 0x014412, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x014428, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x01442f, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x014439, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x0 },
+    { 0x014457, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x014468, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x01446f, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x014483, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x0 },
+    { 0x01449d, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x0144a4, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x0144ae, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x0 },
+    { 0x0144c9, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x0144d9, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x0144e0, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x0144ea, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x0 },
+    { 0x0149b4, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x0149c8, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x0149cf, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x20 },
+    { 0x0149d9, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x20 },
+    { 0x0149fc, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x014a09, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x014a10, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x014a1a, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x0 },
+    { 0x014a62, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x014a6f, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x014a76, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x014a80, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x0 },
+    { 0x01612f, 5, 1, { 0xbe, 0, 0 }, CE_K_START, 0x0 },
+    { 0x01616d, 6, 2, { 0x81, 0xfe, 0 }, CE_K_END, 0x0 },
+    { 0x016175, 5, 1, { 0xbb, 0, 0 }, CE_K_FALLBACK, 0x4 },
+    { 0x01617f, 6, 2, { 0x81, 0xc3, 0 }, CE_K_HIT, 0x4 },
+    { 0x016960, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x01696d, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x016974, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0xc },
+    { 0x01697e, 6, 2, { 0x8d, 0x80, 0 }, CE_K_HIT, 0xc },
+    { 0x016fad, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x016fba, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x016fc1, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x1c },
+    { 0x016fcb, 6, 2, { 0x8d, 0x80, 0 }, CE_K_HIT, 0x1c },
+    { 0x016fdc, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x016fe9, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x016ff0, 5, 1, { 0xb9, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x016ffa, 6, 2, { 0x81, 0xc1, 0 }, CE_K_HIT, 0x0 },
+    { 0x017010, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x01701d, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x017024, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x10 },
+    { 0x01702e, 6, 2, { 0x8d, 0x80, 0 }, CE_K_HIT, 0x10 },
+    { 0x017044, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x017058, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x01705f, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x10 },
+    { 0x017069, 6, 2, { 0x8d, 0x80, 0 }, CE_K_HIT, 0x10 },
+    { 0x01707c, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x017089, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x017090, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x14 },
+    { 0x01709a, 6, 2, { 0x8d, 0x80, 0 }, CE_K_HIT, 0x14 },
+    { 0x0170ab, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x0170b8, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x0170bf, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x14 },
+    { 0x0170c9, 6, 2, { 0x8d, 0x80, 0 }, CE_K_HIT, 0x14 },
+    { 0x01745d, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x01746a, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x017471, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x1c },
+    { 0x01747b, 6, 2, { 0x8d, 0x80, 0 }, CE_K_HIT, 0x1c },
+    { 0x01748c, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x017499, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x0174a0, 5, 1, { 0xb9, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x0174aa, 6, 2, { 0x81, 0xc1, 0 }, CE_K_HIT, 0x0 },
+    { 0x0174bc, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x0174c9, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x0174d0, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x14 },
+    { 0x0174da, 6, 2, { 0x8d, 0x80, 0 }, CE_K_HIT, 0x14 },
+    { 0x0174e7, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x0174f8, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x0174ff, 5, 1, { 0xb9, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x017509, 6, 2, { 0x81, 0xc1, 0 }, CE_K_HIT, 0x0 },
+    { 0x01754d, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x01755a, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x017561, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x1c },
+    { 0x01756b, 6, 2, { 0x8d, 0x80, 0 }, CE_K_HIT, 0x1c },
+    { 0x017578, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x017588, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x01758f, 5, 1, { 0xb9, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x017599, 6, 2, { 0x81, 0xc1, 0 }, CE_K_HIT, 0x0 },
+    { 0x0175ab, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x0175b8, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x0175bf, 5, 1, { 0xb9, 0, 0 }, CE_K_FALLBACK, 0x0 },
+    { 0x0175c9, 6, 2, { 0x81, 0xc1, 0 }, CE_K_HIT, 0x0 },
+    { 0x018e0e, 5, 1, { 0xba, 0, 0 }, CE_K_START, 0x4 },
+    { 0x0636b2, 5, 1, { 0xb8, 0, 0 }, CE_K_START, 0x4 },
+    { 0x0636bf, 5, 1, { 0x3d, 0, 0 }, CE_K_END, 0x4 },
+    { 0x0636c6, 5, 1, { 0xb8, 0, 0 }, CE_K_FALLBACK, 0x24 },
+    { 0x0636d0, 5, 1, { 0x05, 0, 0 }, CE_K_HIT, 0x24 },
 };
 #define CE_NSITES (sizeof(CE_SITES)/sizeof(CE_SITES[0]))

@@ -83,7 +83,7 @@ int __stdcall thcrap_plugin_init(void)
     if (f) {
         time_t t = time(NULL);
         char ts[32]; strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S", localtime(&t));
-        fprintf(f, "=== th18_card_expand %s === rows=%u alloc=%u\n", ts, (unsigned)CE_ROWS, (unsigned)CE_ALLOC);
+        fprintf(f, "=== th18_card_expand %s ===\n", ts);
         fclose(f);
     }
     HMODULE th = GetModuleHandleA("thcrap.dll");

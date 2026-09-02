@@ -103,7 +103,7 @@ HIT_ARM 还指旧表时，`下标 * 0x34 + 旧基址` 会返回**另一张卡的
 | `0x407ee3` binhack → `th18_ce_test_deck58` | `reset_cards` 读初始卡组时，**空槽(56) 改发 id 58**。不写存档、不改文件 |
 | `0x411469` 断点 → `BP_ce_trace_alloc` | 每次 `allocate_new_card(id, mode)` 记进日志 |
 
-**流程**：`make step3` → DLL 与 `patch/` 进栈，再把 `patch-test/` 叠在上面 →
+**流程**：`make step3` → `patch/` 进栈（DLL 不用换），再把 `patch-test/` 叠在上面 →
 卡组编成里把**第一格清空**（选那个空白项）→ 开一局。日志里应出现：
 
 ```

@@ -435,31 +435,33 @@ def conflicts(ours_path, other_paths):
     return checked, found
 
 
-def emit_header(sites, rows, alloc):
-    """给 DLL 生成站点表：post_init 用它回读验证 100 处。
+def emit_header(sites):
+    """给 DLL 生成站点表 —— **与行数无关**，所以一个 DLL 配所有 patch。
 
-    只有 RVA、长度、opcode 前缀（1–3 字节，已在 patch 的 expected 里）、
-    以及相对 codecave 的偏移——**不含游戏数据**。改后应有的 4 字节由 DLL 在
-    运行时按 `cave + off` 算，因为 codecave 地址只有运行时才知道。
+    每个站点只记：RVA、长度、opcode 前缀（已在 patch 的 expected 里）、
+    类别、字段偏移。改后应有的 4 字节 = cave + 类别决定的基偏移 + 字段偏移，
+    其中「类别决定的基偏移」里唯一随行数变的是 END（rows*0x34），
+    而 rows 由 DLL 在运行时从 patch 已写入的字节里反推（selfcheck.c）。
     """
+    KIND = {"start": 0, "hit": 1, "fallback": 2, "end": 3}
     lines = [
-        "/* 由 sites.py 生成，不要手改。*/",
+        "/* 由 sites.py 生成，不要手改。与行数无关。*/",
         "#pragma once",
         "#include <stdint.h>",
-        "#define CE_ROWS        %d" % rows,
         "#define CE_ROW_SIZE    0x%x" % ROW_SIZE,
         "#define CE_ROW_COUNT   %d" % ROW_COUNT,
         "#define CE_NULL_ROW    %d" % NULL_ROW,
+        "#define CE_MAX_ROWS    255",
         "#define CE_TABLE_RVA   0x%06x" % TABLE_RVA,
         "#define CE_CAVE_NAME   \"codecave:%s\"" % CODECAVE,
-        "#define CE_ALLOC       %d" % (1 if alloc else 0),
         "#define CE_JT_RVA      0x%06x" % JT_RVA,
         "#define CE_JT_COUNT    %d" % JT_COUNT,
         "#define CE_CASE56_RVA  0x%06x" % CASE56_RVA,
         "#define CE_JT_CAVE_NAME \"codecave:%s\"" % JT_CODECAVE,
         "#define CE_ALLOC_CMP_RVA 0x%06x" % (ALLOC_CMP - 0x400000),
         "#define CE_ALLOC_JMP_RVA 0x%06x" % (ALLOC_JMP - 0x400000),
-        "typedef struct { uint32_t rva; uint8_t len, prefix_len, prefix[3]; uint32_t off; } ce_site_t;",
+        "enum { CE_K_START = 0, CE_K_HIT = 1, CE_K_FALLBACK = 2, CE_K_END = 3 };",
+        "typedef struct { uint32_t rva; uint8_t len, prefix_len, prefix[3], kind; uint32_t field; } ce_site_t;",
         "static const ce_site_t CE_SITES[] = {",
     ]
     for va in sorted(sites):
@@ -468,9 +470,10 @@ def emit_header(sites, rows, alloc):
         pre = rec["bytes"][:rec["const_at"]]
         assert 1 <= len(pre) <= 3
         pfx = ", ".join("0x%02x" % b for b in pre) + (", 0" * (3 - len(pre)))
-        lines.append("    { 0x%06x, %d, %d, { %s }, 0x%x },  /* %s */"
+        base = {"start": TABLE_BASE, "hit": TABLE_BASE, "fallback": FALLBACK, "end": TABLE_END}[s_["part"]]
+        lines.append("    { 0x%06x, %d, %d, { %s }, CE_K_%s, 0x%x },"
                      % (va - 0x400000, rec["len"], len(pre), pfx,
-                        new_offset(s_["part"], rec, rows), s_["part"]))
+                        s_["part"].upper(), rec["value"] - base))
     lines += ["};", "#define CE_NSITES (sizeof(CE_SITES)/sizeof(CE_SITES[0]))", ""]
     return "\n".join(lines)
 
@@ -583,8 +586,8 @@ def main():
               % (len(doc["binhacks"]), len(doc["codecaves"]), out,
                  a.rows, a.rows * ROW_SIZE))
         hdr = os.path.join(HERE, "sites_gen.h")
-        open(hdr, "w", encoding="utf-8").write(emit_header(sites, a.rows, alloc))
-        print("写出 DLL 站点表 -> %s%s" % (hdr, "（含战线 B）" if alloc else ""))
+        open(hdr, "w", encoding="utf-8").write(emit_header(sites))
+        print("写出 DLL 站点表 -> %s（与行数无关）" % hdr)
         if True:   # 测试 patch 与行数无关，总是产出，便于入库
             tp = os.path.join(os.path.dirname(out), "..", "patch-test", "%s.js" % VERSION)
             os.makedirs(os.path.dirname(tp), exist_ok=True)
