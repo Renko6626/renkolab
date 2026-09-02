@@ -11,6 +11,7 @@
  *   0. 读配置：rows 由第一处 END 站点已写入的尾界反推；alloc 看跳转表 codecave 在不在。
  *   1. 填表：零售 58 行 memcpy 进 codecave，多出的行填 NULL 副本。幂等。
  *   2. （alloc）填跳转表：57 项原样拷，其余指向 case 56；核对两处分配器 binhack。
+ *      再依次：扩容核对 → 影子数组 → 文案断点 → cards.js 装载 → 菜单 setup（各自的文件）。
  *   3. 回读 100 处搬表站点：改后 4 字节 == cave + 基偏移 + 字段，前缀 opcode 不变。
  *   4. 一行结论。
  */
@@ -157,6 +158,8 @@ int ce_selfcheck(uint8_t *base)
     /* 战线 D 与 B/C 同进退：_255 patch 里一定带影子数组。核对 9 处读 + 3 个断点。 */
     if (alloc) { ce_unlock_init(base); if (!ce_unlock_check(base)) { restore_alloc_bound(base); return 0; } }
     if (alloc && !ce_text_check(base))             { restore_alloc_bound(base); return 0; }
+    /* 战线 E 第 10 段：cards.js → 表行 + 文案 + 注册表；顺序表 / 图鉴条目数（menu）消费注册表，所以在它前面 */
+    if (alloc && !ce_cards_load(base, cave, rows)) { restore_alloc_bound(base); return 0; }
     if (alloc && !ce_menu_setup(base))             { restore_alloc_bound(base); return 0; }
 
     unsigned ok = 0, bad = 0, first_bad = 0;
@@ -171,7 +174,7 @@ int ce_selfcheck(uint8_t *base)
     }
     if (bad == 0) {
         ce_verdict("OK: table filled (%u rows @ %p)%s, %u/%u sites verified",
-                   rows, cave, alloc ? ", allocator relocated, manager grown, unlocked shadowed, text redirected, menu extended" : "", ok, (unsigned)CE_NSITES);
+                   rows, cave, alloc ? ", allocator relocated, manager grown, unlocked shadowed, text redirected, cards loaded, menu extended" : "", ok, (unsigned)CE_NSITES);
         return 1;
     }
     const ce_site_t *s = &CE_SITES[first_bad];
