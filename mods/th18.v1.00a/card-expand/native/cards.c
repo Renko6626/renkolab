@@ -5,9 +5,8 @@
  *      NULL = 栈里没有这个文件 = 0 张新卡，不是错。
  *   2. 顶层每个键 = id 的十进制（58..254），值 = 对象；字段见 ../DATA.md §2。
  *      逐张：默认值 → 取字段 → ce_card_validate → 查重 → 写 cave 第 id 行 → ce_text_set → 登记。
- *   3. cave 里 56（NULL）/ 57（BACK）两行 +0x14 := 6：商店三处循环的上界已抬到 rows，幻影 id 查表回落到
- *      NULL 行，BACK 按自己的 id 命中，两行权重 6 让三条筛选（≠0&&≠6 / ==0 / dmode 1-5）都过不了。AUDIT §N1。
- *   4. ce_shop_capacity_check：随机池 ≤ 560 份、保证卡 ≤ 57（AUDIT §N2、边界 #34）。
+ *   3. ce_shop_capacity_check：随机池 ≤ 560 份、保证卡 ≤ 57（AUDIT §N2、边界 #34）。
+ *      （幻影 id 的商店排除——NULL/BACK 行 +0x14 := 6——在 selfcheck.c 的 fill_table 里，不依赖本文件成功。）
  * 任何一条错 → FAIL verdict、返回 0，selfcheck 还原分配器上界——全有或全无。
  *
  * thcrap / jansson 的函数全部 GetProcAddress（不链接导入库，同 func_get）。json_t 只用到 ->type：
@@ -15,7 +14,10 @@
  * OBJECT ARRAY STRING INTEGER REAL TRUE FALSE NULL 自 2.0 起没变过；根对象的 type 必须是 OBJECT，
  * 否则当作布局假设失效 FAIL（而不是把别的字段读成类型）。
  *
- * internal_name（表行 +0x00）指向 DLL 里 strdup 出来的串，DLL 与游戏同生命周期，不释放。
+ * internal_name（表行 +0x00）指向 DLL 里复制出来的串，DLL 与游戏同生命周期，不释放。
+ * ★ 串前面多放一个 '\n'：AbilityText__parse_ability_txt（0x4160b0）会拿 ability.txt 里每个 @NAME 与
+ *   全表 255 行的 +0x00 逐字节比对，命中就往 zAbilityText + id*0x1c0 写 7 行——新 id 在对象之外（AUDIT §N4）。
+ *   token 不可能含换行，所以带 '\n' 前缀的名字永远匹配不上，那条写入路径对新卡永远关着。
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -152,13 +154,6 @@ static int parse_card(const char *key, const json_t *obj, ce_card_def_t *d, char
 }
 
 /* ---- 入口 ---- */
-static void exclude_sentinels(uint8_t *cave)
-{
-    uint32_t six = CE_SHOP_NEVER_WEIGHT;
-    memcpy(cave + CE_NULL_ROW * CE_ROW_BYTES + 0x14, &six, 4);          /* 56 NULL：幻影 id 的回落行 */
-    memcpy(cave + (CE_NULL_ROW + 1) * CE_ROW_BYTES + 0x14, &six, 4);    /* 57 BACK */
-}
-
 int ce_cards_load(uint8_t *base, uint8_t *cave, unsigned rows)
 {
     (void)base;
@@ -168,8 +163,7 @@ int ce_cards_load(uint8_t *base, uint8_t *cave, unsigned rows)
 
     json_t *root = p_stack_game_json_resolve("cards.js", NULL);
     if (!root) {
-        exclude_sentinels(cave);
-        ce_log("cards: no th18/cards.js in the patch stack — 0 new cards (NULL/BACK weight := 6 for the shop)");
+        ce_log("cards: no th18/cards.js in the patch stack — 0 new cards");
         return 1;
     }
     if (root->type != J_OBJECT) {
@@ -194,7 +188,9 @@ int ce_cards_load(uint8_t *base, uint8_t *cave, unsigned rows)
             ok = 0; break;
         }
         seen[d.id] = 1;
-        char *name = _strdup(d.internal_name);
+        char *name = (char *)malloc(strlen(d.internal_name) + 2);      /* "\n" + 名字，见文件头 */
+        if (!name) { ce_verdict("FAIL: cards: out of memory"); ok = 0; break; }
+        name[0] = '\n'; strcpy(name + 1, d.internal_name);
         ce_card_encode_row(&d, (uint32_t)(uintptr_t)name, cave + d.id * CE_ROW_BYTES);
         ce_text_set(d.id, d.name, (const char (*)[CE_CARD_TEXT_LINE])d.desc, d.ndesc);
         s_ids[s_count] = d.id;
@@ -207,7 +203,6 @@ int ce_cards_load(uint8_t *base, uint8_t *cave, unsigned rows)
     p_json_decref_safe(root);
     if (!ok) { s_count = 0; return 0; }
 
-    exclude_sentinels(cave);
     unsigned pool = 0, guaranteed = 0;
     if (!ce_shop_capacity_check(cave, rows, &pool, &guaranteed, err, sizeof err)) {
         ce_verdict("FAIL: cards: %s", err); s_count = 0; return 0;

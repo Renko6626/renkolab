@@ -17,12 +17,13 @@
 | 4 | 解锁状态可读、可写、可存档 | `zScoreFile.unlocked_cards` `+0x5f588` uint8[57] | 57，在存档里 | 影子数组 codecave + side-car 文件；零售 id 仍写存档 | ✅ |
 | 5 | 名字与说明 | `zAbilityText` `0x63e0` = 57 × `0x1c0` | 57，对象尾部就是别的字段 | 不扩对象，3 处读按 id 重定向到 DLL 缓冲 | ✅ |
 | 6 | 在图鉴 / 卡组编成里出现 | 显示顺序表 `0x4b3600` 57 项；`zAbilityMenu.__card_ids[56]`；条目数 `0x38` ×7 | 57 / 56 / 56 | 顺序表搬迁重排；对象扩容；条目数由 DLL 现写 56+N | ✅ |
-| 7 | 在商店里出现 | `AbilityShop` 三处循环只看前 56 个 id；候选栈数组 57 槽 | 56 | 未做——要先加「查表命中才算」筛选 | ⏳ |
-| 8 | 卡图 | `abcard.anm` 的 sprite，行里 `+0x2c/+0x30` | 已知用到 116/117 | 未做 | ⏳ |
+| 7 | 在商店里出现 | `AbilityShop` 三处循环只看前 56 个 id；随机池 560 份、offer 57 槽 | 56 | 上界 → rows；cave 里 NULL/BACK 行 `+0x14 := 6` 排除幻影；容量装载时现算 | 🔧 待实跑 |
+| 8 | 卡图 | `abcard.anm` 的 sprite，行里 `+0x2c/+0x30` | 已知用到 116/117 | JSON 给索引（`sprite_large/small`），ANM 由写卡的人用 thanm/truanm 加、以文件替换分发；DLL 不碰 | ✅（手工）|
 | 9 | 行为 | 跳转表指向的构造器 + 虚表 | — | 未做；新 id 现在挂基类虚表（无行为） | ⏳ |
-| 10 | 数据从哪来 | — | — | 现在 `cards.c` 编译进 DLL：`{58}` + 占位文案；行数据仍是 NULL 副本 | ⏳ |
+| 10 | 数据从哪来 | — | — | thcrap 栈里每个 patch 的 `th18/cards.js` 深合并 → 门里逐张校验、写 cave 行 + 文案 + 注册表（[`DATA.md`](DATA.md)）| 🔧 待实跑 |
 
-第 1–6 段跑通的标志：用 `_test` 把 id 58 塞进空槽 → 开局分配到它 → 「获得」→ 重启仍解锁 → 图鉴里有它 → 编成里能选它。
+第 1–6 段跑通的标志（✅ 2026-09-02）：用 `_test` 把 id 58 塞进空槽 → 开局分配到它 → 「获得」→ 重启仍解锁 → 图鉴里有它 → 编成里能选它。
+第 7 + 10 段的标志：`patch-test/th18/cards.js` 的「测试卡牌」在商店里出现、能买；名字 / 说明是 JSON 里的。
 
 ## 1. 机制只有四种
 
@@ -32,6 +33,7 @@
 | **codecave（数据）** | 需要比零售更大的数组 | patch 只声明 size，内容由 `_patch_init` 保险填、DLL 权威填 | `emit_codecaves` / `selfcheck.c` |
 | **thcrap 断点** | 需要在某条指令处跑 C 逻辑 | `cavesize` = 整条指令，无相对寻址；返回 1 放行 / 0 跳过 | patch 声明，DLL 导出 `BP_<名>` |
 | **DLL 运行时写代码** | 值到运行时才知道（新卡数量）| 门里 `VirtualProtect` 写，写前核对原值 | `menu.c`；`restore_alloc_bound` 同类 |
+| **thcrap 栈 JSON** | 数据由写卡的人给、可被别的 patch 叠加 | `stack_game_json_resolve` 深合并全栈的 `th18/cards.js`；DLL 只读、逐张校验、全有或全无 | `cards.c` ← `cards_def.c`（主机单测）|
 
 **没有一个字节手写机器码**（除 `_patch_init` 那段 `rep movsd` 拷表和测试钩子的 5 条指令）。
 
@@ -43,7 +45,7 @@
 | --- | --- | --- | --- | --- | --- |
 | `cardtable_{start,end,fallback,hit}_` | 100 | 内联查表的四条臂 → 新表 | `emit()` ← `shape.py` 骨架匹配 | TARGET「100 处」 | AUDIT §B–§F |
 | `alloc_bound_` / `alloc_jumptable_` | 2 | 分配器上界 254；跳转表 → cave | `emit_alloc_binhacks` | TARGET「战线 B」 | §I |
-| `grow_` | 12 | `zAbilityManager` 大小 / `owned[]` 搬迁 / 商店循环起止 | `emit_grow_binhacks` | TARGET「战线 C」 | §J |
+| `grow_` | 12 | `zAbilityManager` 大小 / `owned[]` 搬迁 / 商店循环起止（上界 = rows）| `emit_grow_binhacks` | TARGET「战线 C」 | §J、§N |
 | `unlock_` | 9 | `unlocked_cards` 读 → 影子数组（改 ModRM） | `emit_unlock_binhacks` ← `find_unlock_sites` | TARGET「战线 D」 | §K、§K′ |
 | `order_` | 7 | 显示顺序表 6 引用 + 尾界 → cave | `emit_order_binhacks` ← `find_order_sites` | TARGET「E 第二块」 | §M、§M′ |
 | `menu_` | 20 | `zAbilityMenu` 大小 ×3、`__card_ids` ×16、清理上界 ×1 | `emit_menu_binhacks` ← `MENU_SITES` | 同上 | §M |
@@ -64,7 +66,7 @@
 
 | 名 | 大小 | 内容 | 谁填 |
 | --- | --- | --- | --- |
-| `th18_card_table` | 255 × `0x34` | 卡表 | `_patch_init` 保险 + DLL 权威（零售 58 行 + NULL 副本）|
+| `th18_card_table` | 255 × `0x34` | 卡表 | `_patch_init` 保险 + DLL 权威（零售 58 行 + NULL 副本）；装载器再写新卡行（行号 = id）、把 56/57 行 `+0x14` 改 6 |
 | `th18_card_jumptable` | 255 × 4 | 分配器跳转表 | 同上（57 原样 + case 56）|
 | `th18_card_unlocked` | 256 | 解锁影子 | DLL（`ce_save_loaded`）|
 | `th18_card_order` | 255 × 4 | 显示顺序 | `_patch_init` 保险（57 + BACK 填充）+ DLL 重排追加新卡 |
@@ -94,11 +96,8 @@
 
 ## 5. 还没做的段落各自卡在哪
 
-- **商店**：`AbilityShop__initialize` 第一轮筛选 `owned==0 → is_available → +0x14==0`，NULL 副本全能过，
-  候选数组只有 57 槽（AUDIT §J4、边界 #34）。要加「查表命中（`entry->id == id`）才算」的筛选，
-  这是第一段不能靠同长改写、要写 cave 逻辑（或断点）的活。
-- **卡图**：`abcard.anm` 用 thanm/truanm 加 sprite，作为文件替换分发；sprite 索引余量未查。
 - **行为**：跳转表项指向 case 56（无行为构造器）。有行为 = DLL 提供构造器 + 虚表，跳转表项指过去——
-  `0x412cd5` 公共尾段的栈契约（AUDIT §A）这时才需要真正满足。
-- **数据**：`cards.c` → 文件。装载时机在 `ce_gate` 之后：写卡表行（codecave）、文案缓冲、注册表。
-  仓库只放新卡自己的数据。
+  `0x412cd5` 公共尾段的栈契约（AUDIT §A）这时才需要真正满足。按 id 绑定，JSON 不知道行为的存在。
+  下一轮做成「行为 SDK」（[`NEXT.md`](NEXT.md)）。
+- **卡图**：不是代码活。sprite 索引余量未查（[`engine/card/th18/10-extensibility-limits.md`](../../../engine/card/th18/10-extensibility-limits.md)）。
+- ~~商店~~、~~数据~~：已做（第 7 / 10 段），待实跑。

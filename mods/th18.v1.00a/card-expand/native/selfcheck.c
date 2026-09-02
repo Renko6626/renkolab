@@ -55,7 +55,13 @@ static int fill_table(uint8_t *base, uint8_t *cave, unsigned rows)
         ce_verdict("FAIL: table sanity after copy — row0.id=%u row56.id=%u", id0, id56);
         return 0;
     }
-    ce_log("table: %u rows filled at %p (58 retail + %u NULL copies)",
+    /* 商店：_255 把三处循环上界抬到 rows，幻影 id 查表回落到 NULL 行 56、BACK 57 按自己 id 命中。
+     * 两行 +0x14（权重）:= 6 让三条筛选（≠0&&≠6 / ==0 / dmode 1-5）都过不了。放在这里而不是装载器里，
+     * 是为了后面任何一步 FAIL 时商店也不会被 ~199 个幻影灌爆 57 槽的 offer 数组。+0x14 只有商店读：AUDIT §N1/N5。*/
+    uint32_t six = CE_SHOP_NEVER_WEIGHT;
+    memcpy(cave + CE_NULL_ROW * CE_ROW_SIZE + 0x14, &six, 4);
+    memcpy(cave + (CE_NULL_ROW + 1) * CE_ROW_SIZE + 0x14, &six, 4);
+    ce_log("table: %u rows filled at %p (58 retail + %u NULL copies); NULL/BACK shop weight := 6",
            rows, cave, rows - CE_ROW_COUNT);
     return 1;
 }

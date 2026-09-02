@@ -4,6 +4,7 @@
 
 把 `zTableCardData[]` 从 `.data` 搬进 codecave，为「加新卡」腾出行数。
 **「加一张卡到底改了什么」的追溯表在 [`MAP.md`](MAP.md)**——150 条 binhack、7 个断点、5 个 codecave 各自的出处。
+**想加一张卡：读 [`DATA.md`](DATA.md)**——一个 `th18/cards.js` 就够（行为除外）。
 方案全貌见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)，
 边界依据见 [`engine/card/th18/11-sentinels-56-57.md`](../../../engine/card/th18/11-sentinels-56-57.md)。
 
@@ -16,7 +17,7 @@
 | 3 / 战线 B | 分配器搬迁 + 验证钩子（`make step3`） | ✅ **实跑通过**：`allocate_new_card(id=58)` 真的发到手上 |
 | C | `zAbilityManager` 扩容，`owned[]` 255 项（并入 `_255`）| ✅ **实跑通过** |
 | D | 存档影子数组 + side-car（并入 `_255`）| ✅ **实跑通过**：id 58 获得 → 重启仍解锁。见下「战线 D」 |
-| E | 图鉴 / 顺序表 / 文案 / 图 / 商店筛选 | 文案重定向 ✅ 实跑；**图鉴 + 编成**（顺序表 / `zAbilityMenu` 扩容）静态审计通过 **待实跑**；商店、图、数据未做 |
+| E | 图鉴 / 顺序表 / 文案 / 图 / 商店 / 数据 | 文案 ✅、图鉴 + 编成 ✅ **实跑通过**；**商店 + JSON 数据装载**（[`DATA.md`](DATA.md)）静态审计通过 **待实跑**；图由写卡的人改 ANM；行为 = 下一轮（行为 SDK）|
 
 第 1 步的价值不在功能，而在用「和香草没差别」这个最容易判定的标准，
 一次性验证 100 处搬迁 + 生成器 + 对账器 + 开机自检。
@@ -171,6 +172,21 @@ side-car：`%APPDATA%\ShanghaiAlice\th18\th18_card_expand.sav`（路径取自游
 日志：`menu: order table @ … rebuilt (56 retail + 1 new + NULL, rest BACK); encyclopedia entries = 57`，
 结论行多 `menu extended`。
 
+## 战线 E 第 7 + 10 段 —— 商店里出现新卡、新卡从 JSON 来（并入 `_255`）
+
+**数据**：DLL 在门里 `stack_game_json_resolve("cards.js")`，thcrap 把栈里每个 patch 的 `th18/cards.js`
+深合并；每个键 = id（58–254），值 = 表行字段 + 文案 + sprite 索引。逐张校验后写 codecave 第 id 行、
+覆盖文案缓冲、登记进注册表（图鉴 / 顺序表由它驱动）。任何一条错 → 整包 FAIL。格式与上限见 [`DATA.md`](DATA.md)。
+
+**商店**：三处循环上界从 56 抬到 rows（`grow_41716b/417527/4175e7`）。幻影 id 查表回落到 NULL 行 56，
+装载器把 cave 里 56 / 57 两行的 `+0x14`（权重）写成 6，三条筛选（`≠0&&≠6` / `==0` / dmode 1–5）就都过不了——
+**没有新的机器码**。前提「`+0x14` 只有商店读」的穷举在 [`AUDIT.md`](AUDIT.md) §N1；随机池 560 份 / offer 57 槽的
+容量由装载器现算（§N2）。
+
+**验收**：`patch-test/th18/cards.js` 里的 id 58「测试卡牌」出现在图鉴 / 编成 / 商店（tier 5 = 中价档，权重 2），
+能买、能拿、重启仍解锁。日志：`cards: 1 registered from cards.js; shop pool …`，`grow: … shop loops 255 ids`，
+结论行多 `cards loaded`。
+
 ### 验证钩子 `patch-test/`（只在测试时进栈）
 
 | 钩子 | 干什么 |
@@ -178,7 +194,7 @@ side-car：`%APPDATA%\ShanghaiAlice\th18\th18_card_expand.sav`（路径取自游
 | `0x407ee3` binhack → `th18_ce_test_deck58` | `reset_cards` 读初始卡组时，**空槽(56) 改发 id 58**。不写存档、不改文件 |
 | `0x411469` 断点 → `BP_ce_trace_alloc` | 每次 `allocate_new_card(id, mode)` 记进日志；**新 id 第一次出现时调 `mark_obtained(id,1)`**（战线 D 的验收，否则没有路能解锁新卡）|
 
-**流程**：`make step3` → `patch/` 进栈（DLL 不用换），再把 `patch-test/` 叠在上面 →
+**流程**：`make step3` → `patch/` 进栈（DLL 不用换），再把 `patch-test/` 叠在上面（它还带示范卡的 `th18/cards.js`）→
 卡组编成里把**第一格清空**（选那个空白项）→ 开一局。日志里应出现：
 
 ```
@@ -263,7 +279,8 @@ OK: table filled (58 rows @ 0x…), 100/100 sites verified
 ```
 card-expand/
 ├── README.md          # 你在这
-├── NEXT.md            # ★ 下一个会话从这里开始（战线 E）
+├── DATA.md            # ★ 怎么用 th18/cards.js 登记一张新卡
+├── NEXT.md            # ★ 下一个会话从这里开始（行为 SDK）
 ├── MAP.md             # ★ 追溯表:一张卡要经过的 10 段路,每条 binhack/断点/codecave 的出处
 ├── TARGET.md          # ★ 死绑登记
 ├── AUDIT.md           # 对抗审计
@@ -271,14 +288,17 @@ card-expand/
 │   ├── shape.py       ★ 查表骨架匹配器(权威站点来源)
 │   ├── x86imm.py      x86 常量定位器(完整性审计用)
 │   ├── sites.py       ★ 扫描 / 校验 / 生成 / 对账
-│   ├── mkfiles.py     刷新 files.js
+│   ├── mkfiles.py     刷新 patch/ 与 patch-test/ 的 files.js（递归）
+│   ├── release.py     dist → 发布仓库 th18_modkit
 │   ├── sites_gen.h    生成物:DLL 用的站点表
 │   ├── card_expand.h  DLL 内部共用声明
 │   ├── dll_main.c     入口 / 日志 / thcrap API / 自检①(零售表签名)
 │   ├── selfcheck.c    ★ 自检②:BP_ce_gate 填表(+跳转表) + 回读站点
 │   ├── unlocked.c     ★ 战线 D:影子数组 + side-car + 三个断点
 │   ├── text.c         战线 E 第一块:id≥57 文案重定向(三个断点)
-│   ├── cards.c        新卡注册表(现在编译进 DLL:{58})
+│   ├── cards_def.h/.c ★ 一张卡的定义:校验 / 表行编码 / 商店容量(纯逻辑)
+│   ├── tests/         cards_def 的主机单测(make test-host)
+│   ├── cards.c        ★ 战线 E 第 10 段:装 th18/cards.js → 表行 + 文案 + 注册表
 │   ├── menu.c         战线 E 第二块:顺序表重排 + 图鉴条目数 + 站点核对
 │   ├── bp_trace.c     测试断点:记录 allocate_new_card(id, mode);新 id 顺手 mark_obtained
 │   ├── thcrap_bp.h    断点 ABI(与 mouse-control 同一份)
@@ -287,9 +307,10 @@ card-expand/
 ├── patch/
 │   ├── patch.js
 │   ├── files.js
-│   └── th18.v1.00a.js  ★ 生成物,不要手改(仓库里是 ROWS=58)
-└── patch-test/         只在验证战线 B 时叠上
+│   └── th18.v1.00a.js  ★ 生成物,不要手改(仓库里是 ROWS=255 = step3)
+└── patch-test/         只在测试时叠上
     ├── patch.js        依赖 th18_card_expand
     ├── files.js
+    ├── th18/cards.js   示范卡 58(DATA.md 的例子)
     └── th18.v1.00a.js  ★ 生成物:空槽→58 + 分配追踪断点
 ```
