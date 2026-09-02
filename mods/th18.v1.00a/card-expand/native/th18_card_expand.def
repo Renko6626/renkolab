@@ -6,3 +6,6 @@ EXPORTS
 	BP_ce_save_loaded	@4
 	BP_ce_unlock_write	@5
 	BP_ce_unlock_all	@6
+	BP_ce_text_name		@7
+	BP_ce_text_desc		@8
+	BP_ce_text_notify	@9

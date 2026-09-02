@@ -4,6 +4,7 @@
  *   dll_main.c    入口 / 日志文件 / thcrap API 解析 / 开机自检①（零售表签名）
  *   selfcheck.c   开机自检②：BP_ce_gate 里填表（+跳转表）+ 回读站点 + 写结论
  *   unlocked.c    战线 D：unlocked_cards 影子数组 + side-car；三个断点
+ *   text.c        战线 E 第一块：id≥57 的文案重定向到 DLL 缓冲（三个断点）
  *   bp_trace.c    测试用断点：记录每次 allocate_new_card(id, mode)，新 id 顺手 mark_obtained（只在 patch-test 进栈时挂）
  *   （后续）       数据激活门、新卡注册 …
  */
@@ -29,3 +30,5 @@ int ce_selfcheck(uint8_t *module_base);
 /* 战线 D（unlocked.c）：找影子 codecave（NULL = 不在栈里）；核对 9 处读 + 3 个断点 */
 uint8_t *ce_unlock_init(uint8_t *module_base);
 int ce_unlock_check(uint8_t *module_base);
+/* 战线 E 第一块（text.c）：核对三个文案重定向断点 */
+int ce_text_check(uint8_t *module_base);

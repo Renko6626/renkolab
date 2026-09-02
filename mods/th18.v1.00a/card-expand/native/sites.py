@@ -68,6 +68,14 @@ SAVE_LOADED    = 0x46398a # ScoreFile__load 尾段：lea esi,[ebx+0x5f4b8]（6 �
 UNLOCK_ALL     = 0x4648fe # ScoreFile__unlock_all：lea eax,[ebx+0x5f588]（6 字节），下一条就是 memset(…,1,0x38)
 SUBOBJ_A_OFF   = 0x5f4b8  # unlocked_cards 所在子对象（init_from_table 的 this）；影子初始化只用 0x5f588
 SCOREFILE_PTR  = 0x4cf41c # 全局 SCOREFILE_PTR；每处读的前几条里都有一条 mov r32,[0x4cf41c]
+# ---- 战线 E（第一块）：文案重定向。zAbilityText 只有 57 张 × 0x1c0，id≥57 的文案改指向 DLL 自己的缓冲 ----
+ABILITY_TXT_PTR = 0x4cf29c  # 全局 ABILITY_TXT_PTR
+TEXT_ENTRY      = 0x1c0     # 7 行 × 0x40
+TEXT_SITES = (              # 三处 `imul r, id, 0x1c0`，后面紧跟 add 基址；断点里按 id 改写 r
+    ("ce_text_name",   0x416694, 6, "69cbc0010000",   "FUN_00416540 卡名：imul ecx, ebx, 0x1c0"),
+    ("ce_text_desc",   0x416779, 7, "69450cc0010000", "FUN_00416540 说明 6 行：imul eax, [ebp+0xc], 0x1c0"),
+    ("ce_text_notify", 0x41926a, 6, "69c3c0010000",   "获得通知：imul eax, ebx, 0x1c0"),
+)
 
 PART_ORDER = ("start", "end", "fallback", "hit")
 
@@ -528,6 +536,18 @@ def emit_unlock_breakpoints(text, text_va):
     ])
 
 
+def emit_text_breakpoints(text, text_va):
+    """战线 E 第一块：三处 imul 挂断点。expected 写死在表里，这里再与 exe 核对一遍。"""
+    out = {}
+    for name, va, n, exp, title in TEXT_SITES:
+        raw = text[va - text_va:va - text_va + n]
+        if raw.hex() != exp:
+            raise ShapeError("%s @ 0x%06x：exe 里是 %s，表里写的是 %s" % (name, va, raw.hex(), exp))
+        out[name] = {"addr": "0x%06x" % va, "cavesize": n, "expected": exp,
+                     "title": "文案重定向 → BP_%s：id<57 照算 id*0x1c0，否则指向 DLL 的扩展文案缓冲（%s）" % (name, title)}
+    return out
+
+
 def verify_unlock_binhack(name, bh, text, text_va):
     """对账战线 D 的一条：把 expected（原）和 code（新）各自解开，逐字段比。"""
     bad = []
@@ -781,6 +801,12 @@ def emit_header(sites, unlock_reads):
               "#define CE_BP_UNLOCK_WRITE_RVA 0x%06x" % (UNLOCK_WRITE - 0x400000),
               "#define CE_BP_SAVE_LOADED_RVA  0x%06x" % (SAVE_LOADED - 0x400000),
               "#define CE_BP_UNLOCK_ALL_RVA   0x%06x" % (UNLOCK_ALL - 0x400000),
+              "#define CE_ABILITY_TXT_PTR_RVA 0x%06x" % (ABILITY_TXT_PTR - 0x400000),
+              "#define CE_TEXT_ENTRY     0x%x" % TEXT_ENTRY,
+              "#define CE_TEXT_ENTRIES   57      /* 零售 zAbilityText 装 57 张；第 57 张的位置已是尾部字段 */",
+              "#define CE_BP_TEXT_NAME_RVA   0x%06x" % (TEXT_SITES[0][1] - 0x400000),
+              "#define CE_BP_TEXT_DESC_RVA   0x%06x" % (TEXT_SITES[1][1] - 0x400000),
+              "#define CE_BP_TEXT_NOTIFY_RVA 0x%06x" % (TEXT_SITES[2][1] - 0x400000),
               "typedef struct { uint32_t rva; uint8_t len, pre_len, post_len, pre[2], post[2]; } ce_unlock_t;",
               "static const ce_unlock_t CE_UNLOCK[] = {"]
     for va, d, raw in unlock_reads:
@@ -920,6 +946,7 @@ def main():
         doc["binhacks"].update(emit_grow_binhacks(a.rows))
         doc["binhacks"].update(emit_unlock_binhacks(unlock_reads))
         doc["breakpoints"].update(emit_unlock_breakpoints(text, text_va))
+        doc["breakpoints"].update(emit_text_breakpoints(text, text_va))
     txt = json.dumps(doc, indent=2, ensure_ascii=False)
     if a.out:
         out = a.out if os.path.isabs(a.out) else os.path.join(HERE, a.out)

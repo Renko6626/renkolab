@@ -6,8 +6,8 @@
 ## 0. 现状一句话
 
 A（搬表）、B（分配器）实跑通过；C（`zAbilityManager` 扩容）、**D（存档影子数组 + side-car）静态审计通过、
-已发布、待实跑**。新卡现在能被分配、能被「获得」、解锁状态能持久化——但它还没有名字、说明、图鉴位、
-商店位，所以**解锁后名字栏是乱码**（`zAbilityText` 只有 57 张的文案缓冲），这是 E。
+已发布、待实跑**。新卡现在能被分配、能被「获得」、解锁状态能持久化、名字显示「测试卡牌 58」（E 第一块：文案重定向，
+[`AUDIT.md`](AUDIT.md) §L）——但它还没有图鉴位、商店位、真实数据、图。
 
 | 战线 | 状态 |
 | --- | --- |
@@ -15,7 +15,7 @@ A（搬表）、B（分配器）实跑通过；C（`zAbilityManager` 扩容）�
 | B 分配器 | ✅ 实跑 |
 | C `zAbilityManager` 扩容 | 🔧 静态审计通过，已发布未实跑 |
 | D 存档 | 🔧 静态审计通过（[`AUDIT.md`](AUDIT.md) §K），已发布未实跑 |
-| **E** 图鉴 / 顺序表 / 文案 / 图 / 商店筛选 | ← **这里** |
+| **E** 图鉴 / 顺序表 / 文案 / 图 / 商店筛选 | 文案重定向已做（§L）；← **其余从这里** |
 
 ## 1. 先做：把 C + D 的实跑记录收回来
 
@@ -26,7 +26,8 @@ A（搬表）、B（分配器）实跑通过；C（`zAbilityManager` 扩容）�
 gate: BP_ce_gate fired at ScoreFile__load
 grow: zAbilityManager 0xd70 -> 0x116c, owned[] at +0xd70 (255 entries), shop loops still 56
 unlocked: shadow @ …, 9 read sites + 3 breakpoints verified; side-car = C:\Users\…\AppData\Roaming\ShanghaiAlice\th18\th18_card_expand.sav
-OK: table filled (255 rows @ …), allocator relocated, manager grown, unlocked shadowed, 100/100 sites verified
+text: ids 57..254 redirected to ext buffer @ … (198 entries x 0x1c0), 3 breakpoints verified
+OK: table filled (255 rows @ …), allocator relocated, manager grown, unlocked shadowed, text redirected, 100/100 sites verified
 unlocked: shadow @ …, 57 retail (N set) + side-car (0 new ids set) from …
 trace: allocate_new_card(id=58, mode=1)  <- NEW ID
 test: calling mark_obtained(id=58, notify=1) to exercise the unlock path
@@ -36,9 +37,7 @@ unlock: id=58 (NEW; shadow + side-car saved)
 第二次启动 `side-car (1 new ids set)`。任何一行缺失 / FAIL / `mitigation:` 都先处理再往下。
 通过后把 [`AUDIT.md`](AUDIT.md) §0 的表补上 C、D 两行，§K 末尾「未实跑」改掉。
 
-⚠️ 一个可能的坑：解锁后 `FUN_00416540` 读 `zAbilityText + 58*0x1c0`，越过对象末尾 `0x160` 字节。
-只读不写，大概率是乱码 / 空白；**若崩在这里**，那是 E 的文案缓冲问题提前暴露，不是 D 的错——
-临时绕法是把 patch-test 的 `th18_ce_test_id` 留 `0x3a`、但先不进卡组编成看它。
+游戏内：那张卡的名字应显示「测试卡牌 58」，说明栏三行占位；获得通知同名。
 
 ## 2. E 要做什么（PLAN §2 战线 E 的量化，本会话补的在 ★）
 
@@ -46,14 +45,13 @@ unlock: id=58 (NEW; shadow + side-car saved)
 | --- | --- | --- |
 | 图鉴上界 `0x38` → `0xff` | 8 | 全同长：`0x4137bb` `0x414394` `0x41439e` `0x4145e2` `0x41495c` `0x41570d` `0x4157cb` `0x415817` |
 | 显示顺序表 `0x4b3600`（57 dword）→ codecave | 7 引用 + 1 尾界 `0x4b36e4` | ⚠️ `0x4b36e4` 紧接另一张表（`0x4337f4`），不能就地加长 |
-| 文案缓冲 `zAbilityText` `0x63e0` → `0x1be00` | 1 写 `0x41623d` + 3 读 `0x416694` `0x416779` `0x41926a` | ⏳ 尾部字段 `+0x63c0..+0x63dc`（vm id ×7，`FUN_00416540` 里就在用）的**全部访问点还没数全**——扩容会把它们顶走，先数清 |
+| ~~文案缓冲扩容~~ → **重定向**（已做，`text.c`）| 3 读挂断点 | 对象不扩，尾部字段不用数了。写入点 `0x41623d`（文案文件解析器）仍只写零售 id；新卡的文案由 DLL 直接填进 ext 缓冲（现在是占位「测试卡牌 N」）|
 | ★ 商店筛选 | 3 处循环（`0x416f8f` `0x41744a` `0x417535` 起点，上界现留 56）| 抬上界前要加「查表命中才算」（`entry->id == esi`）的 codecave 筛选，否则 ~198 个 NULL 副本涌进 57 槽的栈数组 `[ebp-0xe4]`（AUDIT §J4、边界 #34）|
 | ★ `zAbilityMenu.__card_ids` | 与顺序表耦合 | AUDIT G3 |
 | 图 | `abcard_anm` 加 sprite | thanm/truanm；sprite 索引余量 ⏳ 未查（已知用到 116/117）|
 | ★ 新卡数据激活 | — | 现在 58..254 行全是 NULL 副本（`+0x24=1` 初期解禁、`+0x20=1` 菜单可见），真正的新卡行由谁、何时写进 codecave 还没定。建议：DLL 在 `ce_selfcheck` 通过后从一个 JSON/文本读行数据填表（仓库不留版权字节的原则同样适用：只放**新**卡的数据）|
 
-建议顺序：**先数文案缓冲尾部字段**（唯一没量化的），再做顺序表 + 图鉴 8 处（都是同长/搬表，工具链现成），
-最后商店筛选（第一段需要新 cave 逻辑的活）。
+建议顺序：顺序表 + 图鉴 8 处（都是同长/搬表，工具链现成）→ 新卡数据的来源与激活 → 商店筛选。
 
 ## 3. 工具链与验收（照旧）
 

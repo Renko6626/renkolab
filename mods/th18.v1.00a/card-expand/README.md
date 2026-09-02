@@ -15,7 +15,7 @@
 | 3 / 战线 B | 分配器搬迁 + 验证钩子（`make step3`） | ✅ **实跑通过**：`allocate_new_card(id=58)` 真的发到手上 |
 | C | `zAbilityManager` 扩容，`owned[]` 255 项（并入 `_255`）| 静态审计通过，**待实跑** |
 | D | 存档影子数组 + side-car（并入 `_255`）| 静态审计通过，**待实跑**。见下「战线 D」 |
-| E | 图鉴 / 顺序表 / 文案 / 图 / 商店筛选 | 未做。解锁后的新卡名字是乱码就是它 |
+| E | 图鉴 / 顺序表 / 文案 / 图 / 商店筛选 | **第一块**（文案重定向，占位「测试卡牌 N」）已并入 `_255` 待实跑；其余未做 |
 
 第 1 步的价值不在功能，而在用「和香草没差别」这个最容易判定的标准，
 一次性验证 100 处搬迁 + 生成器 + 对账器 + 开机自检。
@@ -141,10 +141,18 @@ side-car：`%APPDATA%\ShanghaiAlice\th18\th18_card_expand.sav`（路径取自游
    开一局（第一格留空）→ 弹「获得卡牌」通知 → 日志 `unlock: id=58 (NEW; shadow + side-car saved)`；
    存档目录出现 `th18_card_expand.sav`。
 2. **退出再进**：日志 `side-car (1 new ids set)`；进局后卡列表里那张不再是「まだ手に入れてない」，
-   名字栏是**乱码或空白**——预期（文案缓冲只有 57 张，战线 E）。
+   名字是「**测试卡牌 58**」，说明栏三行占位文案（获得通知里也是这个名字）。
 3. `scoreth18.dat` 的 md5 与打补丁前**相同**（除非这局解锁了零售卡）。
 4. 结论行变成 `OK: … allocator relocated, manager grown, unlocked shadowed, 100/100 sites verified`，
    前面多一行 `unlocked: shadow @ …, 9 read sites + 3 breakpoints verified; side-car = <路径>`。
+
+## 战线 E 第一块 —— id ≥ 57 的文案（并入 `_255`）
+
+`zAbilityText` 只有 57 张 × 0x1c0（名字 + 6 行说明，每行 0x40），第 58 张已在对象之外。
+不扩对象（尾部 7 个 vm id 字段的访问点没数全），改成**重定向**：三处 `imul r, id, 0x1c0`
+（`0x416694` 卡名、`0x416779` 说明、`0x41926a` 获得通知）挂断点，id≥57 时把 r 改成
+「加上基址后落进 DLL 缓冲」的偏移。缓冲现在是占位文案「测试卡牌 N」（UTF-8，thcrap 的 textdisp
+先按 UTF-8 解），战线 E 的真数据落地时就用这块缓冲。⚠️ 名字会被当 printf 格式串，文案里不能有 `%`。
 
 ### 验证钩子 `patch-test/`（只在测试时进栈）
 
@@ -251,6 +259,7 @@ card-expand/
 │   ├── dll_main.c     入口 / 日志 / thcrap API / 自检①(零售表签名)
 │   ├── selfcheck.c    ★ 自检②:BP_ce_gate 填表(+跳转表) + 回读站点
 │   ├── unlocked.c     ★ 战线 D:影子数组 + side-car + 三个断点
+│   ├── text.c         战线 E 第一块:id≥57 文案重定向(三个断点)
 │   ├── bp_trace.c     测试断点:记录 allocate_new_card(id, mode);新 id 顺手 mark_obtained
 │   ├── thcrap_bp.h    断点 ABI(与 mouse-control 同一份)
 │   ├── th18_card_expand.def

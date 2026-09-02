@@ -100,6 +100,16 @@
 | `ce_save_loaded` | `0x46398a` | `8d b3 b8 f4 05 00` | 6 | 影子 ← 零售存档（ebx）+ side-car |
 | `ce_unlock_all` | `0x4648fe` | `8d 83 88 f5 05 00` | 6 | 影子[0..55]=1 |
 
+## hook 点：战线 E 第一块（文案重定向，`_255` patch 里）
+
+| 名 | 地址 | 原字节 | 长 | 干什么 |
+| --- | --- | --- | --- | --- |
+| `ce_text_name` | `0x416694` | `69 cb c0 01 00 00` | 6 | `imul ecx,ebx,0x1c0` → ecx = 重定向偏移 |
+| `ce_text_desc` | `0x416779` | `69 45 0c c0 01 00 00` | 7 | `imul eax,[ebp+0xc],0x1c0` → eax |
+| `ce_text_notify` | `0x41926a` | `69 c3 c0 01 00 00` | 6 | `imul eax,ebx,0x1c0` → eax |
+
+死绑量：`ABILITY_TXT_PTR` `0x4cf29c`；条目 `0x1c0`；零售 57 张。
+
 ## 写入点：patch-test（只在验证时进栈）
 
 | 地址 | 原字节 | 改成 | 说明 |

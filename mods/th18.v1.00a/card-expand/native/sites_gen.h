@@ -140,6 +140,12 @@ static const ce_grow_t CE_GROW[] = {
 #define CE_BP_UNLOCK_WRITE_RVA 0x018e04
 #define CE_BP_SAVE_LOADED_RVA  0x06398a
 #define CE_BP_UNLOCK_ALL_RVA   0x0648fe
+#define CE_ABILITY_TXT_PTR_RVA 0x0cf29c
+#define CE_TEXT_ENTRY     0x1c0
+#define CE_TEXT_ENTRIES   57      /* 零售 zAbilityText 装 57 张；第 57 张的位置已是尾部字段 */
+#define CE_BP_TEXT_NAME_RVA   0x016694
+#define CE_BP_TEXT_DESC_RVA   0x016779
+#define CE_BP_TEXT_NOTIFY_RVA 0x01926a
 typedef struct { uint32_t rva; uint8_t len, pre_len, post_len, pre[2], post[2]; } ce_unlock_t;
 static const ce_unlock_t CE_UNLOCK[] = {
     { 0x01440b, 7, 2, 1, { 0x38, 0x8a }, { 0x90, 0 } },
