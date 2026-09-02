@@ -1,26 +1,25 @@
-# NEXT —— 下一个会话从这里开始：先验收 D，再开战线 E
+# NEXT —— 下一个会话从这里开始：战线 E
 
 > **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
 > 交接文档。写给**没有本会话上下文**的下一个会话；读完这一页应该能直接动手。
 
 ## 0. 现状一句话
 
-A（搬表）、B（分配器）实跑通过；C（`zAbilityManager` 扩容）、**D（存档影子数组 + side-car）静态审计通过、
-已发布、待实跑**。新卡现在能被分配、能被「获得」、解锁状态能持久化、名字显示「测试卡牌 58」（E 第一块：文案重定向，
+A（搬表）、B（分配器）、C（`zAbilityManager` 扩容）、D（存档影子数组 + side-car）**全部实跑通过**。
+新卡现在能被分配、能被「获得」、解锁状态能持久化、名字显示「测试卡牌 58」（E 第一块：文案重定向，
 [`AUDIT.md`](AUDIT.md) §L）——但它还没有图鉴位、商店位、真实数据、图。
 
 | 战线 | 状态 |
 | --- | --- |
 | A 搬表 | ✅ 实跑 |
 | B 分配器 | ✅ 实跑 |
-| C `zAbilityManager` 扩容 | 🔧 静态审计通过，已发布未实跑 |
-| D 存档 | 🔧 静态审计通过（[`AUDIT.md`](AUDIT.md) §K），已发布未实跑 |
+| C `zAbilityManager` 扩容 | ✅ 实跑 |
+| D 存档 | ✅ 实跑（[`AUDIT.md`](AUDIT.md) §K）|
 | **E** 图鉴 / 顺序表 / 文案 / 图 / 商店筛选 | 文案重定向已做（§L）；← **其余从这里** |
 
-## 1. 先做：把 C + D 的实跑记录收回来
+## 1. 参考：一次正常启动的日志长什么样
 
-用户 Windows 上 `git pull` 后按 [`README.md`](README.md)「战线 D → 验收」跑一遍，把
-`th18_card_expand.log` 贴回来。要看的行（顺序）：
+（C+D+E1 已由用户实跑通过。以后改了东西，回归就看这些行还在不在。）
 
 ```
 gate: BP_ce_gate fired at ScoreFile__load
@@ -34,10 +33,7 @@ test: calling mark_obtained(id=58, notify=1) to exercise the unlock path
 unlock: id=58 (NEW; shadow + side-car saved)
 ```
 
-第二次启动 `side-car (1 new ids set)`。任何一行缺失 / FAIL / `mitigation:` 都先处理再往下。
-通过后把 [`AUDIT.md`](AUDIT.md) §0 的表补上 C、D 两行，§K 末尾「未实跑」改掉。
-
-游戏内：那张卡的名字应显示「测试卡牌 58」，说明栏三行占位；获得通知同名。
+第二次启动 `side-car (1 new ids set)`。任何一行缺失 / FAIL / `mitigation:` 都是回归。
 
 ## 2. E 要做什么（PLAN §2 战线 E 的量化，本会话补的在 ★）
 

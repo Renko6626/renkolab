@@ -6,13 +6,14 @@
 
 ## 0. 状态
 
-**三步全部实跑通过（2026-09-02，用户 Windows 实机，thcrap 2024-11-06 stable）。**
+**A–D + E 第一块全部实跑通过（2026-09-02，用户 Windows 实机，thcrap 2024-11-06 stable）。**
 
 | 步 | patch | 日志关键行 | 游戏内 |
 | --- | --- | --- | --- |
 | 1 | `th18_card_expand` | `OK: table filled (58 rows @ 03850000), 100/100 sites verified` | 与香草无差别 |
 | 2 | `th18_card_expand_255` | `jumptable: 255 entries … allocator bound = 254` → `OK … 255 rows … allocator relocated, 100/100` | 与香草无差别 |
-| 3 | + `th18_card_expand_test` | `trace: allocate_new_card(id=58, mode=1)  <- NEW ID`（×4，两次 reset_cards 各两张）| 不崩；卡组编成选它时提示「未获取」——**预期**，见 G5 |
+| 3 | + `th18_card_expand_test` | `trace: allocate_new_card(id=58, mode=1)  <- NEW ID`（×4，两次 reset_cards 各两张）| 不崩；卡组编成选它时提示「未获取」——当时预期，D 已解 |
+| C+D+E1 | `_255`（含 manager 扩容、影子存档、文案重定向）+ `_test` | 用户报告通过（2026-09-02 晚，日志未留档）| id 58 能获得、重启后仍解锁、名字「测试卡牌 58」 |
 
 `gate: BP_ce_gate fired at ScoreFile__load` 每次都在——断点门成立。
 第 3 步的 trace 里 `id=42` 是默认卡组的 KOZUCHI，`id=16 / 24` 是局中获得的卡，
@@ -293,7 +294,7 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 **REFUTED 的那条（K2）是本战线最值得记的**：NEXT.md 那张「已算好长度」的改写表里三行留错了寄存器。
 教训写进 `sites.py`：任何依赖「编译器把什么放在哪一格」的假设都要从上下文重取，不能从指令形态推。
 
-**未实跑（2026-09-02 静态审计止）。** 验收见 README「战线 D」。
+**实跑通过**（2026-09-02，用户报告；见 §0）。
 
 ## L. 战线 E 第一块 —— id ≥ 57 的文案重定向
 
@@ -310,7 +311,7 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 | L7 | UTF-8 能显示 | **CONFIRMED（源码）** —— win32_utf8 `MultiByteToWideCharU`：先 `CP_UTF8 + MB_ERR_INVALID_CHARS`，失败退 `fallback_codepage`；base_tsa 是依赖，textdisp 一定在。字宽算式用 `strlen`，3 字节/字比 Shift-JIS 多，字会略挤——外观问题，不是安全问题 |
 | L8 | 断点里 `GetModuleHandleA` / 读全局 | **CONFIRMED** —— 无 x87、无 thcrap API；`make dllx87` = 0 |
 
-**未实跑。**
+**实跑通过**（2026-09-02，用户报告；见 §0）。
 
 ## G. OPEN —— 还没解决的
 
