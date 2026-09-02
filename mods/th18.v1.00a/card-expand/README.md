@@ -6,7 +6,7 @@
 方案全貌见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)，
 边界依据见 [`engine/card/th18/11-sentinels-56-57.md`](../../../engine/card/th18/11-sentinels-56-57.md)。
 
-**做到哪了**：
+**做到哪了**（下一步交接见 [`NEXT.md`](NEXT.md)）：
 
 | 步 | 内容 | 状态 |
 | --- | --- | --- |
@@ -205,6 +205,7 @@ OK: table filled (58 rows @ 0x…), 100/100 sites verified
 ```
 card-expand/
 ├── README.md          # 你在这
+├── NEXT.md            # ★ 下一个会话从这里开始（战线 D）
 ├── TARGET.md          # ★ 死绑登记
 ├── AUDIT.md           # 对抗审计
 ├── native/

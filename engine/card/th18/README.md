@@ -49,7 +49,8 @@
 - 想做运行时改造，先读 [`../../../mods/th18.v1.00a/card-rework/ROADMAP.md`](../../../mods/th18.v1.00a/card-rework/ROADMAP.md)：
   现有结论足以指导定点实验；运行时底座已由
   [`../../../mods/th18.v1.00a/mouse-control/README.md`](../../../mods/th18.v1.00a/mouse-control/README.md) 实跑验通，
-  但**尚无针对卡牌系统的注入补丁**。
+  卡牌侧的第一个注入产物 [`../../../mods/th18.v1.00a/card-expand/README.md`](../../../mods/th18.v1.00a/card-expand/README.md)
+  已实跑（搬表 + 分配器 + 扩容）；存档层与图鉴层未做。
 
 ## 本轮（2026-09-01）新增与订正
 

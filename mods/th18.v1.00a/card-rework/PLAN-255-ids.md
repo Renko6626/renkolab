@@ -135,6 +135,9 @@ card_id 在存档（`initial_cards_per_shottype`，`0x407ee3  movzbl`）和 repl
 
 ### 战线 D — 存档：影子数组 + side-car，**绝不写 `scoreth18.dat`**
 
+> **下一个要做的**。交接页：[`../card-expand/NEXT.md`](../card-expand/NEXT.md)，
+> 含一条本轮补的设计决定（id < 57 回写零售存档，否则卸载后丢零售卡的解锁）。
+
 `unlocked_cards` 是 `uint8_t[57]` @ `+0x5f588`，后面只有 71 字节空档，
 放不下 255。而它在 `zScoreFile` 里，动它就动存档格式**和别人的存档**。
 
