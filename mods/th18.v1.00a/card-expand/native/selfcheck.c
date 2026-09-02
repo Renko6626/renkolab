@@ -59,6 +59,24 @@ static int fill_table(uint8_t *base, uint8_t *cave, unsigned rows)
     return 1;
 }
 
+/* 兜底：任何 FAIL 之后把分配器上界写回零售值 0x38。
+ * 场景：两个不同行数的 patch 同时进栈——搬表 binhack 只有先到的那个生效（后到的
+ * expected 不匹配被跳过），但分配器上界 binhack 两边都能打上（原字节没被前者动过），
+ * 于是上界撑到 254 而跳转表只有 58 项 → 未注册 id 会 jmp 到 cave 之外。
+ * 上界回到 56 后，只有 id 0..56 会被分派，任何行数的跳转表都放得下。*/
+static void restore_alloc_bound(uint8_t *base)
+{
+    uint8_t *cmp = base + CE_ALLOC_CMP_RVA;
+    if (cmp[0] == 0x83 && cmp[1] == 0xfb && cmp[2] != 0x38) {
+        DWORD old;
+        if (VirtualProtect(cmp, 3, PAGE_EXECUTE_READWRITE, &old)) {
+            cmp[2] = 0x38;
+            VirtualProtect(cmp, 3, old, &old);
+            ce_verdict("mitigation: allocator bound restored to retail (56) — new ids disabled");
+        }
+    }
+}
+
 static int fill_jumptable(uint8_t *base, uint32_t *jt, unsigned rows)
 {
     memcpy(jt, base + CE_JT_RVA, CE_JT_COUNT * 4);
@@ -105,8 +123,8 @@ int ce_selfcheck_post_init(uint8_t *base)
     int alloc = jt != NULL;
     ce_log("config from patch: rows=%u alloc=%d", rows, alloc);
 
-    if (!fill_table(base, cave, rows)) return 0;
-    if (alloc && !fill_jumptable(base, jt, rows)) return 0;
+    if (!fill_table(base, cave, rows)) { restore_alloc_bound(base); return 0; }
+    if (alloc && !fill_jumptable(base, jt, rows)) { restore_alloc_bound(base); return 0; }
 
     unsigned ok = 0, bad = 0, first_bad = 0;
     for (unsigned i = 0; i < CE_NSITES; ++i) {
@@ -129,5 +147,6 @@ int ce_selfcheck_post_init(uint8_t *base)
                "%02x %02x %02x %02x %02x %02x %02x — partial application, DO NOT PLAY",
                ok, (unsigned)CE_NSITES, bad, 0x400000u + s->rva,
                p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
+    restore_alloc_bound(base);
     return 0;
 }

@@ -400,38 +400,67 @@ def verify_patch(path, text, text_va):
     return len(doc["binhacks"]), bad
 
 
+def _addr(a):
+    """thcrap 地址两种写法：绝对 VA `0x45b170`，或 `Rx5b170`（相对 imagebase）。"""
+    if isinstance(a, dict):
+        a = a.get("addr")
+    if not isinstance(a, str):
+        return None
+    t = a.strip()
+    if t.lower().startswith("0x"):
+        return int(t, 16)
+    if t[:2].lower() == "rx":
+        return 0x400000 + int(t[2:], 16)
+    return None
+
+
 def conflicts(ours_path, other_paths):
     """和**同一 patch 栈里其它 patch** 的 hackpoint 求区间交集。
 
     100 处 5–7 字节的写入点，任何一处被别的 binhack / breakpoint 覆盖都是冲突：
     后应用的那个会看到「expected 不匹配」然后**静默跳过**。
-    `base_tsa`（本 mod 声明的依赖）不在仓库 vendor 里，得拿装机上的
-    `<thcrap>/repos/nmlgc/base_tsa/th18.v1.00a.js` 来跑。
+
+    base_tsa 把 `cavesize` 写在 `th18.js`、把 `addr` 写在 `th18.v1.00a.js`，
+    所以要把传进来的文件按 hackpoint 名合并后再算。断点没给 cavesize 的按 5 算
+    （thcrap 的下限，实际会被拒绝装载）。
     """
     ours = json.load(open(ours_path, encoding="utf-8"))["binhacks"]
     mine = [(int(b["addr"], 16), int(b["addr"], 16) + len(bytes.fromhex(b["expected"])), n)
             for n, b in ours.items()]
-    found, checked = [], 0
+    merged = {}          # (sect, name) -> {addrs:[], size:int}
     for path in other_paths:
         d = json.load(open(path, encoding="utf-8"))
         for sect in ("binhacks", "breakpoints", "codecaves"):
             for name, item in (d.get(sect) or {}).items():
-                if not isinstance(item, dict) or item.get("addr") is None:
+                if not isinstance(item, dict):
                     continue
-                addrs = item["addr"] if isinstance(item["addr"], list) else [item["addr"]]
-                for a in addrs:
-                    if isinstance(a, dict):
-                        a = a.get("addr")
-                    if not isinstance(a, str) or not a.lower().startswith("0x"):
-                        continue
-                    lo = int(a, 16)
-                    size = item.get("cavesize") or \
-                        (len(bytes.fromhex(item["expected"])) if item.get("expected") else 5)
-                    checked += 1
-                    for mlo, mhi, mname in mine:
-                        if lo < mhi and mlo < lo + size:
-                            found.append((os.path.basename(os.path.dirname(path)) or path,
-                                          sect, name, a, mname))
+                m = merged.setdefault((sect, name), {"addrs": [], "size": None, "src": []})
+                m["src"].append(os.path.basename(path))
+                if item.get("cavesize"):
+                    m["size"] = int(item["cavesize"])
+                elif item.get("expected"):
+                    m["size"] = len(bytes.fromhex(item["expected"].replace(" ", "")))
+                elif sect == "binhacks" and item.get("code"):
+                    # 粗略：去掉 <…>/[…] 后每个表达式算 4 字节
+                    import re
+                    c = re.sub(r"<[^>]*>|\[[^\]]*\]", "XXXXXXXX", item["code"].replace(" ", ""))
+                    m["size"] = len(c) // 2
+                addrs = item.get("addr")
+                if addrs is None:
+                    continue
+                for a in (addrs if isinstance(addrs, list) else [addrs]):
+                    va = _addr(a)
+                    if va is not None:
+                        m["addrs"].append(va)
+    found, checked = [], 0
+    for (sect, name), m in merged.items():
+        size = m["size"] or 5
+        for lo in m["addrs"]:
+            checked += 1
+            for mlo, mhi, mname in mine:
+                if lo < mhi and mlo < lo + size:
+                    found.append((", ".join(sorted(set(m["src"]))), sect, name,
+                                  "0x%06x+%d" % (lo, size), mname))
     return checked, found
 
 

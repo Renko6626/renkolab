@@ -56,3 +56,10 @@ MCP 支持多库并存，两个 `database` 可以**并排对照**同名函数（
 这是把 TH16 已反清楚的逻辑映射到 TH18 的主要手法——
 但**只能参考逻辑，地址/偏移必须在目标 exe 上重取**
 （[`../games/th18.v1.00a/port-plan.md`](../games/th18.v1.00a/port-plan.md)）。
+
+## `vendor/th18_modkit`（发布仓库）
+
+`Renko6626/th18_modkit` —— **mod 包发布仓库**：自带 thcrap（2024-11-06 stable）+ 勾选式启动器，
+朋友 clone 下来放好 `th18.exe` 就能一键启动。renkolab 是开发仓库，产物往那边推：
+patch 进 `thcrap/repos/Renko_1055/<id>/`，DLL 进 `mods/`（带 `.json` 侧车）。
+它的 `thcrap/repos/nmlgc/base_tsa/th18*.js` 就是 `sites.py conflicts` 要对照的那份。
