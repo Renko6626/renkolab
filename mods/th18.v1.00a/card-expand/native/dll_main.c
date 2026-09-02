@@ -76,9 +76,23 @@ static int retail_table_looks_right(const uint8_t *base)
     return 1;
 }
 
+/* 日志路径必须是**绝对**的、挂在游戏 exe 所在目录：
+ * thcrap 注入时先 SetCurrentDirectory(thcrap/bin) 再 LoadLibrary、跑完整个 init
+ * （含 plugin_init 与 post_init）才恢复 CWD（inject.cpp:355-390）。
+ * 相对路径会把日志写进 thcrap/bin/ —— 第一版就是这么丢的。*/
+static void init_log_path(void)
+{
+    DWORD n = GetModuleFileNameA(NULL, s_logpath, sizeof s_logpath);
+    char *slash = (n && n < sizeof s_logpath) ? strrchr(s_logpath, '\\') : NULL;
+    if (slash && (size_t)(slash + 1 - s_logpath) + sizeof "th18_card_expand.log" <= sizeof s_logpath)
+        strcpy(slash + 1, "th18_card_expand.log");
+    else
+        strcpy(s_logpath, "th18_card_expand.log");     /* 兜底：只会在 exe 路径异常时发生 */
+}
+
 int __stdcall thcrap_plugin_init(void)
 {
-    strcpy(s_logpath, "th18_card_expand.log");
+    init_log_path();
     FILE *f = open_log("w");                       /* 每次启动新开一份 */
     if (f) {
         time_t t = time(NULL);

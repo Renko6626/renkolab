@@ -156,8 +156,11 @@ modkit 里的对应关系：
 
 ## 日志
 
-DLL 写**自己的**日志：`<游戏目录>/th18_card_expand.log`（写不了退到 `%TEMP%`），
-每次启动新开一份，第一行是时间戳和 `rows=… alloc=…`。thcrap 自己的日志里只镜像
+DLL 写**自己的**日志：`<游戏 exe 所在目录>/th18_card_expand.log`（写不了退到 `%TEMP%`），
+每次启动新开一份，第一行是时间戳。路径从 `GetModuleFileNameA(NULL)` 拼**绝对**路径——
+⚠️ 不能用相对路径：thcrap 注入时先 `SetCurrentDirectory(thcrap/bin)`，跑完整个 init
+（含 `plugin_init` 与 `post_init`）才恢复 CWD（`inject.cpp:355-390`），
+相对路径会把日志写进 `thcrap/bin/`。第一版就是这么丢的。thcrap 自己的日志里只镜像
 **结论那一行**（`[th18_card_expand] OK/FAIL …`），不刷屏。
 
 ## 怎么算通过（第 1 步）
