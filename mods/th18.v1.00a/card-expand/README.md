@@ -35,6 +35,9 @@ make files          # 刷新 files.js 的 crc32
 理由：100 处 `expected` 手写等于必然出错，而 thcrap 对 `expected` 不匹配的处理是
 **记一行日志然后跳过**（`binhack.cpp:1420`）——对整表搬迁来说，部分应用就是灾难。
 
+死绑量（表基址 / stride / 行数 / 回退行 / RVA）与换 build 要重取的清单在 [`TARGET.md`](TARGET.md)；
+对抗审计与实跑记录在 [`AUDIT.md`](AUDIT.md)。
+
 ## 三个文件各干什么
 
 | 文件 | 角色 |
