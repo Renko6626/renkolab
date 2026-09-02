@@ -50,6 +50,8 @@ JT_CODECAVE = "th18_card_jumptable"
 # 测试钩子（只进 patch-test）
 TEST_MOVZX  = 0x407ee3    # reset_cards 读初始卡组：movzx eax, byte [eax+esi+0x5f608]（8 字节）
 TEST_TRACE  = 0x411469    # allocate_new_card 序言：cmp [edi+0x28], 0x100（7 字节）
+# 自检门的断点：ScoreFile__load 入口，只被调一次(0x452cde)，是最早碰卡表的函数
+GATE_ADDR   = 0x4637d0    # 55 8b ec 6a ff = push ebp; mov ebp,esp; push -1（5 字节，无相对寻址）
 
 PART_ORDER = ("start", "end", "fallback", "hit")
 
@@ -368,6 +370,13 @@ def verify_patch(path, text, text_va):
     """
     doc = json.load(open(path, encoding="utf-8"))
     bad = []
+    for name, bp in (doc.get("breakpoints") or {}).items():
+        va = int(bp["addr"], 16); off = va - text_va
+        exp = bytes.fromhex(bp["expected"])
+        if text[off:off + len(exp)] != exp:
+            bad.append("断点 %s：exe 里是 %s" % (name, text[off:off + len(exp)].hex()))
+        if bp["cavesize"] != len(exp):
+            bad.append("断点 %s：cavesize %d != expected 长度 %d" % (name, bp["cavesize"], len(exp)))
     for name, bh in doc["binhacks"].items():
         if name.startswith("alloc_"):
             va = int(bh["addr"], 16); off = va - text_va
@@ -424,9 +433,11 @@ def conflicts(ours_path, other_paths):
     所以要把传进来的文件按 hackpoint 名合并后再算。断点没给 cavesize 的按 5 算
     （thcrap 的下限，实际会被拒绝装载）。
     """
-    ours = json.load(open(ours_path, encoding="utf-8"))["binhacks"]
+    doc = json.load(open(ours_path, encoding="utf-8"))
     mine = [(int(b["addr"], 16), int(b["addr"], 16) + len(bytes.fromhex(b["expected"])), n)
-            for n, b in ours.items()]
+            for n, b in doc["binhacks"].items()]
+    mine += [(int(b["addr"], 16), int(b["addr"], 16) + int(b["cavesize"]), "bp:" + n)
+             for n, b in (doc.get("breakpoints") or {}).items()]
     merged = {}          # (sect, name) -> {addrs:[], size:int}
     for path in other_paths:
         d = json.load(open(path, encoding="utf-8"))
@@ -538,7 +549,7 @@ def main():
             raise SystemExit("用法：sites.py conflicts <其它 patch 的 th18.v1.00a.js>…")
         path = os.path.join(HERE, "..", "patch", "%s.js" % VERSION)
         n, found = conflicts(path, a.others)
-        print("对照 %d 个外部 hackpoint，与我们 100 处重叠的：%d" % (n, len(found)))
+        print("对照 %d 个外部 hackpoint，与我们的写入点/断点重叠的：%d" % (n, len(found)))
         for f in found:
             print("   ❌ %s / %s / %s @ %s  撞上  %s" % f)
         return 1 if found else 0
@@ -604,7 +615,15 @@ def main():
     if bad:
         raise SystemExit("校验没过，拒绝生成。")
     alloc = a.alloc or a.rows > ROW_COUNT
-    doc = {"codecaves": emit_codecaves(a.rows, alloc), "binhacks": emit(sites, a.rows)}
+    doc = {"codecaves": emit_codecaves(a.rows, alloc), "binhacks": emit(sites, a.rows),
+           # ★ 自检门。为什么是断点而不是 *_mod_post_init：plugin.cpp 用
+           #   std::unordered_map::merge 把插件的钩子并进全局表，而 thcrap.dll 自己
+           #   （steam_mod_post_init / motd_mod_post_init）先注册了 post_init 这个 key，
+           #   后来者被静默丢弃。断点跑在游戏线程、在全部 init stage 之后，
+           #   且它声明在本 patch（最后一个 stage）里——能触发就证明 stage 已应用完。
+           "breakpoints": {"ce_gate": {
+               "addr": "0x%06x" % GATE_ADDR, "cavesize": 5, "expected": "558bec6aff",
+               "title": "自检门：ScoreFile__load 入口 → BP_ce_gate（填表 + 回读验证 + 写日志）"}}}
     if alloc:
         doc["binhacks"].update(emit_alloc_binhacks(a.rows))
     txt = json.dumps(doc, indent=2, ensure_ascii=False)

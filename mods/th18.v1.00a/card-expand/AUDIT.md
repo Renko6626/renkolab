@@ -157,7 +157,7 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 
 | # | claim | 结论 |
 | --- | --- | --- |
-| H1 | `*_mod_post_init` 在所有 codecave/binhack 应用**之后**被调用 | **CONFIRMED** —— `init.cpp:407` `runconfig_stage_apply` → `:420` `mod_func_run_all("post_init")`；`steam.cpp:44` / `stack.cpp:325` 都靠它，是核心机制 |
+| H1 | ~~`*_mod_post_init` 会被调用~~ | **REFUTED（实跑）** —— 日志停在 `plugin_init`。原因：`plugin.cpp` `mod_funcs.merge()` 是 `std::unordered_map::merge`，不合并已存在的 key；`init.cpp:327` 先注册了 thcrap.dll 自己的 `steam_mod_post_init`/`motd_mod_post_init`，`post_init` 被占。2024-11-06 与 master 同。**改为断点 `ce_gate`**（H15）|
 | H2 | 名字匹配：`th18_card_expand_mod_post_init` → 后缀 `post_init` | **CONFIRMED** —— `mod_funcs_t::build` 用 `strstr(name, "_mod_")`，只有一处 `_mod_` |
 | H3 | 签名 `void (TH_CDECL*)(void*)` | **CONFIRMED** —— `plugin.h:71`；DLL 里声明为 `void __cdecl f(void*)` |
 | H4 | `func_get` / `log_printf` 是 C 链接导出，可 `GetProcAddress` | **CONFIRMED** —— `thcrap.h:57 extern "C"`；`plugin.h:24`、`log.h:36` 皆 `THCRAP_API` |
@@ -170,6 +170,7 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 | H11 | 发布仓库那份 thcrap（2024-11-06 stable）支持本 mod 用到的三样 | **CONFIRMED** —— 拉 GitHub 同日提交 `aeb9155` 的源码核对：`GetCodecaveAddress` 有 `+` 偏移解析、`binhack.cpp` 有 `patch_func_init`、`init.cpp:416` 有 `post_init`；DLL 里 `strings` 也见 `_patch_` 与 `func_get`/`log_printf` |
 | H12 | 两个行数的 patch 同时进栈 | **兜住** —— 搬表只有先到者生效，但分配器上界 binhack 两边都能打上；DLL 检出 `rows` 与上界不符即 FAIL 并把 `0x411479` 写回 `0x38`（`restore_alloc_bound`） |
 | H14 | 日志落在游戏 exe 目录而不是 CWD | **CONFIRMED（修过一次）** —— 注入期间 CWD 是 `thcrap/bin`（`inject.cpp:355` 设、`:384` 才恢复），`plugin_init`/`post_init` 都在其间；第一版用相对路径把日志写进了 `thcrap/bin/`。现从 `GetModuleFileNameA(NULL)` 拼绝对路径，与 mouse-control 一致 |
+| H15 | 自检门改为断点 `ce_gate` @ `ScoreFile__load` `0x4637d0`，`cavesize` 5 | **CONFIRMED** —— 原字节 `55 8b ec 6a ff` 三条完整指令、无相对寻址；该函数只被 `0x452cde` 调一次，且是最早碰卡表的函数（两次调 `init_unlocked_cards_from_table`）；断点声明在本 patch = 最后一个 init stage，能触发即证明全部 stage 已应用；与 base_tsa 70 处 0 重叠；`BP_ce_gate` 用 static 保证只跑一次 |
 | H13 | DLL 构建可复现 | **CONFIRMED** —— `-Wl,--no-insert-timestamp`，两次构建 md5 相同；否则每次 `release` 都会产生只差时间戳的假提交 |
 
 **这一节把「表空」「binhack 漏了」两种静默失败都变成了日志里的一行红字。**

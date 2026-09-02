@@ -7,7 +7,7 @@
  * 一个 DLL 配所有 patch：行数与「是否搬了分配器」都在运行时从 patch 已写入的
  * 字节里反推，不烤进编译期。
  *
- * 在 post_init（codecave 与 binhack 都已应用）做：
+ * 由断点 BP_ce_gate（ScoreFile__load 入口，全部 init stage 已应用）调一次，做：
  *   0. 读配置：rows 由第一处 END 站点已写入的尾界反推；alloc 看跳转表 codecave 在不在。
  *   1. 填表：零售 58 行 memcpy 进 codecave，多出的行填 NULL 副本。幂等。
  *   2. （alloc）填跳转表：57 项原样拷，其余指向 case 56；核对两处分配器 binhack。
@@ -102,7 +102,7 @@ static int fill_jumptable(uint8_t *base, uint32_t *jt, unsigned rows)
     return 1;
 }
 
-int ce_selfcheck_post_init(uint8_t *base)
+int ce_selfcheck(uint8_t *base)
 {
     if (!ce_func_get) {
         ce_verdict("FAIL: func_get unavailable — cannot locate codecave; table NOT filled");
@@ -113,6 +113,7 @@ int ce_selfcheck_post_init(uint8_t *base)
         ce_verdict("FAIL: %s not found — patch not in the stack?", CE_CAVE_NAME);
         return 0;
     }
+    ce_log("gate: BP_ce_gate fired at ScoreFile__load");
     /* 0. 从 patch 反推配置 */
     unsigned rows = derive_rows(base, cave);
     if (!rows) {

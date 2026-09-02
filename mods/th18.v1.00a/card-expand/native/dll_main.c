@@ -3,8 +3,8 @@
  * thcrap 的两个回调：
  *   thcrap_plugin_init              插件加载时（早于 patch 应用）。自检①：
  *                                   零售表还在预期的地方、长预期的样子。
- *   th18_card_expand_mod_post_init  runconfig_stage_apply 之后（init.cpp:407→:420），
- *                                   codecave 与 binhack 都已应用。自检②（selfcheck.c）。
+ *   BP_ce_gate                      断点，ScoreFile__load 入口。全部 init stage 已应用，
+ *                                   游戏还没碰卡表。自检②（selfcheck.c）。
  *
  * 不链接 thcrap.dll 的导入库：func_get / log_printf 都用 GetProcAddress 取，
  * 拿不到就降级，不崩。
@@ -117,10 +117,23 @@ int __stdcall thcrap_plugin_init(void)
     return 0;
 }
 
-/* 名字里 _mod_ 之后是 post_init → mod_func_run_all("post_init") 会调它。
- * 签名按 mod_call_type = void (TH_CDECL*)(void*)（plugin.h:71）。*/
-void __cdecl th18_card_expand_mod_post_init(void *param)
+/* ★ 自检门走断点，不走 *_mod_post_init。
+ * thcrap 的 plugin_init（plugin.cpp:301-308）把插件的 _mod_ 钩子用
+ * std::unordered_map::merge 并进全局表 —— 已存在的 key 不会被合并。
+ * 而 init.cpp:327 先把 thcrap.dll 自己的导出（steam_mod_post_init、motd_mod_post_init）
+ * 注册进去了，post_init 这个 key 已被占，我们的被静默丢弃。第一版就是这么没声的。
+ * 2024-11-06 stable 与当前 master 都如此，升级无用。
+ *
+ * 断点 ce_gate 挂在 ScoreFile__load 0x4637d0 入口：只被调一次，且是最早碰卡表的函数。
+ * 它声明在本 patch（最后一个 init stage）里，能触发即证明所有 stage 都已应用。*/
+#include "thcrap_bp.h"
+int __cdecl BP_ce_gate(x86_reg_t *regs, void *bp_info)
 {
-    (void)param;
-    ce_selfcheck_post_init((uint8_t *)GetModuleHandleA(NULL));
+    (void)regs; (void)bp_info;
+    static int done;
+    if (!done) {
+        done = 1;
+        ce_selfcheck((uint8_t *)GetModuleHandleA(NULL));
+    }
+    return BP_EXEC_ORIGINAL;
 }

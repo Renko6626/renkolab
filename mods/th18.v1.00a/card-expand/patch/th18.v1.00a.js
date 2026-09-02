@@ -613,5 +613,13 @@
       "expected": "05e4534c00",
       "title": "hit | add eax, K | +0x24"
     }
+  },
+  "breakpoints": {
+    "ce_gate": {
+      "addr": "0x4637d0",
+      "cavesize": 5,
+      "expected": "558bec6aff",
+      "title": "自检门：ScoreFile__load 入口 → BP_ce_gate（填表 + 回读验证 + 写日志）"
+    }
   }
 }

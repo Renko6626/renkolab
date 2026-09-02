@@ -219,6 +219,32 @@ thcrap 本身是公有领域（`UNLICENSE.txt`），法律上可转发，但**�
 它自带更新器、用户多半已装、`thcrap_configure` 的引导你复刻不了。
 游戏 exe/dat 一律不发。发布物 = 你的 patch/DLL + 源码 + 文档 + 预期原字节。
 
+
+### ⚠️ 插件的 `*_mod_post_init` 不会被调用（thcrap 自身的 bug，master 同）
+
+`plugin.cpp` `plugin_init()`：
+
+```cpp
+mod_funcs_new.build(funcs_new, "_mod_");
+mod_funcs_new.run("init", NULL);      // 直接在新表上跑 —— 所以 *_mod_init 总能跑
+mod_funcs_new.run("detour", NULL);
+mod_funcs.merge(mod_funcs_new);       // 并进全局表 —— post_init 之后从全局表跑
+```
+
+`mod_funcs_t` 继承 `std::unordered_map`、无自定义 `merge`；而 `std::unordered_map::merge`
+**不合并目标里已存在的 key**。`init.cpp` 先 `plugin_init(hThcrap)` 把 thcrap.dll 自己的
+`steam_mod_post_init` / `motd_mod_post_init` 注册了，`post_init` 这个 key 从此被占——
+之后任何插件的 `*_mod_post_init` 都被**静默丢弃**，日志无一字。2024-11-06 stable 与
+当前 master 同。`card-expand` 的第一版就栽在这（实跑日志停在 `plugin_init`）。
+
+**结论：插件要「全部 patch 应用完之后」的时点，用断点，别用 `_mod_post_init`。**
+断点跑在游戏线程、在全部 init stage 之后；且它声明在自己的 patch（最后一个 stage）里，
+能触发就证明 stage 已应用完。另外 `post_init` 是**每个 init stage 结束各跑一次**
+（`thcrap_init_binary` 末尾），base_tsa 的 th18 有 3 个 stage——就算合并成功也会跑三次。
+
+同理，`*_patch_init` 这种导出 codecave 的 `init` 之所以可靠，是因为它也是「直接在新表上
+`run("init")`」——但它跑在 `binhacks_apply` 之前（`binhack.cpp` 的 `codecaves_apply` 末尾）。
+
 ## 7. 一手出处对照
 
 引用的都是 `local/vendor/thcrap` @ `e2e315e`，行号逐条核准过。
