@@ -48,8 +48,12 @@
 
 ## hook 点
 
-**没有 hook 点。**本 mod 不挂断点、不写 `.text` 以外的东西、不带 DLL，
+**没有 hook 点。**本 mod 不挂断点、不写 `.text` 以外的东西，
 只做两件事：申请一块 codecave，改 100 个 4 字节常量。
+
+DLL 只有一个被 thcrap 调用的入口 `th18_card_expand_mod_post_init`
+（`init.cpp:420` `mod_func_run_all("post_init")`），跑在 thcrap 初始化线程上、
+游戏代码开始之前；它**不注入任何游戏函数**。
 
 ## codecave
 
@@ -61,9 +65,10 @@
 `*_patch_init` 由 `patch_func_init` 调用（`binhack.cpp:1724` → `plugin.cpp:304`），
 签名 `void (TH_CDECL *)(void *param)`（`plugin.h:71`）。
 
-⚠️ **它跑在 `codecaves_apply` 末尾，早于 `binhacks_apply`**（`runconfig.cpp:655-656`）。
-对「先把表填好再让改过的代码去读」正好；但**它不能用来验证 binhack 是否都打上了**
-——它跑的时候一个 binhack 都还没打。
+⚠️ **它跑在 `codecaves_apply` 末尾，早于 `binhacks_apply`**（`runconfig.cpp:655-656`），
+且是否被调用取决于 thcrap 版本。所以它只是保险；**填表与验证的权威是 DLL 的
+`post_init`**，见 [`README.md`](README.md)。DLL 从 `func_get("codecave:th18_card_table")`
+（`plugin.h:24`，`THCRAP_API`）取地址，从 `GetModuleHandleA(NULL) + 0xc53c0` 读零售表。
 
 ## 换版本时必须重取
 

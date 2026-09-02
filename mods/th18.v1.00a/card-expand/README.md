@@ -83,7 +83,21 @@ HIT_ARM 还指旧表时，`下标 * 0x34 + 旧基址` 会返回**另一张卡的
 
 ## 怎么算通过（第 1 步）
 
-thcrap 日志里 100 条 binhack 全是 `OK`，**一条 `expected bytes not matched` 都没有**；
+thcrap 日志里找这一行：
+
+```
+[th18_card_expand] OK: table filled (58 rows @ 0x…), 100/100 sites verified
+```
+
+**没有这一行就是没通过**，不管前面的 binhack 日志多整齐。可能的红字：
+
+| 日志 | 意思 |
+| --- | --- |
+| `FAIL: func_get unavailable` | thcrap 太老，拿不到 codecave 地址；表**没填** |
+| `FAIL: codecave:th18_card_table not found` | patch 没进栈，只放了 DLL |
+| `FAIL: table sanity …` | 零售表地址错了（换 build？）|
+| `FAIL: N/100 sites verified … partial application, DO NOT PLAY` | 有 binhack 没打上（`expected` 不匹配被跳过），第一处的实际字节已打出来 |
+
 然后进游戏，**商店、图鉴、卡组编成、局内用卡全部与香草无差别**。
 
 任何一处表现异常都说明搬迁不完整——这一步的全部意义就是让「不完整」变得可观测。
@@ -100,6 +114,9 @@ card-expand/
 │   ├── x86imm.py      x86 常量定位器(完整性审计用)
 │   ├── sites.py       ★ 扫描 / 校验 / 生成 / 对账
 │   ├── mkfiles.py     刷新 files.js
+│   ├── sites_gen.h    生成物:DLL 用的站点表
+│   ├── th18_card_expand.c   ★ 全有或全无的门(post_init)
+│   ├── th18_card_expand.def
 │   └── Makefile
 └── patch/
     ├── patch.js

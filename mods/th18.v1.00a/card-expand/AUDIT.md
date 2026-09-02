@@ -147,11 +147,31 @@ C3 是补的：C2 只扫三小段，扫不到「直接引用第 12 行」这种�
 | F2 | 不写死 `0x400000` | **CONFIRMED** —— 零售表地址用 thcrap 的 `Rx` 记法（`<Rxc53c0>`，`expression.h:310`：相对模块基址）|
 | F3 | 可回滚 | **CONFIRMED** —— 从 run config 的 patch 栈里移除即可；不写存档、不改磁盘上的任何游戏文件 |
 
+## H. 全有或全无的门（`th18_card_expand.dll`）
+
+**起因（用户复审）**：`*_patch_init` codecave 是否被自动调用取决于 thcrap 版本；
+没被调用时新表全零、100 处 binhack 指向空表，**而日志一切正常**。
+E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都给不出证据。
+
+| # | claim | 结论 |
+| --- | --- | --- |
+| H1 | `*_mod_post_init` 在所有 codecave/binhack 应用**之后**被调用 | **CONFIRMED** —— `init.cpp:407` `runconfig_stage_apply` → `:420` `mod_func_run_all("post_init")`；`steam.cpp:44` / `stack.cpp:325` 都靠它，是核心机制 |
+| H2 | 名字匹配：`th18_card_expand_mod_post_init` → 后缀 `post_init` | **CONFIRMED** —— `mod_funcs_t::build` 用 `strstr(name, "_mod_")`，只有一处 `_mod_` |
+| H3 | 签名 `void (TH_CDECL*)(void*)` | **CONFIRMED** —— `plugin.h:71`；DLL 里声明为 `void __cdecl f(void*)` |
+| H4 | `func_get` / `log_printf` 是 C 链接导出，可 `GetProcAddress` | **CONFIRMED** —— `thcrap.h:57 extern "C"`；`plugin.h:24`、`log.h:36` 皆 `THCRAP_API` |
+| H5 | codecave 在 post_init 时可写 | **CONFIRMED** —— `access: "RW"` → `PAGE_READWRITE`（E1）|
+| H6 | 验证算式：改后 4 字节 = `cave + off`，前缀不变 | **CONFIRMED** —— `sites_gen.h` 与 patch 由同一次 `gen` 产出，偏移同源 |
+| H7 | 填表的最小自证 | 行 0 的 id == 0、行 56 的 id == 56，任一不符即 FAIL 并停手 |
+| H8 | 导出无装饰名 / 32 位 / 只依赖 kernel32+msvcrt / 自身零 x87 | **CONFIRMED** —— `make dllverify`；x87 只查我们自己的目标文件（整个 DLL 的 42 条来自 static-libgcc 运行时）|
+| H9 | 拿不到 thcrap 导出时的行为 | 降级：写 `th18_card_expand.log`，**不填表**并明说 —— 宁可不装，不静默 |
+
+**这一节把「表空」「binhack 漏了」两种静默失败都变成了日志里的一行红字。**
+
 ## G. OPEN —— 还没解决的
 
 | # | 事项 | 说明 |
 | --- | --- | --- |
 | G1 | **游戏内未实跑** | 静态审计通过 ≠ 能跑。第 1 步的验收标准见 [`README.md`](README.md) |
-| G2 | **全有或全无的门还没做** | E5 否定了原方案里「用 `*_patch_init` 回读站点」的做法。替代设计：新表 58 行之后的行**预填成 NULL 行副本**（休眠数据），由**游戏内断点**在验证过全部 binhack 生效后才写入真数据。第 1 步不需要（行数不变，两表逐字节相同，漏改也没有可观察后果），扩容前必须补上 |
+| G2 | ~~全有或全无的门还没做~~ **已做**（2026-09-02） | 见 §H。触发原因是用户复审指出的一种「日志一切正常」的静默失败 |
 | G3 | 扩容还要动的东西 | 战线 B–E 一条都没做，见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md) |
 | G4 | MSVC 换 build 后骨架是否仍然一致 | 未验证。`make check` 的锚点数会立刻暴露（不是 25 就停） |

@@ -352,6 +352,39 @@ def conflicts(ours_path, other_paths):
     return checked, found
 
 
+def emit_header(sites, rows):
+    """给 DLL 生成站点表：post_init 用它回读验证 100 处。
+
+    只有 RVA、长度、opcode 前缀（1–3 字节，已在 patch 的 expected 里）、
+    以及相对 codecave 的偏移——**不含游戏数据**。改后应有的 4 字节由 DLL 在
+    运行时按 `cave + off` 算，因为 codecave 地址只有运行时才知道。
+    """
+    lines = [
+        "/* 由 sites.py 生成，不要手改。*/",
+        "#pragma once",
+        "#include <stdint.h>",
+        "#define CE_ROWS        %d" % rows,
+        "#define CE_ROW_SIZE    0x%x" % ROW_SIZE,
+        "#define CE_ROW_COUNT   %d" % ROW_COUNT,
+        "#define CE_NULL_ROW    %d" % NULL_ROW,
+        "#define CE_TABLE_RVA   0x%06x" % TABLE_RVA,
+        "#define CE_CAVE_NAME   \"codecave:%s\"" % CODECAVE,
+        "typedef struct { uint32_t rva; uint8_t len, prefix_len, prefix[3]; uint32_t off; } ce_site_t;",
+        "static const ce_site_t CE_SITES[] = {",
+    ]
+    for va in sorted(sites):
+        s_ = sites[va]
+        rec = s_["rec"]
+        pre = rec["bytes"][:rec["const_at"]]
+        assert 1 <= len(pre) <= 3
+        pfx = ", ".join("0x%02x" % b for b in pre) + (", 0" * (3 - len(pre)))
+        lines.append("    { 0x%06x, %d, %d, { %s }, 0x%x },  /* %s */"
+                     % (va - 0x400000, rec["len"], len(pre), pfx,
+                        new_offset(s_["part"], rec, rows), s_["part"]))
+    lines += ["};", "#define CE_NSITES (sizeof(CE_SITES)/sizeof(CE_SITES[0]))", ""]
+    return "\n".join(lines)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["list", "check", "gen", "verify", "conflicts"])
@@ -453,6 +486,9 @@ def main():
         print("写出 %d 条 binhack + %d 个 codecave -> %s（新表 %d 行 = 0x%x 字节）"
               % (len(doc["binhacks"]), len(doc["codecaves"]), out,
                  a.rows, a.rows * ROW_SIZE))
+        hdr = os.path.join(HERE, "sites_gen.h")
+        open(hdr, "w", encoding="utf-8").write(emit_header(sites, a.rows))
+        print("写出 DLL 站点表 -> %s" % hdr)
     else:
         print(txt)
     return 0
