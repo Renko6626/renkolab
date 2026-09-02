@@ -7,6 +7,13 @@
 #define CE_NULL_ROW    56
 #define CE_TABLE_RVA   0x0c53c0
 #define CE_CAVE_NAME   "codecave:th18_card_table"
+#define CE_ALLOC       0
+#define CE_JT_RVA      0x012dac
+#define CE_JT_COUNT    57
+#define CE_CASE56_RVA  0x011489
+#define CE_JT_CAVE_NAME "codecave:th18_card_jumptable"
+#define CE_ALLOC_CMP_RVA 0x011479
+#define CE_ALLOC_JMP_RVA 0x011482
 typedef struct { uint32_t rva; uint8_t len, prefix_len, prefix[3]; uint32_t off; } ce_site_t;
 static const ce_site_t CE_SITES[] = {
     { 0x007d72, 5, 1, { 0xb8, 0, 0 }, 0x4 },  /* start */

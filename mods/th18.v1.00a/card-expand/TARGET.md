@@ -46,10 +46,26 @@
 `start` 是 24 而不是 25：`0x414412` 的 `mov eax, 0x4c53c4` 被编译器提到分支之前，
 **由 `0x414420` 和 `0x414494` 两个循环共用**。扫描器显式支持这种共享。
 
+## 写入点：战线 B（仅 `ROWS > 58` 时生成）
+
+| 地址 | 原字节 | 改成 | 长度 |
+| --- | --- | --- | --- |
+| `0x411479` | `83 fb 38` | `83 fb <rows-1>` | 3 |
+| `0x411482` | `ff 24 9d ac 2d 41 00` | `ff 24 9d <codecave:th18_card_jumptable>` | 7 |
+
+跳转表源 `0x412dac`（RVA `0x12dac`）57 项；case 56 函数体 `0x411489`（RVA `0x11489`）。
+
+## 写入点：patch-test（只在验证时进栈）
+
+| 地址 | 原字节 | 改成 | 说明 |
+| --- | --- | --- | --- |
+| `0x407ee3` | `0f b6 84 30 08 f6 05 00` | `e8 [cave] 90 90 90` | 8 字节；cave 里先执行原 `movzx`，再把 56 改 58 |
+| `0x411469` | `81 7f 28 00 01 00 00` | thcrap 断点，`cavesize` 7 | `BP_ce_trace_alloc`，只读 `[ebp+8]`/`[ebp+0xc]` |
+
 ## hook 点
 
-**没有 hook 点。**本 mod 不挂断点、不写 `.text` 以外的东西，
-只做两件事：申请一块 codecave，改 100 个 4 字节常量。
+正式 patch **没有 hook 点**：申请 codecave，改常量，完。
+断点只有 patch-test 里那一个（上表），正式 patch 不声明它。
 
 DLL 只有一个被 thcrap 调用的入口 `th18_card_expand_mod_post_init`
 （`init.cpp:420` `mod_func_run_all("post_init")`），跑在 thcrap 初始化线程上、
@@ -60,7 +76,9 @@ DLL 只有一个被 thcrap 调用的入口 `th18_card_expand_mod_post_init`
 | 名字 | 大小 | 权限 | 内容 |
 | --- | --- | --- | --- |
 | `th18_card_table` | 行数 × `0x34` | RW | 开机时从零售表拷贝而来 |
-| `th18_card_table_patch_init` | 20 或 35 字节 | RX + export | 那段拷贝代码 |
+| `th18_card_jumptable`（战线 B） | 行数 × 4 | RW | 0–56 原样拷，其余 → case 56 |
+| `th18_card_table_patch_init` | 20–66 字节 | RX + export | 保险用的拷贝代码；权威是 DLL 的 post_init |
+| `th18_ce_test_deck58`（patch-test） | 19 字节 | RX | 原 `movzx` + 空槽改 58 |
 
 `*_patch_init` 由 `patch_func_init` 调用（`binhack.cpp:1724` → `plugin.cpp:304`），
 签名 `void (TH_CDECL *)(void *param)`（`plugin.h:71`）。

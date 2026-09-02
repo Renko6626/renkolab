@@ -40,6 +40,17 @@ CODECAVE   = "th18_card_table"
 CAVE_INIT  = CODECAVE + "_patch_init"
 TABLE_RVA  = 0x0c53c0     # = TABLE_BASE - imagebase；用 thcrap 的 Rx 记法,不写死基址
 
+# ---- 战线 B：分配器（engine/card/th18/11 §2.3 / §3；PLAN-255-ids §2 战线 B）----
+JT_RVA      = 0x012dac    # allocate_new_card 的跳转表 0x412dac，57 项
+JT_COUNT    = 57
+CASE56_RVA  = 0x011489    # case 56 的函数体：new(0x54) → memset → 挂基类虚表 → jmp 公共尾段
+ALLOC_CMP   = 0x411479    # cmp ebx, 0x38   (83 fb 38)
+ALLOC_JMP   = 0x411482    # jmp [0x412dac + ebx*4]   (ff 24 9d ac 2d 41 00)
+JT_CODECAVE = "th18_card_jumptable"
+# 测试钩子（只进 patch-test）
+TEST_MOVZX  = 0x407ee3    # reset_cards 读初始卡组：movzx eax, byte [eax+esi+0x5f608]（8 字节）
+TEST_TRACE  = 0x411469    # allocate_new_card 序言：cmp [edi+0x28], 0x100（7 字节）
+
 PART_ORDER = ("start", "end", "fallback", "hit")
 
 
@@ -227,7 +238,7 @@ def emit(sites, rows):
     return out
 
 
-def emit_codecaves(rows):
+def emit_codecaves(rows, alloc):
     """新表 codecave + 一段把零售 58 行**运行时**拷进去的初始化代码。
 
     ★ 为什么不把表的内容直接写进 patch：那是 ZUN 的数据，仓库不留任何版权字节。
@@ -269,12 +280,78 @@ def emit_codecaves(rows):
         code.append("bb%s" % struct.pack("<I", rows - ROW_COUNT).hex())  # mov ebx, 行数差
         code.append(body)
         code.append("75%02x" % ((256 - (body_len + 2)) & 0xff))          # jnz 回到 body
-    code += ["61", "c3"]                             # popad ; ret
-    return {
+    out = {
         CODECAVE:  {"size": "0x%x" % (rows * ROW_SIZE), "access": "RW",
                     "title": "zTableCardData[] 搬迁目标（%d 行 × 0x%x）" % (rows, ROW_SIZE)},
-        CAVE_INIT: {"code": "".join(code), "export": True, "access": "RX",
-                    "title": "开机把零售 58 行从游戏自己的 .rdata 拷进新表"},
+    }
+    if alloc:
+        # 战线 B：跳转表也搬。0..56 原样拷，57..rows-1 全指向 case 56 的函数体
+        # —— 未注册的 id 得到一张挂基类虚表的无行为卡，card->id 由公共尾段
+        # 0x412cec 写成真实 id。这就是「克隆现有卡」最干净的形式：一个字节机器码都不用手写。
+        # ⚠️ 这一段**必须**有保险：跳转表若全零，任何一次 allocate 都是 jmp [0] → 崩。
+        code += [
+            "bf<codecave:%s>" % JT_CODECAVE,                 # mov edi, 新跳转表
+            "be<Rx%x>" % JT_RVA,                             # mov esi, 零售跳转表
+            "b9%s" % struct.pack("<I", JT_COUNT).hex(),      # mov ecx, 57
+            "f3a5",                                          # rep movsd
+            "b8<Rx%x>" % CASE56_RVA,                         # mov eax, case56
+            "b9%s" % struct.pack("<I", rows - JT_COUNT).hex(),  # mov ecx, rows-57
+            "f3ab",                                          # rep stosd
+        ]
+        out[JT_CODECAVE] = {"size": "0x%x" % (rows * 4), "access": "RW",
+                            "title": "allocate_new_card 跳转表搬迁目标（%d 项）" % rows}
+    code += ["61", "c3"]                             # popad ; ret
+    out[CAVE_INIT] = {"code": "".join(code), "export": True, "access": "RX",
+                      "title": "开机把零售表（与跳转表）拷进 codecave；DLL 的 post_init 是权威，这里是保险"}
+    return out
+
+
+def emit_alloc_binhacks(rows):
+    """战线 B 的两处，都同长。"""
+    assert 59 <= rows <= 255
+    return {
+        "alloc_bound_%06x" % ALLOC_CMP: {
+            "addr": "0x%06x" % ALLOC_CMP,
+            "code": "83fb%02x" % (rows - 1),
+            "expected": "83fb38",
+            "title": "allocate_new_card: cmp ebx, 0x38 → 0x%x（可分配 id 上界）" % (rows - 1),
+        },
+        "alloc_jumptable_%06x" % ALLOC_JMP: {
+            "addr": "0x%06x" % ALLOC_JMP,
+            "code": "ff249d<codecave:%s>" % JT_CODECAVE,
+            "expected": "ff249dac2d4100",
+            "title": "allocate_new_card: jmp [0x412dac+ebx*4] → 新跳转表",
+        },
+    }
+
+
+def emit_test_patch():
+    """patch-test：只在验证战线 B 时进栈。两个钩子：
+
+    ① 0x407ee3 `movzx eax, byte [eax+esi+0x5f608]`（8 字节，reset_cards 读初始卡组的一格）
+       → `call [cave]` + 3 nop；cave 里执行原指令，然后 **空槽(56) 改成 58**。
+       不写存档、不改任何文件；卡组编成里把第一格清空，开局就会分配一张 id 58。
+       flags：原 movzx 不设 flags，cave 里的 cmp 设了；紧接着是 push eax; call —— 无人读 flags。
+    ② 0x411469 `cmp [edi+0x28], 0x100`（7 字节）挂 thcrap 断点 → BP_ce_trace_alloc
+       把每次 allocate_new_card(id, mode) 记进日志。定论用它，不靠肉眼。
+    """
+    cave = ("0fb6843008f60500"       # movzx eax, byte [eax+esi+0x5f608]  ← 原指令原样
+            "83f838"                 # cmp eax, 0x38
+            "7505"                   # jne +5
+            "b83a000000"             # mov eax, 0x3a (58)
+            "c3")                    # ret
+    return {
+        "codecaves": {"th18_ce_test_deck58": {"code": cave, "access": "RX",
+                      "title": "测试：初始卡组的空槽(56) → id 58"}},
+        "binhacks": {"test_deck58_%06x" % TEST_MOVZX: {
+            "addr": "0x%06x" % TEST_MOVZX,
+            "code": "e8[codecave:th18_ce_test_deck58]909090",
+            "expected": "0fb6843008f60500",
+            "title": "测试：reset_cards 读到空槽时改发 id 58"}},
+        "breakpoints": {"ce_trace_alloc": {
+            "addr": "0x%06x" % TEST_TRACE, "cavesize": 7,
+            "expected": "817f2800010000",
+            "title": "测试：记录每次 allocate_new_card(id, mode)"}},
     }
 
 
@@ -292,6 +369,12 @@ def verify_patch(path, text, text_va):
     doc = json.load(open(path, encoding="utf-8"))
     bad = []
     for name, bh in doc["binhacks"].items():
+        if name.startswith("alloc_"):
+            va = int(bh["addr"], 16); off = va - text_va
+            exp = bytes.fromhex(bh["expected"])
+            if text[off:off + len(exp)] != exp:
+                bad.append("%s：exe 里是 %s" % (name, text[off:off + len(exp)].hex()))
+            continue
         va = int(bh["addr"], 16)
         off = va - text_va
         exp = bytes.fromhex(bh["expected"])
@@ -352,7 +435,7 @@ def conflicts(ours_path, other_paths):
     return checked, found
 
 
-def emit_header(sites, rows):
+def emit_header(sites, rows, alloc):
     """给 DLL 生成站点表：post_init 用它回读验证 100 处。
 
     只有 RVA、长度、opcode 前缀（1–3 字节，已在 patch 的 expected 里）、
@@ -369,6 +452,13 @@ def emit_header(sites, rows):
         "#define CE_NULL_ROW    %d" % NULL_ROW,
         "#define CE_TABLE_RVA   0x%06x" % TABLE_RVA,
         "#define CE_CAVE_NAME   \"codecave:%s\"" % CODECAVE,
+        "#define CE_ALLOC       %d" % (1 if alloc else 0),
+        "#define CE_JT_RVA      0x%06x" % JT_RVA,
+        "#define CE_JT_COUNT    %d" % JT_COUNT,
+        "#define CE_CASE56_RVA  0x%06x" % CASE56_RVA,
+        "#define CE_JT_CAVE_NAME \"codecave:%s\"" % JT_CODECAVE,
+        "#define CE_ALLOC_CMP_RVA 0x%06x" % (ALLOC_CMP - 0x400000),
+        "#define CE_ALLOC_JMP_RVA 0x%06x" % (ALLOC_JMP - 0x400000),
         "typedef struct { uint32_t rva; uint8_t len, prefix_len, prefix[3]; uint32_t off; } ce_site_t;",
         "static const ce_site_t CE_SITES[] = {",
     ]
@@ -392,6 +482,8 @@ def main():
     ap.add_argument("--rows", type=int, default=ROW_COUNT,
                     help="新表行数（第 1 步用 58 = 行为零变化）")
     ap.add_argument("-o", "--out")
+    ap.add_argument("--alloc", action="store_true",
+                    help="战线 B（跳转表搬迁）。rows > 58 时自动开")
     a = ap.parse_args()
 
     if not os.path.exists(EXE):
@@ -423,8 +515,9 @@ def main():
         path = a.out or os.path.join(HERE, "..", "patch", "%s.js" % VERSION)
         n, bad = verify_patch(path, text, text_va)
         print("对账 %s：%d 条 binhack" % (os.path.relpath(path, REPO), n))
-        if n != len(sites):
-            bad.append("patch 里 %d 条，扫描器认为应有 %d 条" % (n, len(sites)))
+        n_alloc = sum(1 for k in json.load(open(path, encoding="utf-8"))["binhacks"] if k.startswith("alloc_"))
+        if n - n_alloc != len(sites):
+            bad.append("patch 里 %d 条搬表 binhack，扫描器认为应有 %d 条" % (n - n_alloc, len(sites)))
         for b in bad:
             print("   ❌ " + b)
         print("✅ 全部对上（expected == exe 字节；code 与 expected 等长；只换常量）"
@@ -478,7 +571,10 @@ def main():
 
     if bad:
         raise SystemExit("校验没过，拒绝生成。")
-    doc = {"codecaves": emit_codecaves(a.rows), "binhacks": emit(sites, a.rows)}
+    alloc = a.alloc or a.rows > ROW_COUNT
+    doc = {"codecaves": emit_codecaves(a.rows, alloc), "binhacks": emit(sites, a.rows)}
+    if alloc:
+        doc["binhacks"].update(emit_alloc_binhacks(a.rows))
     txt = json.dumps(doc, indent=2, ensure_ascii=False)
     if a.out:
         out = a.out if os.path.isabs(a.out) else os.path.join(HERE, a.out)
@@ -487,8 +583,14 @@ def main():
               % (len(doc["binhacks"]), len(doc["codecaves"]), out,
                  a.rows, a.rows * ROW_SIZE))
         hdr = os.path.join(HERE, "sites_gen.h")
-        open(hdr, "w", encoding="utf-8").write(emit_header(sites, a.rows))
-        print("写出 DLL 站点表 -> %s" % hdr)
+        open(hdr, "w", encoding="utf-8").write(emit_header(sites, a.rows, alloc))
+        print("写出 DLL 站点表 -> %s%s" % (hdr, "（含战线 B）" if alloc else ""))
+        if True:   # 测试 patch 与行数无关，总是产出，便于入库
+            tp = os.path.join(os.path.dirname(out), "..", "patch-test", "%s.js" % VERSION)
+            os.makedirs(os.path.dirname(tp), exist_ok=True)
+            open(tp, "w", encoding="utf-8").write(
+                json.dumps(emit_test_patch(), indent=2, ensure_ascii=False) + "\n")
+            print("写出测试 patch -> %s" % os.path.normpath(tp))
     else:
         print(txt)
     return 0

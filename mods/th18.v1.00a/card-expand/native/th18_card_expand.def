@@ -2,3 +2,4 @@ LIBRARY th18_card_expand.dll
 EXPORTS
 	thcrap_plugin_init			@1
 	th18_card_expand_mod_post_init	@2
+	BP_ce_trace_alloc			@3

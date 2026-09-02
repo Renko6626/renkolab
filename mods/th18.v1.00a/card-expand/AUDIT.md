@@ -6,7 +6,7 @@
 
 ## 0. 状态
 
-**静态审计通过；游戏内未实跑。**产出是第 1 步（行数仍 58，行为应零变化）的 patch。
+**静态审计通过；游戏内未实跑。**产出两态：第 1 步（58 行，行为零变化）与战线 B 验证态（255 行 + patch-test）。
 
 ## A. ABI / 栈平衡
 
@@ -168,11 +168,28 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 
 **这一节把「表空」「binhack 漏了」两种静默失败都变成了日志里的一行红字。**
 
+## I. 战线 B —— 分配器搬迁
+
+| # | claim | 结论 |
+| --- | --- | --- |
+| I1 | 两处 binhack 同长 | **CONFIRMED** —— `83 fb 38`→`83 fb fe`（3）；`ff 24 9d <disp32>`（7），只换 disp32 |
+| I2 | `cmp ebx, rows-1; ja` 的语义 = 允许 id 0..rows-1 | **CONFIRMED** —— 无符号 `ja`，与原 `0x38` 同构 |
+| I3 | 跳转表项 57..254 指向 case 56 函数体是安全的 | **CONFIRMED** —— case 56 的序列以 `jmp 0x412cd5` 收尾，栈上正好留 memset 的 `0xc` 字节（§A 已审）；**我们没写任何新的 case，栈契约由原代码自己满足** |
+| I4 | 公共尾段把 `card->id` 写成真实 id 而不是 56 | **CONFIRMED** —— `0x412cec mov [esi+4], ebx`，`ebx` = `[ebp+8]` 即调用者给的 id |
+| I5 | 基类虚表 `0x4b4c78` 无空槽 | **CONFIRMED** —— 22 项全非零，实读函数体全是 `xor eax,eax; ret[ imm]` / `ret` / 三个读字段的小函数 |
+| I6 | id 58 的 `owned[id]` 写不越界 | **CONFIRMED（仅 58）** —— `0x412d42` 写 `mgr+0xc84+id*4`；58 → `+0xd6c`，对象止于 `0xd70`。**59 起越界**，战线 C 之前禁止 |
+| I7 | 跳转表全零时的后果 | **REFUTED（已兜住）** —— 那是 `jmp [0]` 必崩，比表空更糟。所以跳转表拷贝**同时**放在 `_patch_init` 保险和 DLL 权威两处；DLL 还核对项 56 == case56、两处 binhack 已生效，不符即 FAIL |
+| I8 | 有符号 `jl` 对 255 行的新表尾界 | **CONFIRMED** —— 同 C′3，无 LAA，codecave < `0x80000000` |
+| I9 | 测试 cave 的 flags | **CONFIRMED** —— 原 `movzx` 不设 flags；cave 里 `cmp` 设了；返回后紧接 `push eax; call`，无人读 flags（`0x407eeb`/`0x407eec`）|
+| I10 | 测试 cave 的栈 | **CONFIRMED** —— `call` 压 4 字节、`ret` 弹回，cave 内不动栈；只写 `eax`，与原指令的目的寄存器相同 |
+| I11 | 追踪断点只读 | **CONFIRMED** —— 读 `[ebp+8]`/`[ebp+0xc]`（序言 `push ebp; mov ebp,esp` 已执行），返回 1 照常执行；不调 thcrap API，零 x87 |
+| I12 | `0x407ee3` 与 `0x411469` 不与正式 patch 的站点重叠 | **CONFIRMED** —— 前者在 `reset_cards`（无站点），后者在 `0x411479` 之前 7 字节，不相交 |
+
 ## G. OPEN —— 还没解决的
 
 | # | 事项 | 说明 |
 | --- | --- | --- |
 | G1 | **游戏内未实跑** | 静态审计通过 ≠ 能跑。第 1 步的验收标准见 [`README.md`](README.md) |
 | G2 | ~~全有或全无的门还没做~~ **已做**（2026-09-02） | 见 §H。触发原因是用户复审指出的一种「日志一切正常」的静默失败 |
-| G3 | 扩容还要动的东西 | 战线 B–E 一条都没做，见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md) |
+| G3 | 扩容还要动的东西 | 战线 B 已做（§I）；C–E 未做，见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)。**C 之前只能测 id 58**（I6）|
 | G4 | MSVC 换 build 后骨架是否仍然一致 | 未验证。`make check` 的锚点数会立刻暴露（不是 25 就停） |

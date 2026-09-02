@@ -9,7 +9,7 @@
       "code": "fc60bf<codecave:th18_card_table>be<Rxc53c0>b9f2020000f3a561c3",
       "export": true,
       "access": "RX",
-      "title": "开机把零售 58 行从游戏自己的 .rdata 拷进新表"
+      "title": "开机把零售表（与跳转表）拷进 codecave；DLL 的 post_init 是权威，这里是保险"
     }
   },
   "binhacks": {

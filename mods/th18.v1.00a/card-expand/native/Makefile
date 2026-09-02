@@ -4,7 +4,15 @@ PATCH := ../patch/th18.v1.00a.js
 
 .PHONY: all check gen verify files clean
 
-all: gen verify
+all: gen verify dll
+
+## step1 —— 第 1 步交付态：58 行，行为零变化（仓库里 patch/ 提交的就是这个）
+step1:
+	$(MAKE) ROWS=58 gen verify dll dllx87 files
+
+## step3 —— 战线 B 验证态：255 行 + 分配器搬迁 + patch-test（空槽→id 58 + 追踪断点）
+step3:
+	$(MAKE) ROWS=255 gen verify dll dllx87 files
 
 ## check  —— 只扫描 + 校验两条不变式，不产出
 check:
@@ -44,9 +52,9 @@ LDFLAGS   := -shared -static-libgcc -s -lkernel32
 
 ## dll    —— 编 DLL（依赖 gen 出的 sites_gen.h）
 dll: $(DLL)
-SRCS      := dll_main.c selfcheck.c
+SRCS      := dll_main.c selfcheck.c bp_trace.c
 OBJS      := $(SRCS:.c=.o)
-%.o: %.c card_expand.h sites_gen.h
+%.o: %.c card_expand.h sites_gen.h thcrap_bp.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(DLL): $(OBJS) th18_card_expand.def
 	$(CC) $(CFLAGS) -o $@ $(OBJS) th18_card_expand.def $(LDFLAGS)

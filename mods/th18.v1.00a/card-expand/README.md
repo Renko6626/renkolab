@@ -6,8 +6,15 @@
 方案全貌见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)，
 边界依据见 [`engine/card/th18/11-sentinels-56-57.md`](../../../engine/card/th18/11-sentinels-56-57.md)。
 
-**当前只做到第 1 步：行数仍是 58，行为应当零变化。** 这一步的价值不在功能，
-而在用「和香草没差别」这个最容易判定的标准，一次性验证 100 处搬迁 + 生成器 + 对账器。
+**做到哪了**：
+
+| 步 | 内容 | 状态 |
+| --- | --- | --- |
+| 1 | 只搬表，58 行，行为零变化（`make step1`） | 静态审计通过，**待实跑** |
+| 3 / 战线 B | 255 行 + 分配器搬迁 + 验证钩子（`make step3`） | 静态审计通过，**待实跑** |
+
+第 1 步的价值不在功能，而在用「和香草没差别」这个最容易判定的标准，
+一次性验证 100 处搬迁 + 生成器 + 对账器 + 开机自检。
 
 ## 这里没有手写的 patch
 
@@ -73,6 +80,44 @@ HIT_ARM 还指旧表时，`下标 * 0x34 + 旧基址` 会返回**另一张卡的
 `CardCollection__mark_obtained_and_notify` 的表遍历就是被这条路径捞回来的——
 它按计数收尾（`cmp ecx, 0x38`）而不是按地址，骨架不同，差点漏掉。
 
+## 战线 B —— 分配器（`make step3`）
+
+让 `allocate_new_card(id ≥ 57)` 合法地产出一张卡。**没有手写一个字节的构造器**：
+
+| 改什么 | 怎么改 |
+| --- | --- |
+| 跳转表 `0x412dac`（57 项） | 搬进 codecave `th18_card_jumptable`（255 项）：0–56 原样拷，**57–254 全指向 case 56 的函数体 `0x411489`** |
+| `0x411479` `cmp ebx, 0x38` | → `cmp ebx, 0xfe`（3 字节，同长）|
+| `0x411482` `jmp [0x412dac+ebx*4]` | → `jmp [新表+ebx*4]`（7 字节，同长）|
+
+为什么指向 case 56 就够：它的函数体做 `new(0x54)` → memset → 挂基类虚表 `0x4b4c78`
+（22 槽全是 `xor eax,eax; ret` 之类的空函数，无空槽）→ `jmp 0x412cd5`；
+公共尾段再把 **`card->id` 写成 `ebx` 里的真实 id**（`0x412cec`）。
+于是任何未注册的 id 都得到一张挂着**自己的 id**的无行为卡——「克隆现有卡」最干净的形式，
+而 [`AUDIT.md`](AUDIT.md) §A 里那条 `0x412cd5` 的栈契约根本不用碰，因为我们复用的是原装的 case。
+
+### 验证钩子 `patch-test/`（只在测试时进栈）
+
+| 钩子 | 干什么 |
+| --- | --- |
+| `0x407ee3` binhack → `th18_ce_test_deck58` | `reset_cards` 读初始卡组时，**空槽(56) 改发 id 58**。不写存档、不改文件 |
+| `0x411469` 断点 → `BP_ce_trace_alloc` | 每次 `allocate_new_card(id, mode)` 记进日志 |
+
+**流程**：`make step3` → DLL 与 `patch/` 进栈，再把 `patch-test/` 叠在上面 →
+卡组编成里把**第一格清空**（选那个空白项）→ 开一局。日志里应出现：
+
+```
+jumptable: 255 entries at 0x… (57 retail + 198 -> case56 @ 0x00411489); allocator bound = 254
+OK: table filled (255 rows @ 0x…), allocator relocated, 100/100 sites verified
+trace: allocate_new_card(id=58, mode=1)  <- NEW ID
+```
+
+第三行是定论：香草会在这里分配 id 56 然后被 `FUN_00407f10` 按 `id==56` 摘掉；
+我们的 58 不会被摘，会以 NULL 的图标留在卡列表里（sprite 116 长什么样还没看过）。
+
+⚠️ **战线 C 之前只能测 id 58**：公共尾段 `0x412d42` 写 `owned[id]` 到 `mgr+0xc84+id*4`，
+58 落在对象末尾那 12 字节余量的最后一个 dword（`+0xd6c`），**59 就越界了**。
+
 ## 装法
 
 | 放哪 | 什么 |
@@ -81,12 +126,18 @@ HIT_ARM 还指旧表时，`下标 * 0x34 + 旧基址` 会返回**另一张卡的
 
 不需要 DLL。本地测试见 [`../../thcrap-platform.md`](../../thcrap-platform.md) §6.2。
 
+## 日志
+
+DLL 写**自己的**日志：`<游戏目录>/th18_card_expand.log`（写不了退到 `%TEMP%`），
+每次启动新开一份，第一行是时间戳和 `rows=… alloc=…`。thcrap 自己的日志里只镜像
+**结论那一行**（`[th18_card_expand] OK/FAIL …`），不刷屏。
+
 ## 怎么算通过（第 1 步）
 
-thcrap 日志里找这一行：
+`th18_card_expand.log` 末尾（或 thcrap 日志里）找这一行：
 
 ```
-[th18_card_expand] OK: table filled (58 rows @ 0x…), 100/100 sites verified
+OK: table filled (58 rows @ 0x…), 100/100 sites verified
 ```
 
 **没有这一行就是没通过**，不管前面的 binhack 日志多整齐。可能的红字：
@@ -117,11 +168,17 @@ card-expand/
 │   ├── sites_gen.h    生成物:DLL 用的站点表
 │   ├── card_expand.h  DLL 内部共用声明
 │   ├── dll_main.c     入口 / 日志 / thcrap API / 自检①(零售表签名)
-│   ├── selfcheck.c    ★ 自检②:post_init 填表 + 回读 100 处
+│   ├── selfcheck.c    ★ 自检②:post_init 填表(+跳转表) + 回读站点
+│   ├── bp_trace.c     测试断点:记录 allocate_new_card(id, mode)
+│   ├── thcrap_bp.h    断点 ABI(与 mouse-control 同一份)
 │   ├── th18_card_expand.def
 │   └── Makefile
-└── patch/
-    ├── patch.js
+├── patch/
+│   ├── patch.js
+│   ├── files.js
+│   └── th18.v1.00a.js  ★ 生成物,不要手改(仓库里是 ROWS=58)
+└── patch-test/         只在验证战线 B 时叠上
+    ├── patch.js        依赖 th18_card_expand
     ├── files.js
-    └── th18.v1.00a.js  ★ 生成物,不要手改
+    └── th18.v1.00a.js  ★ 生成物:空槽→58 + 分配追踪断点
 ```
