@@ -46,7 +46,11 @@ card_id 在存档（`initial_cards_per_shottype`，`0x407ee3  movzbl`）和 repl
 
 ## 2. 五条战线
 
-### 战线 A — 注册表搬迁（99 处立即数）
+### 战线 A — 注册表搬迁（100 处立即数）✅ **基础设施已就绪**
+
+> 已实现：[`../card-expand`](../card-expand/README.md)。
+> 站点由脚本从真 exe 现扫现生成，含两条不变式校验与三层完整性检查。
+> **游戏内未实跑。**
 
 新表 255 行 × `0x34` = **`0x33fc` 字节**，放进 codecave；把原表 58 行**原样拷进去**。
 
@@ -56,9 +60,18 @@ card_id 在存档（`initial_cards_per_shottype`，`0x407ee3  movzbl`）和 repl
 | `0x4c53c0` + 7 个字段变体（命中臂） | 24 | `<codecave:cardtable>+字段` |
 | `0x4c5f8c`（尾界） | 24 | `<codecave:cardtable>+255*0x34+4` |
 | `0x4c5f88`（`ability.txt` 解析器的尾界） | 1 | `<codecave:cardtable>+255*0x34` |
-| `0x4c5f20` + 6 个字段变体（回退臂） | 25 | `<codecave:cardtable>+56*0x34+字段` |
+| `0x4c5f20` + **7** 个字段变体（回退臂） | 25 | `<codecave:cardtable>+56*0x34+字段` |
 
 ★ **原表不删。** 见 §3.4，这是把失败模式从「腐败」降级为「缺失」的关键。
+
+> **订正（2026-09-02）**：实测总数是 **100 处**，不是 99——我先前手工列举时漏掉了
+> `0x4c5f24`（回退行 +4，`ability.txt` 解析器用），也漏掉了
+> `CardCollection__mark_obtained_and_notify` `0x418e0e` 那处**表遍历**
+> （按计数收尾而不是按地址，骨架不同）。
+> **这两处都是由生成器的完整性审计捞回来的，不是重新读代码读出来的**——
+> 也就是 §3.2「生成，绝不手写」的实证。
+> 站点由 [`../card-expand/native/sites.py`](../card-expand/native/sites.py) 从真 exe 现扫，
+> 数字以它为准，本文不再手抄。
 
 ### 战线 B — 分配器（2 处，都同长）
 
@@ -209,17 +222,26 @@ thcrap 的每个 binhack 都声明它覆盖的原字节，不匹配就拒绝。*
 
 ### 3.5 全有或全无的门 —— thcrap 不会替你把关
 
-`binhack.cpp:39`：找不到的断点**记一行日志然后跳过**，其余照常应用。
-对 99 处搬迁，**部分应用是灾难**。所以必须自己加门：
+`binhack.cpp:1420`：`expected` 不匹配的 binhack **记一行日志然后跳过**，其余照常应用。
+对整表搬迁，**部分应用是灾难**。所以必须自己加门。
 
-用一个 `"export": true`、名字以 `_patch_init` 结尾的 codecave
-（加载时被调用，`binhack.cpp:1724` → `plugin.cpp:304`），或者一个插件 DLL 的
-`thcrap_plugin_init`，在补丁应用完成后**回读全部站点**、确认每一处都已是**改后**字节；
-不全就把新表的表头指回旧表（软失败）并记日志。
+> ⚠️ **订正（2026-09-02）**：本节原先写「用 `"export": true` 的 `*_patch_init`
+> codecave 回读全部站点」。**那是错的** —— `patch_func_init` 在
+> `codecaves_apply` 的**末尾**被调用（`binhack.cpp:1724`），而
+> `runconfig.cpp:655-656` 是**先 codecaves 后 binhacks**。
+> 它跑的时候一个 binhack 都还没打，回读什么都读不到。
+> 插件 DLL 的 `thcrap_plugin_init` 更早，同样不行。
 
-> 与 [`../mouse-control`](../mouse-control/README.md) 的对比：那个 mod 只有 2 个断点，
-> 漏一个的症状是「按键没反应」，自我诊断日志就够了。**这个 mod 不行**，
-> 必须有程序化的全量回读。
+**可行的门有两层：**
+
+**① 数据激活（首选，不依赖时机）。**新表里 58 行之后的行**预填成 NULL 行的副本**
+——它们是休眠数据，查到也只得到那个无害的哨兵行。真正的新卡数据由一个**游戏内断点**
+在**回读确认全部 binhack 都已生效之后**才写进去。这样门就不是「回滚补丁」
+（补丁已经写下去了，回滚不了），而是「**不激活数据**」——可靠得多。
+
+**② `*_patch_init` 仍然有用，只是换个用途**：它是把零售 58 行拷进新表的**最佳时机**
+（在 binhack 之前，所以改过的代码第一次读新表时内容已经就位），
+而且页保护要到它之后才设，写得进去（`codecaves_apply` 的 `VirtualProtect` 循环在它后面）。
 
 ### 3.6 按函数过滤，不按常量全局替换
 
