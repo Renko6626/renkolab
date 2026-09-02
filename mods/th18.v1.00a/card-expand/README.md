@@ -115,7 +115,9 @@ card-expand/
 │   ├── sites.py       ★ 扫描 / 校验 / 生成 / 对账
 │   ├── mkfiles.py     刷新 files.js
 │   ├── sites_gen.h    生成物:DLL 用的站点表
-│   ├── th18_card_expand.c   ★ 全有或全无的门(post_init)
+│   ├── card_expand.h  DLL 内部共用声明
+│   ├── dll_main.c     入口 / 日志 / thcrap API / 自检①(零售表签名)
+│   ├── selfcheck.c    ★ 自检②:post_init 填表 + 回读 100 处
 │   ├── th18_card_expand.def
 │   └── Makefile
 └── patch/

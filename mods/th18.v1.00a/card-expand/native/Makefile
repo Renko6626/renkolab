@@ -44,8 +44,17 @@ LDFLAGS   := -shared -static-libgcc -s -lkernel32
 
 ## dll    —— 编 DLL（依赖 gen 出的 sites_gen.h）
 dll: $(DLL)
-$(DLL): th18_card_expand.c sites_gen.h th18_card_expand.def
-	$(CC) $(CFLAGS) -o $@ th18_card_expand.c th18_card_expand.def $(LDFLAGS)
+SRCS      := dll_main.c selfcheck.c
+OBJS      := $(SRCS:.c=.o)
+%.o: %.c card_expand.h sites_gen.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(DLL): $(OBJS) th18_card_expand.def
+	$(CC) $(CFLAGS) -o $@ $(OBJS) th18_card_expand.def $(LDFLAGS)
+
+## x87 自检 —— 只看我们自己的目标文件
+dllx87: $(OBJS)
+	@n=$$($(OBJDUMP) -d $(OBJS) | grep -cE '^\s+[0-9a-f]+:\s+[0-9a-f ]+\s+f(ld|st|add|sub|mul|div|ild|ist|xch|com)' || true); \
+	 echo "x87 in our objects: $$n"; test "$$n" = 0
 
 ## dllverify —— 位数 / 导出表 / 依赖
 dllverify: $(DLL)
