@@ -163,8 +163,16 @@ int __cdecl BP_ce_save_loaded(x86_reg_t *regs, void *bp_info)
     unsigned retail = 0;
     for (unsigned i = 0; i < CE_RETAIL_UNLOCKED; ++i) retail += s_shadow[i] != 0;
     unsigned extra = sidecar_load();
-    ce_log("unlocked: shadow @ %p, 57 retail (%u set) + side-car (%u new ids set) from %s",
-           s_shadow, retail, extra, s_path);
+    /* initial_unlocked 的新卡：零售的 +0x24 由新档创建循环拷进 unlocked_cards[0..57]，新 id 不在循环里；
+     * 这里每次读档直接置位。解锁单调、新档也该解禁，语义与零售等价，side-car 格式不动（DATA.md §3）。*/
+    unsigned init = 0;
+    for (unsigned i = 0; i < ce_new_card_count(); ++i)
+        if (ce_new_card_initial_unlocked(i)) {
+            uint32_t id = ce_new_card_id(i);
+            if (id < SHADOW_SIZE && !s_shadow[id]) { s_shadow[id] = 1; ++init; }
+        }
+    ce_log("unlocked: shadow @ %p, 57 retail (%u set) + side-car (%u new ids set) + %u initial_unlocked from %s",
+           s_shadow, retail, extra, init, s_path);
     return BP_EXEC_ORIGINAL;
 }
 
