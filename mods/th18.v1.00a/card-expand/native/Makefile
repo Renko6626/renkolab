@@ -87,7 +87,7 @@ dist:
 	$(MAKE) -s ROWS=58  gen dll files >/dev/null
 	cp $(DLL) $(DIST)/bin/ && cp ../patch/*.js $(DIST)/patch-step1/ && cp -r ../patch-test/. $(DIST)/patch-test/
 	$(MAKE) -s ROWS=255 gen files >/dev/null
-	cp ../patch/*.js $(DIST)/patch-step3/
+	cp -r ../patch/. $(DIST)/patch-step3/
 	cp ../DIST-README.txt $(DIST)/README.txt
 	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test README.txt
 	@echo "dist/ 就绪："; ls $(DIST)

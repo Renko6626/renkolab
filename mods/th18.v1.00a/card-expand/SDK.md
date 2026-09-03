@@ -147,7 +147,7 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 | K♠ 伤害 ×1.1 | 61 | `on_bullet_created` | `bullet+0x9c`（int）`= d*11/10`；`PlayerBullet__create` 在调槽前已写好它 | ✅ 已反（AUDIT O9）|
 | A♠ Miss 后无敌 +50% | 62 | `on_tick_2` | 无敌 zTimer `player+0x47774`；复活把它置成 {prev 279, cur 280, 280.0}，这个组合只在刚置好那一帧出现 → 改成 420。`+0x14` 槽在复活置值**之前**触发，所以不用它 | ✅ 已反（AUDIT O8）|
 
-数值（`price_tier` / `weight` / sprite）在 `patch-test/th18/cards.js` 里给；sprite 先全用 116/117 占位。
+数值（`price_tier` / `weight` / sprite）在 `patch/th18/cards.js` 里给（`_255` 自带的卡池，`initial_unlocked: 1`）；sprite 先全用 116/117 占位。
 「皇家同花顺」（五张齐 → 隐藏效果）不在本批：接缝是购买 `AbilityShop__on_tick` `0x4185c7` + `owned[]`。
 
 ## 8. 开发循环

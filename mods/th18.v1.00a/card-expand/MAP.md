@@ -23,7 +23,7 @@
 | 10 | 数据从哪来 | — | — | thcrap 栈里每个 patch 的 `th18/cards.js` 深合并 → 门里逐张校验、写 cave 行 + 文案 + 注册表（[`DATA.md`](DATA.md)）| 🔧 待实跑 |
 
 第 1–6 段跑通的标志（✅ 2026-09-02）：用 `_test` 把 id 58 塞进空槽 → 开局分配到它 → 「获得」→ 重启仍解锁 → 图鉴里有它 → 编成里能选它。
-第 7 + 10 段的标志：`patch-test/th18/cards.js` 的「测试卡牌」在商店里出现、能买；名字 / 说明是 JSON 里的。
+第 7 + 10 段的标志：`patch/th18/cards.js` 的黑桃五张在图鉴 / 编成 / 商店里出现、能买；名字 / 说明是 JSON 里的。
 
 ## 1. 机制只有四种
 
@@ -88,7 +88,7 @@
 | --- | --- | --- |
 | 断点 `ce_test_deck` → `BP_ce_test_deck` | `0x407ee3` | 初始卡组的空槽(56) 依次改发 `th18/cards_dev.js` 的 `start_deck`（§O11）|
 | 断点 `ce_trace_alloc` → `BP_ce_trace_alloc` | `0x411469` | 记录每次 `allocate_new_card`；新 id 第一次出现时调 `mark_obtained(id,1)` |
-| `th18/cards.js` / `cards_dev.js` | — | 示范卡（黑桃五张）与开发配置（起手卡组、`trace`）|
+| `th18/cards_dev.js` | — | 开发配置（起手卡组、`trace`）。卡池本身在 `_255` 的 `th18/cards.js` |
 
 `_test` 现在是**开发环境**：起手直接拿到要测的卡、每个桩第一次被调记日志。不再有手写 cave。
 

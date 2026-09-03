@@ -184,8 +184,8 @@ side-car：`%APPDATA%\ShanghaiAlice\th18\th18_card_expand.sav`（路径取自游
 **没有新的机器码**。前提「`+0x14` 只有商店读」的穷举在 [`AUDIT.md`](AUDIT.md) §N1；随机池 560 份 / offer 57 槽的
 容量由装载器现算（§N2）。
 
-**验收**：`patch-test/th18/cards.js` 里的 id 58「测试卡牌」出现在图鉴 / 编成 / 商店（tier 5 = 中价档，权重 2），
-能买、能拿、重启仍解锁。日志：`cards: 1 registered from cards.js; shop pool …`，`grow: … shop loops 255 ids`，
+**验收**：`patch/th18/cards.js`（`_255` 自带的卡池：黑桃五张，开局即解锁）出现在图鉴 / 编成 / 商店（5–9 档价，权重 2），
+能买、能拿、重启仍解锁。日志：`cards: 5 registered from cards.js; shop pool …`，`grow: … shop loops 255 ids`，
 结论行多 `cards loaded`。
 
 ### 验证钩子 `patch-test/`（只在测试时进栈）
@@ -313,11 +313,11 @@ card-expand/
 ├── patch/
 │   ├── patch.js
 │   ├── files.js
+│   ├── th18/cards.js   ★ 本 mod 的卡池(黑桃五张,initial_unlocked)
 │   └── th18.v1.00a.js  ★ 生成物,不要手改(仓库里是 ROWS=255 = step3)
 └── patch-test/         只在测试时叠上
     ├── patch.js        依赖 th18_card_expand
     ├── files.js
-    ├── th18/cards.js   黑桃五张(58–62)
     ├── th18/cards_dev.js 起手卡组 + trace
     └── th18.v1.00a.js  ★ 生成物:两个测试断点(起手卡组 / 分配追踪)
 ```

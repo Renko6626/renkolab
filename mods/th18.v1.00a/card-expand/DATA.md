@@ -21,7 +21,7 @@ DLL 在开机自检门里调 thcrap 的 `stack_game_json_resolve("cards.js")`，
 
 - 任何 patch 都能加卡：放一个 `th18/cards.js` 就行，不必碰 `th18_card_expand_255`。
 - 两个 patch 写了同一个 id → 后进栈的字段覆盖先进栈的（thcrap 语义），DLL 只能看到合并后的结果，不会报「被覆盖」。
-- 文件缺失 = 0 张新卡，不是错误；`_255` 本体不带任何卡，是纯扩容。
+- 文件缺失 = 0 张新卡，不是错误。`th18_card_expand_255` 自己带本 mod 的卡池（`patch/th18/cards.js`，现在是黑桃五张）；别的 patch 叠加自己的。
 - 别忘了把 `th18/cards.js` 写进该 patch 的 `files.js`（`make files` 会递归收）。
 
 ## 2. 格式
@@ -108,4 +108,5 @@ DLL 装载时按合并后的表**现算**这三条，超了写 `FAIL:` 并把分
 
 ## 7. 示范
 
-`patch-test/th18/cards.js` 里有一张 id 58；叠上 `_test` 就能看到它走完一圈。`_255` 本体不带卡。
+本 mod 的卡池在 `patch/th18/cards.js`（黑桃 10/J/Q/K/A，id 58–62，`initial_unlocked: 1` 所以一开局就能在编成里选）。
+`_test` 只放开发配置 `cards_dev.js`（起手卡组 / trace）。

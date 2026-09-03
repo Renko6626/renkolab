@@ -21,8 +21,8 @@ R      = os.path.join(MODKIT, "thcrap", "repos", "Renko_1055")
 MAP = {                                   # dist 里的 → modkit 里的
     "patch-step1/th18.v1.00a.js": "thcrap/repos/Renko_1055/th18_card_expand/th18.v1.00a.js",
     "patch-step3/th18.v1.00a.js": "thcrap/repos/Renko_1055/th18_card_expand_255/th18.v1.00a.js",
+    "patch-step3/th18/cards.js":  "thcrap/repos/Renko_1055/th18_card_expand_255/th18/cards.js",
     "patch-test/th18.v1.00a.js":  "thcrap/repos/Renko_1055/th18_card_expand_test/th18.v1.00a.js",
-    "patch-test/th18/cards.js":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/cards.js",
     "patch-test/th18/cards_dev.js": "thcrap/repos/Renko_1055/th18_card_expand_test/th18/cards_dev.js",
     "bin/th18_card_expand.dll":   "mods/th18_card_expand.dll",
 }
