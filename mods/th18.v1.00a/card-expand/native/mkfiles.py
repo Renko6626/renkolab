@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""刷新 patch/ 与 patch-test/ 的 files.js —— thcrap 分发用的 {相对路径: crc32} 清单。递归子目录（th18/cards.js）。"""
+"""刷新 files.js —— thcrap 分发用的 {相对路径: crc32} 清单，递归子目录，收 .js 与 .anm。
+
+    python3 mkfiles.py                 # patch/ 与 patch-test/
+    python3 mkfiles.py <dir> [<dir>…]  # 只刷给定目录（make dist 对 dist/patch-step3 用）
+"""
+import sys
 import json, os, zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -10,7 +15,7 @@ def refresh(patch_dir):
     for root, _dirs, names in os.walk(patch_dir):
         for name in sorted(names):
             rel = os.path.relpath(os.path.join(root, name), patch_dir).replace(os.sep, "/")
-            if rel == "files.js" or not rel.endswith(".js"):
+            if rel == "files.js" or not rel.endswith((".js", ".anm")):
                 continue
             with open(os.path.join(root, name), "rb") as f:
                 out[rel] = zlib.crc32(f.read()) & 0xffffffff
@@ -20,5 +25,9 @@ def refresh(patch_dir):
     print("%s/files.js:" % os.path.basename(patch_dir), out)
 
 
-for d in ("patch", "patch-test"):
-    refresh(os.path.join(HERE, "..", d))
+if len(sys.argv) > 1:
+    for d in sys.argv[1:]:
+        refresh(os.path.abspath(d))
+else:
+    for d in ("patch", "patch-test"):
+        refresh(os.path.join(HERE, "..", d))

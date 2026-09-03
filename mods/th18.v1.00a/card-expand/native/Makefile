@@ -11,7 +11,7 @@ step1:
 	$(MAKE) ROWS=58 gen verify dll dllx87 files
 
 ## step3 —— 战线 B 验证态：255 行 + 分配器搬迁 + patch-test（空槽→id 58 + 追踪断点）
-step3:
+step3: anm
 	$(MAKE) ROWS=255 gen verify test-host dll dllx87 files
 
 ## check  —— 只扫描 + 校验两条不变式，不产出（顺带 anm-verify：重建的 abcard.anm 自检）
@@ -87,15 +87,17 @@ dllverify: $(DLL)
 	@$(OBJDUMP) -p $(DLL) | grep -A 6 '^Export Table:' | sed -n '1,8p'
 	@echo "--- 依赖 ---"; $(OBJDUMP) -p $(DLL) | grep 'DLL Name'
 
+## dist   —— 三个 patch + DLL + zip；_255（patch-step3）里带重建的 th18/abcard.anm（≈22 MB，含零售贴图）
 ## dist —— 在 ../dist/ 摆出可直接安装的整套：一个 DLL + patch-step1 / patch-step3 / patch-test
 ##         （dist/ 已 gitignore：DLL 是构建产物，不入库；随时 make dist 重建）
 DIST := ../dist
-dist:
+dist: anm
 	rm -rf $(DIST) && mkdir -p $(DIST)/bin $(DIST)/patch-step1 $(DIST)/patch-step3 $(DIST)/patch-test
 	$(MAKE) -s ROWS=58  gen dll files >/dev/null
 	cp $(DLL) $(DIST)/bin/ && cp ../patch/*.js $(DIST)/patch-step1/ && cp -r ../patch-test/. $(DIST)/patch-test/
 	$(MAKE) -s ROWS=255 gen files >/dev/null
 	cp -r ../patch/. $(DIST)/patch-step3/
+	cp build/abcard.anm $(DIST)/patch-step3/th18/abcard.anm && python3 mkfiles.py $(DIST)/patch-step3 >/dev/null
 	cp ../DIST-README.txt $(DIST)/README.txt
 	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test README.txt
 	@echo "dist/ 就绪："; ls $(DIST)
