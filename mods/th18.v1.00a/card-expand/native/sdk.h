@@ -100,6 +100,14 @@ static inline uint32_t ce_anm_spawn(void *anm, int script, int layer)
     return (uint32_t)id;
 }
 
+/* 残机 / 炸弹：引擎自己的加法（钳上限、音效、特效）。add_bomb 是 thiscall + 一个从不读取的栈参（ret 4），
+ * 所以签名里必须带一个 dummy（O23 教训）。上限想一起加照零售：`if (CE_LIVES_MAX() < 7) CE_LIVES_MAX()++`。*/
+typedef void (__attribute__((thiscall)) *ce_fn_add_life_t)(void *globals);
+typedef void (__attribute__((thiscall)) *ce_fn_add_bomb_t)(void *globals, int unused);
+static inline void ce_add_life(void) { ((ce_fn_add_life_t)CE_FN_ADD_LIFE)((void *)CE_ADDR_GLOBALS_INNER); }
+static inline void ce_add_bomb(void) { ((ce_fn_add_bomb_t)CE_FN_ADD_BOMB)((void *)CE_ADDR_GLOBALS_INNER, 0); }
+static inline int  ce_owned(uint32_t id) { return id < 255 && CE_OWNED_ARRAY()[id] != 0; }
+
 /* sdk.c：主动卡机器（桩里调）*/
 int  ce_sdk_c_press(void *self, const ce_hooks_t *h);
 void ce_sdk_active_tick(void *self, const ce_hooks_t *h);

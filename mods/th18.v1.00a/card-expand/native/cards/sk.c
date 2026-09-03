@@ -2,6 +2,7 @@
  * 抄 CardMomoyo（id 54）的 on_bullet_init：PlayerBullet__create 在 0x45e396 写好 bullet+0x9c（int 伤害）后、
  * 0x45e7f5 调槽 +0x28，0x45e837 再取用。这里就地放大。 */
 #include "sdk.h"
+#include "royal.h"   /* 皇家同花顺：五张黑桃共用 ctor */
 
 static int on_bullet_created(ce_card_t *c, void *bullet)
 {
@@ -11,4 +12,4 @@ static int on_bullet_created(ce_card_t *c, void *bullet)
     return 0;
 }
 
-CE_CARD(61, .on_bullet_created = on_bullet_created);
+CE_CARD(61, .ctor = ce_royal_flush_ctor, .on_bullet_created = on_bullet_created);

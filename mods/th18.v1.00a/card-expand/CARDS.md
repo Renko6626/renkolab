@@ -16,7 +16,7 @@
 
 **卡图**：五张用标准英式牌面（Wikimedia Commons，Dmitry Fomin，CC0；`assets/cards/_src/english_pattern/`，`fit_card.py` 出图），sprite 118/119 … 126/127。
 
-💡 **皇家同花顺**：买到第五张时触发隐藏效果——第二批（购买钩子 `0x4185c7` + `owned[]`）。
+🔧 **皇家同花顺**（`cards/royal.c`，五张共用 `.ctor`）：买到第五张黑桃时触发一次——金钱 +800、残机 +2（上限先 +1 钳 7，照 CardLife）、bomb +2（同法照 CardBomb）。判定：ctor 时其余四张已在 `owned[]`（初始携带不算，只有买齐才算）。AUDIT O26。
 
 ## 方片
 

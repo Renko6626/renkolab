@@ -78,8 +78,23 @@ static void test_state(void)
     CHECK(ce_state_in_use() == 0);
 }
 
+static void test_royal(void)
+{
+    static const uint32_t set[5] = { 58, 59, 60, 61, 62 };
+    int32_t owned[255] = { 0 };
+    CHECK(!ce_royal_flush_ready(owned, 58, set, 5));               /* 一张没有 */
+    owned[59] = owned[60] = owned[61] = 1;
+    CHECK(!ce_royal_flush_ready(owned, 58, set, 5));               /* 还差 62 */
+    owned[62] = 1;
+    CHECK(ce_royal_flush_ready(owned, 58, set, 5));                /* 58 是第五张 */
+    CHECK(!ce_royal_flush_ready(owned, 63, set, 5));               /* 不在集合里的卡不触发 */
+    owned[58] = 1;
+    CHECK(ce_royal_flush_ready(owned, 62, set, 5));                /* 自己已 owned 也不影响（重复购买不可能，但判定不依赖它）*/
+}
+
 int main(void)
 {
+    test_royal();
     test_registry();
     test_bind_check();
     test_state();

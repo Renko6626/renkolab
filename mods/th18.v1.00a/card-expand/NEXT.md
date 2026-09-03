@@ -61,7 +61,7 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 
 | 块 | 内容 | 接缝 / 依据 |
 | --- | --- | --- |
-| **皇家同花顺** | 买到第五张时触发隐藏效果 | 购买点 `AbilityShop__on_tick` `0x4185c7`；`owned[]` `mgr+0xd70`；SDK 加事件 `on_purchase(id)`（一个断点）+ 一个 `ce_owned(id)` 辅助 |
+| ~~皇家同花顺~~ | 🔧 已做（`cards/royal.c`，五张共用 ctor，不开断点；金钱 +800 / 命 +2 / bomb +2），待实跑 | AUDIT O26；`ce_owned()` / `ce_add_life()` / `ce_add_bomb()` 进了 sdk.h |
 | **主动卡基类** | C 键 / 充能 / HUD 图标 / replay 复原 | `04-active-cards.md` §3–§6：`c_press` 模板、`+0x38/+0x3c/+0x40` 三件套、flags bit3；SDK 里做一份可继承的「主动卡」桩集 |
 | 辅助函数提炼 | 动作出现第二次就进 `sdk.h` | 方案 3 的约定 |
 | 图鉴上限 | 新卡 > 71 时才需要：两处 `cmp r,imm8` → cave | AUDIT §M3 |

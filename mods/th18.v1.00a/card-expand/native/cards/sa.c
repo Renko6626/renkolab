@@ -3,6 +3,7 @@
  * 刚置好的那一帧出现（之后 prev = 上一帧 cur），炸弹 / 决死救回写的是别的值。AbilityManager tick 先于 Player tick，
  * 所以 on_tick_2 在下一帧 Player 递减之前看到它 → 放大到 420。 */
 #include "sdk.h"
+#include "royal.h"   /* 皇家同花顺：五张黑桃共用 ctor */
 
 static int on_tick_2(ce_card_t *c)
 {
@@ -16,4 +17,4 @@ static int on_tick_2(ce_card_t *c)
     return 0;
 }
 
-CE_CARD(62, .on_tick_2 = on_tick_2);
+CE_CARD(62, .ctor = ce_royal_flush_ctor, .on_tick_2 = on_tick_2);

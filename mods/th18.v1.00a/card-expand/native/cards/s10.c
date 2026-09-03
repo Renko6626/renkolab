@@ -3,6 +3,7 @@
  * MONEY 与 MONEY_TOTAL_COLLECTED。用确定性计数而不是随机：replay 靠输入重放，自带随机会失同步。
  * 计数在卡的私有状态里，随卡对象一局一建。 */
 #include "sdk.h"
+#include "royal.h"   /* 皇家同花顺：五张黑桃共用 ctor */
 
 typedef struct { uint32_t n; } s10_state_t;
 
@@ -13,4 +14,4 @@ static void on_item_money(ce_card_t *c, int32_t *bonus)
     if (++st->n >= 10) { st->n = 0; *bonus += 1; }
 }
 
-CE_CARD(58, .on_item_money = on_item_money);
+CE_CARD(58, .ctor = ce_royal_flush_ctor, .on_item_money = on_item_money);

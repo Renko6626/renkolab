@@ -36,3 +36,6 @@ void *ce_state_alloc(const void *key, unsigned size);
 void *ce_state_get(const void *key);   /* 没分配过返回 NULL */
 void  ce_state_free(const void *key);  /* 没分配过是空操作 */
 unsigned ce_state_in_use(void);
+
+/* 集卡判定（纯函数）：self 在 set 里，且 set 里其余每张 owned[id] != 0 → 1。owned 是 int[255]。*/
+int ce_royal_flush_ready(const int32_t *owned, uint32_t self_id, const uint32_t *set, unsigned n);

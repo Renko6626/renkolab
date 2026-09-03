@@ -13,6 +13,12 @@
 #define CE_ADDR_SCORE              0x4cccfc   /* int，封顶 999999999（SM §1）*/
 #define CE_ADDR_MONEY              0x4ccd34   /* int（SM §1）*/
 #define CE_ADDR_MONEY_TOTAL        0x4ccd30   /* int，只记收入（SM §1）*/
+#define CE_ADDR_GLOBALS_INNER      0x4cccdc   /* zGlobalsInner（命 / bomb 的加法函数的 this）*/
+#define CE_ADDR_CURRENT_LIVES      0x4ccd48   /* = GlobalsInner+0x6c */
+#define CE_ADDR_LIVES_MAX          0x4ccd54   /* ExpHP LIVES_STOCK_cardfed_cap7 = GlobalsInner+0x78：残机上限，CardLife 每张 +1 钳 7 */
+#define CE_ADDR_CURRENT_BOMBS      0x4ccd58   /* = GlobalsInner+0x7c */
+#define CE_ADDR_MAX_BOMBS          0x4ccd64   /* = GlobalsInner+0x88，CardBomb 每张 +1 钳 7 */
+#define CE_ADDR_GAME_THREAD_PTR    0x4cf2e4   /* 非 0 = 在游戏线程（零售即时卡 dtor 的门）*/
 #define CE_ADDR_CARD_PRICE_BY_TIER 0x4b35c4   /* int[15]，price_tier → 金钱（SM §「价格表」一手 dump）*/
 #define CE_ADDR_MONEY_ITEMS        0x4ccd20   /* int，吃到的金钱道具个数（collect_money_item 0x446d22 inc）*/
 #define CE_ADDR_CURRENT_POWER      0x4ccd38   /* OM §7 */
@@ -27,6 +33,12 @@
 #define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)
 #define CE_MONEY()        (*(int32_t *)CE_ADDR_MONEY)
 #define CE_MONEY_TOTAL()  (*(int32_t *)CE_ADDR_MONEY_TOTAL)
+#define CE_CURRENT_LIVES()  (*(int32_t *)CE_ADDR_CURRENT_LIVES)
+#define CE_LIVES_MAX()      (*(int32_t *)CE_ADDR_LIVES_MAX)
+#define CE_CURRENT_BOMBS()  (*(int32_t *)CE_ADDR_CURRENT_BOMBS)
+#define CE_MAX_BOMBS()      (*(int32_t *)CE_ADDR_MAX_BOMBS)
+#define CE_GAME_THREAD()    (*(void **)CE_ADDR_GAME_THREAD_PTR)
+#define CE_OWNED_ARRAY()    ((const int32_t *)(CE_ABILITY_MGR() + CE_MGR_OWNED))
 #define ce_price_for_tier(t)  (((t) >= 0 && (t) < 15) ? ((const int32_t *)CE_ADDR_CARD_PRICE_BY_TIER)[(t)] : 0)
 #define CE_PLAYER()       (*(uint8_t **)CE_ADDR_PLAYER_PTR)
 #define CE_ABILITY_MGR()  (*(uint8_t **)CE_ADDR_ABILITY_MGR_PTR)
@@ -102,6 +114,8 @@ typedef struct { int32_t prev; int32_t cur; float cur_f; } ce_timer_t;   /* zTim
 #define CE_FN_TIMER_DECREMENT      0x409750   /* thiscall(zTimer*; 一个未用栈参) ret 4：prev = cur, cur_f -= 游戏速度, cur = (int)cur_f */
 #define CE_FN_TIMER_INCREMENT      0x405990   /* thiscall(zTimer*; 一个未用栈参) ret 4：同上方向相反。★ 调用方必须压那 4 字节 */
 #define CE_FN_PLAY_SOUND           0x476c70   /* stdcall(id) + xmm2 = 世界 x（声像）；ret 4 */
+#define CE_FN_ADD_LIFE             0x4575f0   /* thiscall(GlobalsInner*)，无栈参，裸 ret：CURRENT_LIVES+1 钳 LIVES_MAX、清碎片、音效 0x11、起特效、extend 计数 +1。CardLife/Mokou dtor 调它。AUDIT O26 */
+#define CE_FN_ADD_BOMB             0x457690   /* thiscall(GlobalsInner*; 一个未读栈参) ★ret 4：CURRENT_BOMBS+1 钳 MAX_BOMBS、清碎片、音效 0x2e、刷 HUD。CardBomb dtor 调它。AUDIT O26 */
 #define CE_FN_ANM_INSTANTIATE_WORLD_BACK 0x405bf0 /* AnmLoaded__instantiate_vm_to_world_list_back：thiscall(AnmLoaded*; int* out_id, int script, int layer, void** out_vm) ret 0x10。建 VM、实体坐标 (0,0,0)、layer<0x18 时写 vm+0x18、AnmVm__run 一帧、挂 world 列表尾；内部自己进临界区。AUDIT O24 */
 #define CE_FN_ANM_SET_SPRITE       0x477b00   /* AnmLoaded__set_sprite：thiscall(AnmLoaded*; vm, sprite_idx) ret 8（备查，特效脚本自己 sprite() 就不用）*/
 #define CE_FN_ANM_DELETE_BY_ID     0x488cf0   /* stdcall(anm_id) ret 4：按 id 标记删除 VM 及其子树（Tenshi 收尾用；一次性脚本自 delete() 就不用）*/

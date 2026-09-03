@@ -504,6 +504,9 @@ ANM 侧：`ability.anm` 追加 entry7（`REVERSE.png`，字段抄 abcard `BLANK_
 写 `MONEY` `0x4ccd34` / `MONEY_TOTAL` `0x4ccd30`（SM §1）。时序依据：成交 `0x4185c7` 先 `allocate_new_card(mode 2)`（ctor）后扣款，故 ctor 写 `2·M − price`。
 M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未实跑。**
 
+**O26（2026-09-04）皇家同花顺 `cards/royal.c`**（黑桃五张共用 ctor）。触发不开新断点：成交 `allocate_new_card(mode 2)` 调 ctor（`0x412d11`），`owned[id]=1` 在其后（`0x412d42`），ctor 里查其余四张 `owned[]`（`mgr+0xd70`，本 mod 搬迁后的数组）齐了即第五张，天然只触发一次；纯函数 `ce_royal_flush_ready` 有单测。
+两个新引擎调用：**`0x4575f0` 加命**——`mov esi,ecx`（this = GlobalsInner `0x4cccdc`），不读栈参，唯一出口裸 `ret`；`[esi+0x6c]` CURRENT_LIVES 钳 `[esi+0x78]` LIVES_MAX，内部再调 `0x405bf0` 起特效、`0x476be0` 放音效 0x11。**`0x457690` 加 bomb**——this = ecx，`[ecx+0x7c]` CURRENT_BOMBS 钳 `[ecx+0x88]` MAX_BOMBS，音效 0x2e，**唯一出口 `ret 4`** 但函数体不读任何栈参（O23 同款），C 侧签名带一个 dummy int。`royal.o` objdump：加命 `mov ecx,0x4cccdc; call`（无 push）；加 bomb `mov ecx; push 0; call`，call 后无 `add esp` —— 与两函数的出口一致。上限照 `CardLife__destructor` `0x409b80` / `CardBomb__destructor` `0x409c20`：先 `+1` 钳 7 再调加法。门：`GAME_THREAD_PTR` `0x4cf2e4` 非 0（零售即时卡 dtor 的门）。ctor 返回 0 保留卡。**未实跑。**
+
 **未实跑。** 各卡的验收在 [`NEXT.md`](NEXT.md) §1。
 
 ## G. OPEN —— 还没解决的

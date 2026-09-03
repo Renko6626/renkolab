@@ -77,3 +77,15 @@ void ce_state_free(const void *key)
 }
 
 unsigned ce_state_in_use(void) { return s_used; }
+
+
+/* ── 集卡判定 ──────────────────────────────────────────────────────── */
+int ce_royal_flush_ready(const int32_t *owned, uint32_t self_id, const uint32_t *set, unsigned n)
+{
+    int self_in = 0;
+    for (unsigned i = 0; i < n; ++i) {
+        if (set[i] == self_id) { self_in = 1; continue; }
+        if (set[i] >= 255 || owned[set[i]] == 0) return 0;
+    }
+    return self_in;
+}
