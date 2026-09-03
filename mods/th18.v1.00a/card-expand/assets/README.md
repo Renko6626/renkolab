@@ -1,0 +1,48 @@
+# assets/ — 卡图（`abcard.anm` 追加 sprite）
+
+> **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+
+面向**写卡的人**：一张新卡要有自己的图，只需要放两张 PNG、在 `ORDER.txt` 加一行、把算出来的
+两个数填进 JSON。DLL 不碰 ANM；构建脚本把图追加进零售 `abcard.anm` 重编，随 `_255` patch
+整文件替换分发（thcrap 的 `th18/abcard.anm`）。
+
+## 放什么
+
+| 文件 | 尺寸 | 说明 |
+| --- | --- | --- |
+| `cards/<NAME>_max.png` | **256×320** RGBA | 大图：编成 / 商店 / 图鉴用 |
+| `cards/<NAME>_min.png` | **64×80** RGBA | 小图：HUD 卡组图标 |
+| `cards/ORDER.txt` | 一行一个 `NAME` | **只追加**。行号决定 sprite 号 |
+
+`NAME` 建议用卡的 `internal_name`（如 `SPADE_10`）。尺寸不对构建直接报错。
+没画好图之前 `python3 gen_placeholder.py NAME ♠ 10` 先出一对占位图。
+
+## 索引怎么来
+
+零售 `abcard.anm` 有 118 个 entry（0..117），**一个 entry 一个 sprite，sprite 号 = entry 号**，
+新卡从 118 起两两追加：
+
+```
+ORDER 第 k 行（0 起）  →  sprite_large = 118 + 2k,  sprite_small = 119 + 2k
+```
+
+`make anm` 会打印每张卡的那一对，照抄进 `patch/th18/cards.js` 的 `sprite_large` / `sprite_small`。
+构建脚本**校验** JSON 和 ORDER 一致（不一致报错退出，不会悄悄改 JSON）；零售索引（≤ 117）照旧放行。
+
+## 跑什么
+
+```bash
+cd ../native
+make anm          # → native/build/abcard.anm，打印索引表；JSON 不一致会报错
+make anm-verify   # 重建文件自检：entry 数、原 117 张贴图逐张一致、新 entry 字段 == BLANK 模板
+make dist         # 把 build/abcard.anm 放进 dist/patch-step3/th18/，files.js 收它的 crc
+```
+
+前置：`bash tooling/thtk/build.sh` + `python3 tooling/thtk/unpack.py th18.v1.00a`
+（脚本从 `local/th18.v1.00a/anm/abcard/` 取零售 spec 与贴图）。
+
+## 边界
+
+- 一次重建 = modkit 历史多 20 MB。**只在真的加了新图时**才重建 / 发布，日常改 JSON、DLL 不碰它。
+- 运行时 sprite 数上限**未验**（格式层无上限）；目前只加到 127，C 阶段在 `AnmManager__preload_anm` 坐实。
+- 其它两个 ANM：`ability.anm`（场上特效脚本，68 个）、`abmenu.anm`（编成 / 图鉴 UI）——本目录暂不管它们。

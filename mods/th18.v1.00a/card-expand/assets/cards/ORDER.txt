@@ -1,0 +1,8 @@
+# 一行一个 NAME，只追加、不重排、不删（行号决定 sprite 号，改了老卡的图就全歪）。
+# 第 k 行（从 0 数，注释和空行不算）→ sprite_large = 118 + 2k，sprite_small = 119 + 2k。
+# 对应文件：cards/<NAME>_max.png（256×320）、cards/<NAME>_min.png（64×80）。
+SPADE_10
+SPADE_J
+SPADE_Q
+SPADE_K
+SPADE_A
