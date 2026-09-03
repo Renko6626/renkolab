@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """给还没画图的卡生成简洁卡图（白底黑图：花色 + 点数，或一张图标），尺寸符合 abcard.anm 的要求。
 
-    python3 gen_placeholder.py                          # 内置表：黑桃 10/J/Q/K/A + 反转牌
+    python3 gen_placeholder.py                          # 内置表：黑桃 10/J/Q/K/A
     python3 gen_placeholder.py SPADE_7 --suit ♠ --rank 7 # 单张：花色 + 点数
-    python3 gen_placeholder.py REVERSE --image cards/_src/back-forth.png   # 单张：居中放一张图标
+    python3 gen_placeholder.py NAME --image icon.png    # 单张：居中放一张图标（透明底）
+
+现成的整张卡图（如 UNO 反转牌）不走这里，用 fit_card.py 裁切缩放。
 
 输出 cards/<NAME>_max.png（256×320）与 cards/<NAME>_min.png（64×80），RGBA。
 """
@@ -29,7 +31,6 @@ DEFAULT = [  # NAME, kwargs
     ("SPADE_Q", dict(suit="♠", rank="Q")),
     ("SPADE_K", dict(suit="♠", rank="K")),
     ("SPADE_A", dict(suit="♠", rank="A")),
-    ("REVERSE", dict(image=HERE / "cards" / "_src" / "back-forth.png")),
 ]
 
 

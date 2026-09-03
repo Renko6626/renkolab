@@ -1,7 +1,7 @@
-# _src — 卡图用到的第三方素材（原件 + 出处）
+# _src — 卡图用到的第三方 / 原始素材（原件 + 出处）
 
-| 文件 | 用在 | 出处 | 许可 |
+| 文件 | 用在 | 来源 | 处理 |
 | --- | --- | --- | --- |
-| `back-forth.svg` / `.png` | REVERSE（反转牌，id 64） | [game-icons.net](https://game-icons.net/1x1/lorc/back-forth.html)，作者 Lorc | CC BY 3.0 |
+| `reverse_card.png` | REVERSE（反转牌，id 64） | 用户提供（UNO 反转牌图，2304×3500） | `fit_card.py REVERSE cards/_src/reverse_card.png`：去白边、上下各修 3%、等比缩放居中到白底 256×320 |
 
-`.svg` 是原件去掉黑底、填色改黑；`.png` 由 `rsvg-convert -w 400 -h 400` 渲出，`gen_placeholder.py --image` 拿它居中放进白底卡框。
+现成卡图一律走 `fit_card.py`，别手工缩。

@@ -15,8 +15,11 @@
 | `cards/ORDER.txt` | 一行一个 `NAME` | **只追加**。行号决定 sprite 号 |
 
 `NAME` 建议用卡的 `internal_name`（如 `SPADE_10`）。尺寸不对构建直接报错。
-简洁风卡图直接用 `gen_placeholder.py`：白底黑图，`--suit ♠ --rank 10` 画花色 + 点数，`--image x.png` 居中放一张图标
-（第三方图标原件与出处放 `cards/_src/`，见那里的 README；反转牌用的是 game-icons.net 的 back-forth，CC BY 3.0）。
+两种出图方式：
+- **简洁风**：`gen_placeholder.py`，白底黑图，`--suit ♠ --rank 10` 画花色 + 点数，`--image x.png` 居中放一张图标。黑桃五张就是它。
+- **现成整图**：`fit_card.py NAME src.png`，去白边、上下微修、等比缩放居中到 256×320 白底。反转牌（UNO 图）就是它。
+
+第三方 / 原始素材放 `cards/_src/`（原件 + 出处 README）。
 
 ## 索引怎么来
 
