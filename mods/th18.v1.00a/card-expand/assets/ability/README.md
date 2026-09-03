@@ -21,4 +21,4 @@ ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_REVERSE_FLASH, 16);   /* �
 `type(8)` 是三维渲染模式，`rotateTime(t, mode, rx, ry, rz)` 绕 Y 轴转就是翻牌。
 ⚠️ **`type(8)` 只能放层 20（或 2 / 6），别放世界层 12–19**：它走 D3D WORLD 矩阵，不加相机 2 的区域原点偏移，放世界层会整体偏位
 （`engine/anm/th18/01-vm-instantiate.md` §3b）。照零售写 `layer(20); resolutionMode(1); type(8);`，不要写 `originMode`。
-实体坐标 (0,0,0)（`ce_anm_spawn` 默认）= 场地正中。
+实体坐标 (0,0,0)（`ce_anm_spawn` 默认）= **弹幕区上边框中点**（ECL 坐标 x 居中、y 从顶部起算），场地正中要 `pos(0, 224, 0)`。

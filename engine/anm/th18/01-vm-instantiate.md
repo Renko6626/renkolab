@@ -29,7 +29,8 @@
 
 ## 3. 坐标与层（与 ANM 脚本的配合）
 
-- 实体坐标 `vm+0x5f0` 是 ECL 坐标；配合脚本里 `originMode(1)`，(0,0) 就是**场地正中**（thpages: origin 1 = ECL (0,0) in stages 1–3）。
+- 实体坐标 `vm+0x5f0` 是 ECL 坐标；`originMode(1)` 下 (0,0) 是**弹幕区上边框中点**（x 居中、y 从顶部起算；2026-09-04 实跑 ✅：
+  2D 配方脚本 pos(0,0,0) 出现在上边框中点）。场地正中 = **(0, 224)**（384×448 的区域）。thpages 说的「ECL (0,0)」就是这个点，不是几何中心。
 - `layer` 参数写 `vm+0x18`；脚本里的 `layer(n)` 会再覆盖。零售「场地中央展示卡」的 `abcard.anm script14` 用 `layer(16)`（子弹之上）；Tenshi 要石用 13。
 - 一次性特效让脚本自己 `delete()`，卡对象不必记 id；需要外部收尾才走 `interrupt_tree` + `0x488cf0`（Tenshi 模式）。
 
@@ -53,7 +54,8 @@
 
 `mods/th18.v1.00a/card-expand/native/sdk.h` 的 `ce_anm_spawn(anm, script, layer)` 只包 `0x405bf0`；
 反转牌发动时起 `ability.anm` 追加的 `script68`（卡图副本 `sprite109`，`type(8)` 绕 Y 轴一圈），AUDIT O24。
-脚本照零售层 20 配方：`layer(20); resolutionMode(1); type(8);`，不写 `originMode`（层 20 的原点由 `layer()` 设默认，见 §3b）。
+脚本照零售层 20 配方：`layer(20); resolutionMode(1); type(8);`，不写 `originMode`（层 20 的原点由 `layer()` 设默认，见 §3b）；`pos(0, 224, 0)` 居中。
+2026-09-04 实跑：2D 配方（`type(1)` / 层 16 / 绕 Z）在修正 `+0x0c` 后显示正常 ✅ → `ce_anm_spawn` + ability.anm 追加链路通；3D 配方待复跑。
 
 ## 5. 未答
 

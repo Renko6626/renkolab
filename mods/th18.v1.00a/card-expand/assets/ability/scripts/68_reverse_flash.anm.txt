@@ -1,18 +1,17 @@
 script script68 {
 -1:
     sprite(@REVERSE);
-    ins_431(1);
-    randMode(1);
-    type(1);
-    originMode(1);
+    layer(20);
+    resolutionMode(1);
+    type(8);
+    zWriteDisable(1);
     anchor(0, 0);
-    scale(2.0f, 2.0f);
+    scale(0.6f, 0.6f);
     alpha(0);
 0:
-    pos(0.0f, 0.0f, 0.0f);
-    layer(16);
+    pos(0.0f, 224.0f, 0.0f);
     alphaTime(6, 0, 255);
-    rotateTime(36, 0, 0.0f, 0.0f, 6.2831855f);
+    rotateTime(36, 0, 0.0f, 6.2831855f, 0.0f);
 +36: // 36
     alphaTime(10, 0, 0);
 +10: // 46
