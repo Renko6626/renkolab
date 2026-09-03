@@ -16,8 +16,8 @@
 
 `NAME` 建议用卡的 `internal_name`（如 `SPADE_10`）。尺寸不对构建直接报错。
 两种出图方式：
-- **简洁风**：`gen_placeholder.py`，白底黑图，`--suit ♠ --rank 10` 画花色 + 点数，`--image x.png` 居中放一张图标。黑桃五张就是它。
-- **现成整图**：`fit_card.py NAME src.png`，去白边、上下微修、等比缩放居中到 256×320 白底。反转牌（UNO 图）就是它。
+- **现成整图**：`fit_card.py NAME src.png`，去白边、上下微修、等比缩放居中到 256×320（`--bg` 可给透明）。黑桃五张（英式牌面 SVG 渲染后）和反转牌（UNO 图）都是它。
+- **简洁占位**：`gen_placeholder.py`，白底黑图，`--suit ♠ --rank 10` 画花色 + 点数，`--image x.png` 居中放一张图标——还没找到图时先顶上。
 
 第三方 / 原始素材放 `cards/_src/`（原件 + 出处 README）。
 
