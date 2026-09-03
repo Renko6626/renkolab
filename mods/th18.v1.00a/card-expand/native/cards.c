@@ -153,6 +153,41 @@ static int parse_card(const char *key, const json_t *obj, ce_card_def_t *d, char
     return ce_card_validate(d, err, cap);
 }
 
+/* ---- 开发配置：th18/cards_dev.js（只放 _test）----
+ *   { "start_deck": [58, 59, ...], "trace": true }
+ * start_deck：BP_ce_test_deck 把初始卡组的空槽依次换成这些 id；trace：桩被调时记日志。缺失 = 都关。*/
+static uint32_t s_dev_deck[16];
+static unsigned s_dev_deck_n;
+static int      s_dev_trace;
+
+unsigned ce_dev_deck_count(void)      { return s_dev_deck_n; }
+uint32_t ce_dev_deck_id(unsigned i)   { return i < s_dev_deck_n ? s_dev_deck[i] : 0; }
+int      ce_dev_trace(void)           { return s_dev_trace; }
+
+static void load_dev_config(void)
+{
+    s_dev_deck_n = 0; s_dev_trace = 0;
+    json_t *root = p_stack_game_json_resolve("cards_dev.js", NULL);
+    if (!root) return;
+    if (root->type == J_OBJECT) {
+        const json_t *deck = p_json_object_get(root, "start_deck");
+        if (deck && deck->type == J_ARRAY) {
+            size_t n = p_json_array_size(deck);
+            for (size_t i = 0; i < n && s_dev_deck_n < sizeof s_dev_deck / sizeof s_dev_deck[0]; ++i) {
+                const json_t *v = p_json_array_get(deck, i);
+                long long id = v && v->type == J_INTEGER ? p_json_integer_value(v) : -1;
+                if (id < 0 || id >= CE_MAX_ROWS) { ce_log("cards_dev: start_deck[%u] invalid — ignored", (unsigned)i); continue; }
+                s_dev_deck[s_dev_deck_n++] = (uint32_t)id;
+            }
+        }
+        const json_t *tr = p_json_object_get(root, "trace");
+        s_dev_trace = tr && tr->type == J_TRUE;
+    } else
+        ce_log("cards_dev: cards_dev.js root is not an object — ignored");
+    p_json_decref_safe(root);
+    ce_log("cards_dev: start_deck has %u ids, trace=%d", s_dev_deck_n, s_dev_trace);
+}
+
 /* ---- 入口 ---- */
 int ce_cards_load(uint8_t *base, uint8_t *cave, unsigned rows)
 {
@@ -209,5 +244,6 @@ int ce_cards_load(uint8_t *base, uint8_t *cave, unsigned rows)
     }
     ce_log("cards: %u registered from cards.js; shop pool %u/%u slots, guaranteed offers <= %u/%u",
            s_count, pool, (unsigned)CE_SHOP_POOL_SLOTS, guaranteed, (unsigned)CE_SHOP_OFFER_SLOTS);
+    load_dev_config();
     return 1;
 }
