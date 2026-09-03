@@ -1,0 +1,75 @@
+# anm/th18 §2 — 渲染阶段 × 相机 × 层号（on_draw 优先级表）
+
+> **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+> 一手（2026-09-04）：`Supervisor__initialize` `0x453db0` 与 `AnmManager__initialize` `0x483820` 的 `register__on_draw` 调用 +
+> 各桩的字节（`push 层号; call AnmManager__render_layer 0x488260`，大桩多一段切相机）。相机结构与矩阵见 §1、§3。
+
+## 0. 结论
+
+- 一帧的绘制由 UpdateFunc 注册表按**优先级**顺序跑；AnmManager 给每个层注册一个桩（`6A nn; E8 render_layer; C3`），
+  Supervisor 在中间插切渲染目标 / 清屏 / 切相机的阶段函数。
+- **相机归属**：层 0–2 → 相机 2；层 3–19 → 相机 3；层 20–23 → 相机 1；层 24 起（外围 UI，含 25–32 与 37–45）→ 相机 2（2D 偏移被清零）。
+- **只有相机 2 的 2D 精灵偏移（`camera+0x104/+0x108` → `AnmManager+0xd8/+0xdc`）非零**（`Supervisor__sub_454f50`）。
+  所以 §1 §3b 里「模式 8 放层 16 会少加区域原点而偏位」**不成立**——层 12–19 在相机 3 下，偏移本来就是 0。
+  模式 8 与 2D 路径的偏移差异只影响相机 2 的层（0–2；24+ 时偏移已清零，也不影响）。
+- 层 20–23（相机 1）的桩额外 `SetRenderState(ZWRITEENABLE, 0)` + `SetRenderState(ZFUNC, ALWAYS)`：UI 层不写不测深度。
+- 所有相机都是 `D3DXMatrixLookAtLH` + `D3DXMatrixPerspectiveFovLH`（§3）；exe 无 Ortho。
+
+## 1. 表
+
+| 优先级 | 谁 | 做什么 | 相机 |
+| --- | --- | --- | --- |
+| 1 | Supervisor `0x4553b0` | 清后备缓冲；RT → surface 0；用相机 3 的视口清；设 `originMode(1)` 原点 `DAT_0056acbc/acc0`；`set_camera(2)` | 2 |
+| 5 / 7 / 9 | Anm `0x487670/80/90` | 层 0 / 1 / 2（3D 背景） | 2 |
+| 0xa | Anm `0x4876b0` | **切相机 3**（写 `current_camera`、`SetViewport`、复制 2D 偏移）；层 3 | 3 |
+| 0xb / 0xd | Anm | 层 4 / 5 | 3 |
+| 0xe | Supervisor `0x455610` | 一串渲染状态；RT → **surface 1**；用相机 3 视口清 | 3 |
+| 0xf | Supervisor `0x455530` | `set_camera(3)`（`0x4555a8`）+ 画 `arcade_vm`（把 surface 0 的游戏区域拷过来） | 3 |
+| 0x10 / 0x12 / 0x14 / 0x15 / 0x16 / 0x18 | Anm | 层 6 / 7 / 8 / 9 / 10 / 11（敌机等） | 3 |
+| 0x19 | Supervisor `0x455a70` | RT → **surface 0**；用相机 3 视口清 | 3 |
+| 0x1a | Supervisor `0x4559a0` | `set_camera(3)`（`0x455a18`）+ 拷回 | 3 |
+| 0x1b / 0x1c / 0x1f / 0x20 / 0x23 / 0x25 / 0x28 / 0x2b | Anm | 层 12 / 13 / 14 / 15 / 16 / 17 / 18 / 19（道具、激光、子弹、自机穿插其间由各自管理器画） | 3 |
+| 0x2c | Supervisor `0x455bc0` | RT → surface 1；用**相机 1** 视口清；设 `originMode(2)` 相关 `DAT_0056acb0/acac` | — |
+| 0x2d | Supervisor `0x455b10` | 渲染状态 | — |
+| 0x2e | Anm `0x487940` | **切相机 1**；`ZWRITEENABLE=0`、`ZFUNC=ALWAYS`；层 **20** | 1 |
+| 0x2f / 0x36 | Anm | 层 21 / 22 | 1 |
+| 0x38 | Anm `0x487a10` | 切相机 1；层 23 | 1 |
+| 0x3a / 0x3b | Supervisor `0x455cf0` / `0x455c90` | 回后备缓冲等 | — |
+| 0x3c | Anm `0x487ae0` | **切相机 2**，并把 `AnmManager+0xd0/+0xd4` 清零；层 24 | 2 |
+| 0x3d / 0x3e / 0x40 / 0x41 / 0x42 / 0x43 | Anm | 层 25 / 38 / 26 / 39 / 27 / 40 | 2 |
+| 0x44 / 0x45 / 0x46 / 0x47 | Anm `0x487db0/bc0/e40/c50` | 层 41 / 28 / 41 或 42（🟡 字节未逐条对）/ 29，各自随后再切相机 2 | 2 |
+| 0x39 | Anm `0x487ce0` | 切相机 2；层 37 | 2 |
+| 0x54 / 0x55 / 0x56 / 0x57 / 0x59 / 0x5a | Anm | 层 30 / 43 / 31 / 44 / 32 / 45 | 2 |
+| 0x5c | Supervisor `0x455d40` | 收尾 | — |
+
+`render_layer` `0x488260` 的层号折叠：world 列表 VM 层 37–45 → 减 13 后比对；UI 列表 VM 层 24–32 → 加 13，不在 37–45 内的一律当 39。
+即 **UI 列表的 VM 实际都画在 37–45 那组桩里**，world 列表的按原层号。
+
+## 2. 相机（`zSupervisor+0x25c` 起四台，各 0x164；`FUN_00454b20` `0x454b20` 初始化）
+
+| 相机 | 视口（`+0xe0..0xec`，X,Y,W,H） | 2D 偏移 `+0x104/+0x108` | 用途 |
+| --- | --- | --- | --- |
+| 0 | `scale × (0x4b92b4, 0x4b9288, 0x4b9384, 0x4b939c)` | 0 | （`FUN_00454b20` 先配它，再拷给 1/2/3 当底） |
+| 1 | `scale × (0x4b9310, 0x4b9288, 0x4b9384, 0x4b939c)` | 0 | 层 20–23（游戏区域内全分辨率 UI） |
+| 2 | `(0, 0, DAT_0056ac80, DAT_0056ac84)`（整张表面） | `((DAT_0056ac98 − ac80)/2, (ac9c − ac84)/2)`，`Supervisor__sub_454f50` | 3D 背景层 0–2；外围 UI 层 24+（偏移被 `0x487ae0` 清零） |
+| 3 | `((ac80 − 0x4b9390)/2, (ac84 − 0x4b93a4)/2, 0x198, 0x1d8)` = 居中的 **408×472** | 0 | 游戏区域层 3–19 |
+
+`scale` = `DAT_0056aca0`（分辨率倍率）；常量 `0x4b9288/9310/92b4/9384/939c/9390/93a4` 的值未读（🟡，按名义应是 16 / 32 / 384 / 448 / 408 / 472 一类）。
+
+## 3. 矩阵（`FUN_00454950` `0x454950`，四台共用）
+
+```
+cx = X + W/2 ; cy = Y + H/2                      // 视口中心
+eye = (cx, cy, -(H/2) / (fov/2)) ; at = (cx, cy, 0) ; up = (0, -1, 0)   // y 朝下
+D3DXMatrixLookAtLH(view = camera+0x60, eye, at, up)
+D3DXMatrixPerspectiveFovLH(proj = camera+0xa0, fov = camera+0x54, W/H, near 1.0, far 10000.0)
+```
+
+眼距按 `(H/2)/(fov/2)` 取（🟡 没看到 tan，`fov` 可能已是 tan 半角或近似），使 z = 0 平面 1:1 映到视口像素；
+z > 0 远、z < 0 近——`type(8)` 绕 Y 转有近大远小，实跑 ✅。
+
+## 4. 对 mod 的意义
+
+- 场上特效放层 20（相机 1）：不写不测深度、坐标原点由 `layer(20)` 设默认；`pos(0, y, 0)` 里 y 从区域顶部算。
+- 放层 12–19（相机 3）：与子弹同一台相机，理论上也行（本轮没验，第一版是 anm 拿错导致空白，不是层的问题）。
+- 模式 8 的锚点表现为**顶边对齐**（实跑）：顶点缓冲里 9 块预制四边形的定义未读（🟡），先用 `pos` 上移半张高度补偿。

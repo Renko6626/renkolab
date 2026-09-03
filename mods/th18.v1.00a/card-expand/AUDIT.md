@@ -497,7 +497,8 @@ ANM 侧：`ability.anm` 追加 entry7（`REVERSE.png`，字段抄 abcard `BLANK_
 `build_ability.py` 校验零售 7 entry / 68 脚本 / 贴图逐项不变，`thanm -l` 往返一致。脚本自 `delete()`，卡对象不记 id。
 ~~🟡 世界层投影是否透视未验~~ → 实跑显示不对；根因：模式 8 走 WORLD 矩阵不加相机 2 的区域原点偏移（`AnmManager+0xd0/+0xd8`），放层 16 会整体偏位（`engine/anm/th18/01-vm-instantiate.md` §3b）。改为零售配方 `layer(20); resolutionMode(1); type(8);`，`ce_anm_spawn` 的层参数同步 20（脚本内 `layer()` 会覆盖，纯注释意义）。复跑仍全空白 → 见 O24′。
 
-**O24′（根因，2026-09-04 二轮）**：`engine.h` 把 `CE_MGR_ABILITY_ANM` 写成 `0x10`——那是 **abcard_anm**。ExpHP `zAbilityManager`：`+0x0c ability_anm / +0x10 abcard_anm / +0x14 abmenu_anm`；`CardTenshi__c_press` `0x40ebf0` 取 `[ABILITY_MANAGER_PTR+0xc]` 起 script 0x1c 与之一致。错拿 abcard.anm（18 个脚本）后 `AnmManager__sub_407420` **无边界检查**地把脚本表第 68 项（表外内存）拷成 VM → 垃圾 VM，什么都画不出，两版（层 16 / 层 20）全空白。来源是 `10-extensibility-limits.md` §5 旧文一句写反的偏移，没有对着结构体 / 反汇编重取——**又一次 K′/M6/O1 教训：偏移必须从上下文重取，不能抄文档**。修正为 0x0c，2D 零售配方脚本先跑基线，再切回 type(8)。
+**O24′（根因，2026-09-04 二轮）**：`engine.h` 把 `CE_MGR_ABILITY_ANM` 写成 `0x10`——那是 **abcard_anm**。ExpHP `zAbilityManager`：`+0x0c ability_anm / +0x10 abcard_anm / +0x14 abmenu_anm`；`CardTenshi__c_press` `0x40ebf0` 取 `[ABILITY_MANAGER_PTR+0xc]` 起 script 0x1c 与之一致。错拿 abcard.anm（18 个脚本）后 `AnmManager__sub_407420` **无边界检查**地把脚本表第 68 项（表外内存）拷成 VM → 垃圾 VM，什么都画不出，两版（层 16 / 层 20）全空白。来源是 `10-extensibility-limits.md` §5 旧文一句写反的偏移，没有对着结构体 / 反汇编重取——**又一次 K′/M6/O1 教训：偏移必须从上下文重取，不能抄文档**。修正为 0x0c，2D 零售配方脚本先跑基线（实跑 ✅ 显示在上边框中点 = ECL 原点），再切回 type(8) 层 20（实跑 ✅ 有透视；锚点顶边对齐，pos y 上移 96 补偿）。
+附带订正：O24 里「层 16 会偏位」的推断经 `02-render-stages.md` 一手对表后不成立（层 12–19 在相机 3 下，偏移为 0）。
 
 **未实跑。** 各卡的验收在 [`NEXT.md`](NEXT.md) §1。
 

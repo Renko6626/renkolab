@@ -16,6 +16,8 @@ MSG 的文本绘制走它（[`../msg/OVERVIEW.md`](../msg/OVERVIEW.md)）、弹�
 | `AnmLoaded__instantiate_vm_to_world_list_back(anm; out_id, script, layer, out_vm)` thiscall ret 0x10，实体坐标 (0,0,0) | — | ✅ | [th18/01-vm-instantiate](th18/01-vm-instantiate.md) |
 | `AnmLoaded__set_sprite(anm; vm, idx)` thiscall ret 8；按 id 删 `th18:0x488cf0` stdcall ret 4 | — | ✅ | 同上 |
 | 脚本表在 `anm+0x10c`，模板步长 0x60c（th16 0x5fc） | 🟡 | ✅ | 同上 §2 |
+| 渲染阶段 × 相机 × 层：层 0–2 相机 2、3–19 相机 3、20–23 相机 1、24+ 相机 2；四台相机全透视（LookAt + PerspectiveFov，无 Ortho） | — | ✅ | [th18/02-render-stages](th18/02-render-stages.md) |
+| 渲染模式 8 = D3D WORLD 矩阵 + 单位四边形；2D 路径自算顶点并加相机 2D 偏移（只有相机 2 非零） | — | ✅ | [th18/01 §3b](th18/01-vm-instantiate.md) |
 
 > **图例**：✅ 该版本一手验过（证据列给地址/出处） · 🟡 待验（从别的版本借来的假设，或单源） · ❌ 已知不同/不存在 · ❓ 存疑 · — 未看
 >
