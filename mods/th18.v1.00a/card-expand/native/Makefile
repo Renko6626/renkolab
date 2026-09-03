@@ -2,7 +2,7 @@
 ROWS ?= 255
 PATCH := ../patch/th18.v1.00a.js
 
-.PHONY: all check gen verify files clean test-host
+.PHONY: all check gen verify files clean test-host anm anm-verify
 
 all: gen verify test-host dll
 
@@ -14,9 +14,17 @@ step1:
 step3:
 	$(MAKE) ROWS=255 gen verify test-host dll dllx87 files
 
-## check  —— 只扫描 + 校验两条不变式，不产出
-check:
+## check  —— 只扫描 + 校验两条不变式，不产出（顺带 anm-verify：重建的 abcard.anm 自检）
+check: anm-verify
 	python3 sites.py check
+
+## anm    —— 把 ../assets/cards/ 的新卡图追加进零售 abcard.anm → build/abcard.anm，并校验 cards.js 索引
+anm:
+	python3 ../assets/build_abcard.py
+
+## anm-verify —— 只校验（build/abcard.anm 已存在）：entry 数 / 原贴图逐张一致 / 新 entry 字段 / JSON 索引
+anm-verify:
+	python3 ../assets/build_abcard.py --verify-only
 
 ## list   —— 25 个查表实例的全表
 list:
