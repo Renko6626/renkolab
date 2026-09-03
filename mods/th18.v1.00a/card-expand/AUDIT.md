@@ -500,6 +500,10 @@ ANM 侧：`ability.anm` 追加 entry7（`REVERSE.png`，字段抄 abcard `BLANK_
 **O24′（根因，2026-09-04 二轮）**：`engine.h` 把 `CE_MGR_ABILITY_ANM` 写成 `0x10`——那是 **abcard_anm**。ExpHP `zAbilityManager`：`+0x0c ability_anm / +0x10 abcard_anm / +0x14 abmenu_anm`；`CardTenshi__c_press` `0x40ebf0` 取 `[ABILITY_MANAGER_PTR+0xc]` 起 script 0x1c 与之一致。错拿 abcard.anm（18 个脚本）后 `AnmManager__sub_407420` **无边界检查**地把脚本表第 68 项（表外内存）拷成 VM → 垃圾 VM，什么都画不出，两版（层 16 / 层 20）全空白。来源是 `10-extensibility-limits.md` §5 旧文一句写反的偏移，没有对着结构体 / 反汇编重取——**又一次 K′/M6/O1 教训：偏移必须从上下文重取，不能抄文档**。修正为 0x0c，2D 零售配方脚本先跑基线（实跑 ✅ 显示在上边框中点 = ECL 原点），再切回 type(8) 层 20（实跑 ✅ 有透视；锚点顶边对齐，pos y 上移 96 补偿）。
 附带订正：O24 里「层 16 会偏位」的推断经 `02-render-stages.md` 一手对表后不成立（层 12–19 在相机 3 下，偏移为 0）。
 
+**O25（2026-09-04）方片 2 `d2.c`**：只读数据，无新引擎调用——价格表 `CARD_PRICE_BY_TIER` `0x4b35c4`（int[15]，SM 一手 dump）按表行 `+0x10` 的 tier 取价，越界返回 0；
+写 `MONEY` `0x4ccd34` / `MONEY_TOTAL` `0x4ccd30`（SM §1）。时序依据：成交 `0x4185c7` 先 `allocate_new_card(mode 2)`（ctor）后扣款，故 ctor 写 `2·M − price`。
+M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未实跑。**
+
 **未实跑。** 各卡的验收在 [`NEXT.md`](NEXT.md) §1。
 
 ## G. OPEN —— 还没解决的

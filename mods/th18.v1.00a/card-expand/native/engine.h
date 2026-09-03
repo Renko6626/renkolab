@@ -13,6 +13,7 @@
 #define CE_ADDR_SCORE              0x4cccfc   /* int，封顶 999999999（SM §1）*/
 #define CE_ADDR_MONEY              0x4ccd34   /* int（SM §1）*/
 #define CE_ADDR_MONEY_TOTAL        0x4ccd30   /* int，只记收入（SM §1）*/
+#define CE_ADDR_CARD_PRICE_BY_TIER 0x4b35c4   /* int[15]，price_tier → 金钱（SM §「价格表」一手 dump）*/
 #define CE_ADDR_MONEY_ITEMS        0x4ccd20   /* int，吃到的金钱道具个数（collect_money_item 0x446d22 inc）*/
 #define CE_ADDR_CURRENT_POWER      0x4ccd38   /* OM §7 */
 #define CE_ADDR_MAX_POWER          0x4ccd3c
@@ -26,6 +27,7 @@
 #define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)
 #define CE_MONEY()        (*(int32_t *)CE_ADDR_MONEY)
 #define CE_MONEY_TOTAL()  (*(int32_t *)CE_ADDR_MONEY_TOTAL)
+#define ce_price_for_tier(t)  (((t) >= 0 && (t) < 15) ? ((const int32_t *)CE_ADDR_CARD_PRICE_BY_TIER)[(t)] : 0)
 #define CE_PLAYER()       (*(uint8_t **)CE_ADDR_PLAYER_PTR)
 #define CE_ABILITY_MGR()  (*(uint8_t **)CE_ADDR_ABILITY_MGR_PTR)
 #define CE_BULLET_MGR()   (*(uint8_t **)CE_ADDR_BULLET_MGR_PTR)

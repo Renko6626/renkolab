@@ -66,6 +66,7 @@ static inline int ce_give_card(uint32_t id, uint32_t mode, uint32_t notify)
 /* 表行（不依赖 card+0x4c：ctor 里它还没写）*/
 static inline uint8_t *ce_table_entry(uint32_t id) { return ((ce_fn_table_get_t)CE_FN_TABLE_GET)(id); }
 #define ce_entry_id(e)  (*(uint32_t *)((e) + 0x04))
+#define ce_entry_tier(e) (*(int32_t *)((e) + 0x10))     /* price_tier（DATA.md §3）*/
 /* 商店随机池抽一张（价格档 [lo, hi]，exclude 里的表行不抽）；返回表行或 NULL */
 static inline uint8_t *ce_shop_pick_random(int tier_lo, int tier_hi, uint8_t **exclude, int n)
 {

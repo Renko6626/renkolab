@@ -33,14 +33,18 @@
     "name": "强欲之壶",
     "desc": ["购买时立刻获得两张随机卡牌。", "壶本身不会进入卡组。", "致敬・游戏王。"],
     "internal_name": "POT_OF_GREED",
-    "initial_unlocked": 1, "deck_visible": 0, "repeatable": 1, "hud_show": 0,
-    "price_tier": 10, "weight": 2, "sprite_large": 116, "sprite_small": 117
+    "initial_unlocked": 1, "deck_visible": 0, "repeatable": 1, "hud_show": 0, "price_tier": 10, "weight": 2, "sprite_large": 116, "sprite_small": 117
   },
   "64": {
     "name": "反转牌",
     "desc": ["主动（C 键）：场上所有子弹", "速度方向反向。充能 60 秒。", "致敬・UNO。"],
     "internal_name": "REVERSE",
-    "initial_unlocked": 1, "category": 0,
-    "price_tier": 8, "weight": 2, "sprite_large": 128, "sprite_small": 129
+    "initial_unlocked": 1, "category": 0, "price_tier": 8, "weight": 2, "sprite_large": 128, "sprite_small": 129
+  },
+  "65": {
+    "name": "方片 2",
+    "desc": ["购买后金钱翻倍（先扣购买价，再翻倍）。", "本身不会进入卡组。", "德州扑克・方片。"],
+    "internal_name": "DIAMOND_2",
+    "initial_unlocked": 1, "deck_visible": 0, "repeatable": 1, "hud_show": 0, "price_tier": 12, "weight": 2, "sprite_large": 130, "sprite_small": 131
   }
 }
