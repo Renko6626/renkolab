@@ -54,6 +54,19 @@ git clone https://github.com/exphp-share/th-re-data local/vendor/th-re-data
 ⚠️ 该仓库**无 LICENSE**：本地逆向随便用，但**不擅自转发**。所以它在 `local/` 下不入库，
 `symbols.py export` 也会把与它逐字相同的条目全部剔掉。
 
+### thtk（解 dat / 反 anm；做资产 mod 必备）
+
+thtk 发布页只有 Windows exe，Linux 上自己编。没 sudo 也行——缺 bison/flex/m4 时脚本用
+`apt-get download` 拉 .deb 解到 `local/vendor/bisonflex/` 直接用：
+
+```bash
+bash tooling/thtk/build.sh                   # → local/vendor/thtk/build/{thanm,thdat}/
+python3 tooling/thtk/unpack.py th18.v1.00a   # 需要你放好 local/th18.v1.00a/th18.dat
+```
+
+指令助记符靠 anmmap：clone thpages（`local/vendor/thpages`，`static/mapfile/v8.anmm`）。
+细节与坑见 [`../tooling/thtk/README.md`](../tooling/thtk/README.md)。
+
 ### ghidra-re MCP（可选，但强烈建议）
 
 让 agent 直接驱动 Ghidra，免去「写脚本 → 跑 → 解析 stdout」。用的是自维护 fork
