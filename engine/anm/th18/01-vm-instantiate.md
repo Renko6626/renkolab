@@ -33,12 +33,31 @@
 - `layer` 参数写 `vm+0x18`；脚本里的 `layer(n)` 会再覆盖。零售「场地中央展示卡」的 `abcard.anm script14` 用 `layer(16)`（子弹之上）；Tenshi 要石用 13。
 - 一次性特效让脚本自己 `delete()`，卡对象不必记 id；需要外部收尾才走 `interrupt_tree` + `0x488cf0`（Tenshi 模式）。
 
+## 3b. 渲染模式 8（`type(8)`，三维旋转）与相机偏移 —— 2026-09-04 实跑「显示不对」的根因
+
+`AnmManager__draw_vm` `0x481210` 按 `(vm+0x534 >> 26) & 0x1f` 分派渲染模式：0/2 → `FUN_0047e8f0`、1/3 → `FUN_0047ed50`（2D：自己算四个顶点，
+经 `FUN_0047dce0` 写进精灵批缓冲）、**8 → `FUN_00480160`**（三维：`D3DXMatrixRotationX/Y/Z` 按 `rotationSystem`（`vm+0x538>>4&7`）拼进
+`vm+0x414` 的 WORLD 矩阵，`SetTransform(WORLD)` 后画 `AnmManager+0x3120e18` 的单位四边形，FVF `XYZ|TEX1`，颜色走 `TEXTUREFACTOR`）；
+15 = 8 外加 `D3DRS_FOGENABLE`（`FUN_00454760/4547a0`）。两类路径都是 XYZ 顶点，共用当前相机的 VIEW/PROJECTION。
+
+**差别**：2D 路径写顶点时加 `AnmManager+0xd0/+0xd8`（x）与 `+0xd4/+0xdc`（y），模式 8 **不加**。这两组由
+`Supervisor__set_camera_by_index` `0x41b330`（`+0xd8/+0xdc = camera+0x104/+0x108`）与 `FUN_004548e0`（`+0xd0/+0xd4 = camera+0xfc/+0x100`，
+同时 `SetTransform(VIEW, camera+0x60)`、`SetTransform(PROJECTION, camera+0xa0)`）从当前相机复制。
+四台相机（`zSupervisor+0x25c` 起，各 0x164；`FUN_00454b20` 初始化）只有 **相机 2** 的 `+0x104/+0x108` 非零：
+`Supervisor__sub_454f50` `0x454f50` 置为 `(DAT_0056ac98 − DAT_0056ac80) × 0.5`（`0x4b9138` = 0.5）= 游戏区域在表面里的居中原点。
+相机 2 是每帧开头 `FUN_004553b0` 与主循环 `FUN_00472fd0` 切到的默认相机 → 世界层 12–19 在它下面画（🟡 分层与相机的精确对应未逐层反）。
+**结论**：模式 8 的 VM 放在世界层会少加区域原点、整体向左上偏；零售把 `type(8)` 全放层 20（`effect.anm` 7 处）/ 2 / 6，从不放 12–19。
+**透视**：exe 只导入 `D3DXMatrixPerspectiveFovLH`（无 Ortho），所有相机都是透视投影 ✅——绕 Y 转有近大远小。
+
 ## 4. 用法（card-expand）
 
 `mods/th18.v1.00a/card-expand/native/sdk.h` 的 `ce_anm_spawn(anm, script, layer)` 只包 `0x405bf0`；
 反转牌发动时起 `ability.anm` 追加的 `script68`（卡图副本 `sprite109`，`type(8)` 绕 Y 轴一圈），AUDIT O24。
+脚本照零售层 20 配方：`layer(20); resolutionMode(1); type(8);`，不写 `originMode`（层 20 的原点由 `layer()` 设默认，见 §3b）。
 
 ## 5. 未答
 
-- 世界层（stage 1–3）的投影是否透视：决定 `type(8)` 绕 Y 转有没有近大远小。🟡 待实跑一眼定；是正交就改用 `posTime` 推 z 或放弃伪 3D。
+- ~~世界层投影是否透视~~ → 全透视 ✅（§3b）。
+- 层号 → 渲染阶段 → 相机的精确表（th18）：只从零售用法与帧开头的 `set_camera(2)` 推断，未逐层反 🟡。
+- `layer(n)` 指令对 originMode / resolutionMode 的默认设置：未反，沿用零售层 20 脚本的写法。
 - `AnmManager__interrupt_tree` 的 ABI 没看（未用）。

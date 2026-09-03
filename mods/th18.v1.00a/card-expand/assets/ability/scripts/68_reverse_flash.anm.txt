@@ -1,8 +1,8 @@
 script script68 {
 -1:
     sprite(@REVERSE);
-    originMode(1);
-    layer(16);
+    layer(20);
+    resolutionMode(1);
     type(8);
     blendMode(0);
     zWriteDisable(1);
