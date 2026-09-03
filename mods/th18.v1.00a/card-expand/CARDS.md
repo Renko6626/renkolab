@@ -26,7 +26,7 @@
 
 | id | 名字 | 效果 | 实现（槽 / 事件） | 文件 | 状态 |
 | --- | --- | --- | --- | --- | --- |
-| 64 | 反转牌 | 主动（C 键）：场上所有子弹速度方向反向；充能 60 s | 第一张主动卡：`active_recharge = 3600`，`on_activate` 扫子弹池翻 `velocity` 与 `angle`（不动激光）| `reverse.c` | 🔧 |
+| 64 | 反转牌 | 主动（C 键）：场上所有子弹速度方向反向；充能 60 s。图暂借 KANAME（86/87）| 第一张主动卡：`active_recharge = 3600`，`on_activate` 扫子弹池翻 `velocity` 与 `angle`（不动激光）| `reverse.c` | 🔧 |
 
 ## 约定
 

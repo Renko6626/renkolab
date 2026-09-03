@@ -41,6 +41,6 @@
     "desc": ["主动（C 键）：场上所有子弹", "速度方向反向。充能 60 秒。", "致敬・UNO。"],
     "internal_name": "REVERSE",
     "initial_unlocked": 1, "category": 0,
-    "price_tier": 8, "weight": 2, "sprite_large": 116, "sprite_small": 117
+    "price_tier": 8, "weight": 2, "sprite_large": 86, "sprite_small": 87
   }
 }

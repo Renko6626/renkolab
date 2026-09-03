@@ -467,7 +467,7 @@ edi/esi 由我们的 thiscall 桩按 ABI 保住。外层不再使用任何在 ct
 
 **O20 证据**：C 键分派 `0x45c084`：`INPUT_PRESSED & 0x400` → `mgr+0x38` 的槽 +0x08。Tenshi `c_press` `0x40ebf9`：门 `+0x54 == 0 && +0x38 <= 0`；
 装填 `+0x38 = (int)(+0x48 × mgr+0xc58)`、`+0x3c = 同 float`、`+0x34 = int − 1`；经过帧 `+0x20` 组清零；`flags |= 0x20`。
-`__on_tick_2` `0x40e8c0`：state 0 清 0x20、门控（`GAME_THREAD+0x1b0 == 0 && ENEMY_MGR+0x198 != 0`）下 `+0x38 > 0` 才 `Timer__decrement(+0x34)`；
+`__on_tick_2` `0x40e8c0`：state 0 清 0x20、门控（`GUI_PTR->msg(+0x1b0) == 0 && ENEMY_MANAGER->enemy_count_real(+0x198) != 0`，ExpHP 名）下 `+0x38 > 0` 才 `Timer__decrement(+0x34)`；
 state 2 清 0x20、`+0x24 > 8` 回 0；末尾门控下 `Timer__increment(+0x20)`。`__on_load__2` 只清状态与经过帧，`method_4C` 再清充能。
 两个 Timer 函数 thiscall(ecx = zTimer*)、无栈参（`0x409750` / `0x405990`）。SDK 逐条照抄；差异只有 state 的存放位置。
 

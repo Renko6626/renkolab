@@ -60,10 +60,12 @@ static void active_init(uint8_t *card, const ce_hooks_t *h)
     if (a) a->state = 0;
 }
 
-static int game_running(void)                                /* 无对话 + 关卡在跑（0x45c069..0x45c082 / 0x40ea04..0x40ea26）*/
+/* 零售主动卡的共同门控（0x45c069..0x45c082 / 0x40ea04..0x40ea26）：没在对话（zGui.msg == 0）且场上有敌人
+ * （zEnemyManager.enemy_count_real != 0）。充能递减、经过帧递增、C 键分派都受它。*/
+static int game_running(void)
 {
-    uint8_t *gt = CE_GAME_THREAD(), *em = CE_ENEMY_MGR();
-    return gt && *(int32_t *)(gt + CE_GT_DIALOGUE) == 0 && em && *(int32_t *)(em + CE_EM_STAGE_RUNNING) != 0;
+    uint8_t *gui = CE_GUI(), *em = CE_ENEMY_MGR();
+    return gui && *(int32_t *)(gui + CE_GUI_MSG) == 0 && em && *(int32_t *)(em + CE_EM_ENEMY_COUNT) != 0;
 }
 
 typedef void (__attribute__((thiscall)) *ce_fn_timer_t)(void *timer);

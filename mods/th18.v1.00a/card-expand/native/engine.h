@@ -19,8 +19,8 @@
 #define CE_ADDR_PLAYER_PTR         0x4cf410   /* zPlayer*（ExpHP statics；Nitori/Momoyo 都从这读）*/
 #define CE_ADDR_ABILITY_MGR_PTR    0x4cf298   /* zAbilityManager*（OM §4）*/
 #define CE_ADDR_BULLET_MGR_PTR     0x4cf2bc   /* zBulletManager*（ExpHP statics；cancel_all 0x4297a9 读）*/
-#define CE_ADDR_GAME_THREAD_PTR    0x4cf2e0   /* +0x1b0 != 0 = 对话中（Player tick 0x45c069、Tenshi state0 0x40ea0d）*/
-#define CE_ADDR_ENEMY_MGR_PTR      0x4cf2d0   /* +0x198 == 0 = 关卡没在跑（同上 0x45c07b / 0x40ea1f）*/
+#define CE_ADDR_GUI_PTR            0x4cf2e0   /* zGui*（ExpHP）；+0x1b0 = msg（对话 VM，非 0 = 对话中）。C 键门控 0x45c069、Tenshi state0 0x40ea0d 读它 */
+#define CE_ADDR_ENEMY_MGR_PTR      0x4cf2d0   /* zEnemyManager*；+0x198 = enemy_count_real（ExpHP）。== 0 时 C 键与充能都停（0x45c07b / 0x40ea1f）*/
 #define CE_ADDR_INPUT_PRESSED      0x4ca434   /* 本帧上升沿；bit 0x400 = C 键（0x45c084）*/
 
 #define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)
@@ -29,10 +29,10 @@
 #define CE_PLAYER()       (*(uint8_t **)CE_ADDR_PLAYER_PTR)
 #define CE_ABILITY_MGR()  (*(uint8_t **)CE_ADDR_ABILITY_MGR_PTR)
 #define CE_BULLET_MGR()   (*(uint8_t **)CE_ADDR_BULLET_MGR_PTR)
-#define CE_GAME_THREAD()  (*(uint8_t **)CE_ADDR_GAME_THREAD_PTR)
+#define CE_GUI()          (*(uint8_t **)CE_ADDR_GUI_PTR)
 #define CE_ENEMY_MGR()    (*(uint8_t **)CE_ADDR_ENEMY_MGR_PTR)
-#define CE_GT_DIALOGUE     0x1b0
-#define CE_EM_STAGE_RUNNING 0x198
+#define CE_GUI_MSG            0x1b0       /* zGui.msg：对话中 */
+#define CE_EM_ENEMY_COUNT     0x198       /* zEnemyManager.enemy_count_real */
 
 /* ---- zAbilityManager ---- */
 #define CE_MGR_CARD_LIST_HEAD      0x18       /* 表头；首结点在 +0x1c（尾段 lea ecx,[edi+0x18]；on_tick 0x408683 读 +0x1c）*/

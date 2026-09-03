@@ -65,7 +65,7 @@ DLL 在开机自检门里调 thcrap 的 `stack_game_json_resolve("cards.js")`，
 | `category` | `+0x0c` | — | 2 | 0–4 | 🟡 语义是从零售 dump 推的：0 主动卡、1 角色卡、2 装备、3 资源、4 哨兵（别用 4）|
 | `f08` | `+0x08` | — | 0 | 0/1 | 语义未知（`OPEN-questions.md` §2），零售取 0/1，照原名给出 |
 | `sprite_large` | `+0x2c` | ✅ | — | 整数 | `abcard.anm` 的 sprite 索引，DLL 不校验范围 |
-| `sprite_small` | `+0x30` | ✅ | — | 整数 | 同上 |
+| `sprite_small` | `+0x30` | ✅ | — | 整数 | 同上。零售卡的编号见 §6 的表，借用一张现有卡的图就填它那对 |
 
 - 所有整数字段必须是 JSON 整数（`5`），不是字串（`"5"`）；thcrap 的 `0x` 十六进制字串**不**支持。
 - 不认识的字段：日志一行警告，不算错。
@@ -103,8 +103,23 @@ DLL 装载时按合并后的表**现算**这三条，超了写 `FAIL:` 并把分
 ## 6. 卡图（你自己做）
 
 新卡行的 `+0x2c/+0x30` 就是 sprite 索引。用 thanm/truanm 往 `abcard.anm` 加 sprite，以文件替换的方式随 patch 分发
-（thcrap 的 `th18/abcard.anm`），把索引填进 JSON。已知零售用到 116/117；索引余量 ⏳ 未查，加的时候数一下并回填到
+（thcrap 的 `th18/abcard.anm`），把索引填进 JSON。索引余量 ⏳ 未查，加的时候数一下并回填到
 [`engine/card/th18/10-extensibility-limits.md`](../../../engine/card/th18/10-extensibility-limits.md)。
+
+**零售 58 张的 sprite 对**（`large/small`，一手 dump 自 `0x4c53c0`；没有自己的图之前借一对用）：
+
+```
+ 0 BLANK 4/5     1 EXTEND 6/7     2 BOMB 8/9      3 EXTEND2 10/11   4 BOMB2 12/13   5 PENDULUM 16/17
+ 6 DANGO 18/19   7 MOKOU 14/15    8 REIMU_OP 24/25  9 REIMU_OP2 46/47  10 MARISA_OP 26/27  11 MARISA_OP2 48/49
+12 SAKUYA_OP 28/29  13 SAKUYA_OP2 50/51  14 SANAE_OP 30/31  15 SANAE_OP2 52/53  16 YOUMU_OP 44/45  17 ALICE_OP 36/37
+18 CIRNO_OP 40/41  19 OKINA_OP 38/39  20 NUE_OP 42/43  21 ITEM_CATCH 32/33  22 ITEM_LINE 34/35  23 AUTOBOMB 56/57
+24 DBOMBEXTEND 58/59  25 MAINSHOT_PU 54/55  26 MAGICSCROLL 64/65  27 KOISHI 72/73  28 MAINSHOT_SP 60/61  29 SPEEDQUEEN 62/63
+30 OPTION_BR 66/67  31 DEAD_SPELL 68/69  32 POWERMAX 70/71  33 YUYUKO 74/75  34 MONEY 76/77  35 ROKUMON 78/79
+36 NARUMI 20/21  37 PACHE 22/23  38 MANEKI 100/101  39 YAMAWARO 102/103  40 KISERU 104/105  41 WARP 80/81
+42 KOZUCHI 88/89  43 KANAME 86/87  44 MOON 82/83  45 MIKOFLASH 84/85  46 VAMPIRE 90/91  47 SUN 92/93
+48 LILY 94/95  49 BASSDRUM 96/97  50 PSYCO 98/99  51 MAGATAMA 106/107  52 CYLINDER 108/109  53 RICEBALL 110/111
+54 MUKADE 112/113  55 MAGATAMA2 114/115  56 NULL 116/117  57 BACK 2/3
+```
 
 ## 7. 示范
 
