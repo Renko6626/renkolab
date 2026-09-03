@@ -6,7 +6,7 @@
  *
  * CE_CARD 展开：这张卡的回调表 → 21 个 __thiscall 桩 → 一份 21 槽虚表 → 登记进 ce_behaviors。
  * 桩按虚表分派（每张卡一套桩），没写的回调桩返回 0（= 基类槽 `xor eax,eax; ret` 的效果）。
- * +0x08 / +0x38 / +0x3c / +0x40（主动卡 C 键与充能三件套）本批不覆盖，直接指基类实现。
+ * +0x08（C 键）由 SDK 的主动卡机器接管（非主动卡等价于基类的 ret 0）；+0x38 / +0x3c / +0x40（充能存取，HUD 与 replay 用）直接指基类实现。
  * +0x50 operator_delete：先释放私有状态，再进基类的 delete。
  */
 #pragma once
@@ -41,6 +41,10 @@ typedef struct {
     /* 虚表之外的事件（SDK §6，断点实现）*/
     void (*on_item_score)(ce_card_t *, int32_t *value);          /* 道具身价算完、显示与计分之前 */
     void (*on_item_money)(ce_card_t *, int32_t *bonus);          /* 金钱道具入账（MONEY += 1）之前：*bonus 是额外要加的钱，MONEY 与 MONEY_TOTAL 一起加 */
+    /* 主动卡（SDK §9）：active_recharge != 0 就是主动卡（C 键 / 充能 / HUD 由 SDK 与引擎处理）*/
+    uint32_t active_recharge;                                    /* 充能帧数（×mgr+0xc58 倍率后装填）*/
+    int  (*on_activate)(ce_card_t *);                            /* C 键发动：返回 0 = 瞬发（直接收尾），1 = 进入持续态 */
+    int  (*on_active_tick)(ce_card_t *, uint32_t elapsed);       /* 持续态每帧（elapsed = 经过帧）；返回 0 = 结束 */
 } ce_hooks_t;
 
 /* ---- 引擎调用（薄包装，签名见 engine.h）---- */
@@ -70,6 +74,21 @@ static inline uint8_t *ce_shop_pick_random(int tier_lo, int tier_hi, uint8_t **e
 
 /* 日志（card_expand.h 的 ce_log，卡里也能用：th18_card_expand.log 一行）*/
 void ce_log(const char *fmt, ...);
+
+/* 音效：play_sound(id) 是 stdcall，声像位置走 xmm2（世界 x）。三行内联汇编，AUDIT O22。*/
+static inline void ce_play_sound(uint32_t id, float x)
+{
+    __asm__ volatile ("movss %[x], %%xmm2\n\t"
+                      "pushl %[id]\n\t"
+                      "call *%[fn]"
+                      : : [x] "m"(x), [id] "r"(id), [fn] "r"((uintptr_t)CE_FN_PLAY_SOUND)
+                      : "eax", "ecx", "edx", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "cc");
+}
+
+/* sdk.c：主动卡机器（桩里调）*/
+int  ce_sdk_c_press(void *self, const ce_hooks_t *h);
+void ce_sdk_active_tick(void *self, const ce_hooks_t *h);
+void ce_sdk_active_reset(void *self, const ce_hooks_t *h, int clear_recharge);
 
 /* sdk.c */
 void ce_sdk_trace(uint32_t id, unsigned slot, const char *name);   /* trace 开着才记；每张卡每槽记第一次 */
@@ -109,12 +128,24 @@ typedef void (CE_TC *ce_base_del_t)(void *, uint32_t);
     CE_STUB0(ID, on_load, 0x20) \
     CE_STUB0(ID, on_tick, 0x24) \
     CE_STUB1(ID, on_bullet_created, 0x28, void *) \
-    CE_STUB0(ID, on_tick_2, 0x2c) \
+    static int CE_TC ce_s_##ID##_c_press(void *self) { \
+        ce_sdk_trace(ID, 0x08, "c_press"); \
+        return ce_sdk_c_press(self, &ce_hooks_##ID); } \
+    static int CE_TC ce_s_##ID##_on_tick_2(void *self) { \
+        ce_sdk_trace(ID, 0x2c, "on_tick_2"); \
+        ce_sdk_active_tick(self, &ce_hooks_##ID); \
+        return ce_hooks_##ID.on_tick_2 ? ce_hooks_##ID.on_tick_2((ce_card_t *)self) : 0; } \
     CE_STUB2(ID, on_enemy_drop, 0x30) \
-    CE_STUBV(ID, on_stage_start, 0x34) \
+    static void CE_TC ce_s_##ID##_on_stage_start(void *self) { \
+        ce_sdk_trace(ID, 0x34, "on_stage_start"); \
+        ce_sdk_active_reset(self, &ce_hooks_##ID, 0); \
+        if (ce_hooks_##ID.on_stage_start) ce_hooks_##ID.on_stage_start((ce_card_t *)self); } \
     CE_STUB1(ID, on_hud_anm, 0x44, uint32_t) \
     CE_STUB0(ID, on_draw, 0x48) \
-    CE_STUBV(ID, on_run_reset, 0x4c) \
+    static void CE_TC ce_s_##ID##_on_run_reset(void *self) { \
+        ce_sdk_trace(ID, 0x4c, "on_run_reset"); \
+        ce_sdk_active_reset(self, &ce_hooks_##ID, 1); \
+        if (ce_hooks_##ID.on_run_reset) ce_hooks_##ID.on_run_reset((ce_card_t *)self); } \
     static void CE_TC ce_s_##ID##_opdelete(void *self, uint32_t flag) { \
         ce_sdk_trace(ID, 0x50, "operator_delete"); \
         ce_state_free(self); \
@@ -122,7 +153,7 @@ typedef void (CE_TC *ce_base_del_t)(void *, uint32_t);
     static const void *const ce_vt_##ID[21] = { \
         (const void *)ce_s_##ID##_ctor,                      /* +0x00 */ \
         (const void *)ce_s_##ID##_dtor,                      /* +0x04 */ \
-        (const void *)CE_BASE_SLOT_C_PRESS,                  /* +0x08 主动卡，本批不覆盖 */ \
+        (const void *)ce_s_##ID##_c_press,                   /* +0x08 SDK 主动卡机器（非主动卡直接返回 0）*/ \
         (const void *)ce_s_##ID##_on_death_after_deathbomb,  /* +0x0c */ \
         (const void *)ce_s_##ID##_on_death_before_deathbomb, /* +0x10 */ \
         (const void *)ce_s_##ID##_on_death_frame2,           /* +0x14 */ \

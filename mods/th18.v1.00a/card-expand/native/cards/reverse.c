@@ -1,0 +1,35 @@
+/* 反转牌 —— 主动卡：C 键发动，场上所有子弹速度方向反向。充能 3600 帧（60 s）。
+ *
+ * 子弹池：BULLET_MANAGER 里 2000 张 zBullet，扫法照 cancel_all（0x4297a0）：起点 mgr+0xec、stride 0xfa0，
+ * 状态（+0xf68）0 = 空槽、3 = 消弹中都跳过。普通子弹每帧 pos += velocity；带 ex 状态的会从 speed/angle
+ * 重算 velocity——所以两边都翻：velocity 取反，angle += π（归一到 (-π, π]，虽然 tick 也会归一）。
+ * 不动激光（另一套管理器）。瞬发：on_activate 返回 0，SDK 直接进收尾。 */
+#include "sdk.h"
+
+#define PI_F 3.14159265f
+
+static int on_activate(ce_card_t *c)
+{
+    (void)c;
+    uint8_t *bm = CE_BULLET_MGR();
+    if (!bm) return 0;
+    unsigned n = 0;
+    uint8_t *b = bm + CE_BM_BULLETS;
+    for (unsigned i = 0; i < CE_BM_BULLET_COUNT; ++i, b += CE_BULLET_STRIDE) {
+        uint16_t st = *(uint16_t *)(b + CE_BULLET_STATE);
+        if (st == 0 || st == 3) continue;
+        float *v = (float *)(b + CE_BULLET_VELOCITY);
+        v[0] = -v[0]; v[1] = -v[1];
+        float *ang = (float *)(b + CE_BULLET_ANGLE);
+        float a = *ang + PI_F;
+        if (a > PI_F) a -= 2.0f * PI_F;
+        *ang = a;
+        ++n;
+    }
+    uint8_t *p = CE_PLAYER();
+    ce_play_sound(0x4d, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);   /* 0x4d = Tenshi 发动音 */
+    ce_log("reverse: %u bullets reversed", n);
+    return 0;
+}
+
+CE_CARD(64, .active_recharge = 3600, .on_activate = on_activate);

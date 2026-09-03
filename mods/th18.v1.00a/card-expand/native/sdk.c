@@ -38,14 +38,110 @@ void ce_sdk_register_or_log(const ce_behavior_t *b)
         ce_verdict("FAIL: sdk: cannot register behavior for card %u (duplicate id or > %u behaviors)", b->id, (unsigned)CE_SDK_MAX_BEHAVIORS);
 }
 
+/* ---- 主动卡机器（SDK §9；零售模板 = CardTenshi，04-active-cards.md §3–§5；AUDIT O19–O21）----
+ * 对象只有 0x54 字节，零售放 +0x54 的 state 放进私有状态。引擎只看 flags bit3/bit5、+0x34 那组充能计时器、+0x48。*/
+typedef struct { uint32_t state; } ce_active_t;             /* 0 空闲 / 1 持续 / 2 收尾 */
+
+static void timer_init(uint8_t *card, unsigned off)          /* 照 Tenshi case：prev = -1，其余 0，control |= 1 */
+{
+    ce_ztimer_t *t = (ce_ztimer_t *)(card + off);
+    t->prev = -1; t->cur = 0; t->cur_f = 0.0f; t->speed_src = 0; t->control |= 1;
+}
+
+/* 绑定时：case 56 走的是被动归一化（& ~0x4a | 4），这里按主动 case 的写法重来（& ~0x46 | 8）*/
+static void active_init(uint8_t *card, const ce_hooks_t *h)
+{
+    uint32_t *flags = (uint32_t *)(card + CE_CARD_FLAGS);
+    *flags = (*flags & ~(uint32_t)CE_FLAG_ACTIVE_CLEAR) | CE_FLAG_ACTIVE;
+    *(uint32_t *)(card + CE_CARD_RECHARGE_TIME) = h->active_recharge;
+    timer_init(card, CE_CARD_ELAPSED_TIMER);
+    timer_init(card, CE_CARD_RECHARGE_TIMER);
+    ce_active_t *a = ce_state_alloc(card, sizeof *a);
+    if (a) a->state = 0;
+}
+
+static int game_running(void)                                /* 无对话 + 关卡在跑（0x45c069..0x45c082 / 0x40ea04..0x40ea26）*/
+{
+    uint8_t *gt = CE_GAME_THREAD(), *em = CE_ENEMY_MGR();
+    return gt && *(int32_t *)(gt + CE_GT_DIALOGUE) == 0 && em && *(int32_t *)(em + CE_EM_STAGE_RUNNING) != 0;
+}
+
+typedef void (__attribute__((thiscall)) *ce_fn_timer_t)(void *timer);
+
+int ce_sdk_c_press(void *self, const ce_hooks_t *h)
+{
+    uint8_t *card = (uint8_t *)self;
+    if (!h->active_recharge) return 0;
+    ce_active_t *a = ce_state_alloc(card, sizeof *a);
+    ce_ztimer_t *rc = (ce_ztimer_t *)(card + CE_CARD_RECHARGE_TIMER);
+    if (!a || a->state != 0 || rc->cur > 0) return 0;      /* Tenshi 0x40ebf9：state == 0 && +0x38 <= 0 */
+    ce_ztimer_t *el = (ce_ztimer_t *)(card + CE_CARD_ELAPSED_TIMER);
+    el->prev = -1; el->cur = 0; el->cur_f = 0.0f;           /* 经过帧清零 */
+    uint8_t *mgr = CE_ABILITY_MGR();
+    float mult = mgr ? *(float *)(mgr + CE_MGR_RECHARGE_MULT) : 1.0f;
+    float dur = (float)h->active_recharge * mult;
+    rc->cur = (int32_t)dur; rc->cur_f = dur; rc->prev = rc->cur - 1;
+    *(uint32_t *)(card + CE_CARD_FLAGS) |= CE_FLAG_FIRING;
+    int sustain = h->on_activate ? h->on_activate((ce_card_t *)card) : 0;
+    a->state = sustain ? 1 : 2;
+    return 0;
+}
+
+void ce_sdk_active_tick(void *self, const ce_hooks_t *h)
+{
+    uint8_t *card = (uint8_t *)self;
+    if (!h->active_recharge) return;
+    ce_active_t *a = ce_state_alloc(card, sizeof *a);
+    if (!a) return;
+    ce_ztimer_t *rc = (ce_ztimer_t *)(card + CE_CARD_RECHARGE_TIMER);
+    ce_ztimer_t *el = (ce_ztimer_t *)(card + CE_CARD_ELAPSED_TIMER);
+    int running = game_running();
+    switch (a->state) {
+    case 0:
+        *(uint32_t *)(card + CE_CARD_FLAGS) &= ~(uint32_t)CE_FLAG_FIRING;
+        if (running && rc->cur > 0) ((ce_fn_timer_t)CE_FN_TIMER_DECREMENT)(rc);
+        break;
+    case 1:
+        if (!h->on_active_tick || !h->on_active_tick((ce_card_t *)card, (uint32_t)el->cur)) {
+            a->state = 2;
+            el->prev = -1; el->cur = 0; el->cur_f = 0.0f;
+        }
+        break;
+    default:
+        *(uint32_t *)(card + CE_CARD_FLAGS) &= ~(uint32_t)CE_FLAG_FIRING;
+        if (el->cur > 8) a->state = 0;
+        break;
+    }
+    if (running) ((ce_fn_timer_t)CE_FN_TIMER_INCREMENT)(el);
+}
+
+void ce_sdk_active_reset(void *self, const ce_hooks_t *h, int clear_recharge)
+{
+    uint8_t *card = (uint8_t *)self;
+    if (!h->active_recharge) return;
+    ce_active_t *a = ce_state_alloc(card, sizeof *a);
+    if (a) a->state = 0;
+    ce_ztimer_t *el = (ce_ztimer_t *)(card + CE_CARD_ELAPSED_TIMER);
+    el->prev = -1; el->cur = 0; el->cur_f = 0.0f;
+    *(uint32_t *)(card + CE_CARD_FLAGS) &= ~(uint32_t)CE_FLAG_FIRING;
+    if (clear_recharge) {                                    /* method_4C（局末）才清充能；__on_load__2（关卡开场）不清 */
+        ce_ztimer_t *rc = (ce_ztimer_t *)(card + CE_CARD_RECHARGE_TIMER);
+        rc->prev = -1; rc->cur = 0; rc->cur_f = 0.0f;
+    }
+}
+
 /* ---- 断点 ---- */
 int __cdecl BP_ce_card_bind(x86_reg_t *regs, void *bp_info)
 {
     (void)bp_info;
     const ce_behavior_t *b = ce_sdk_find(regs->ebx);
     if (b && regs->esi) {
-        *(const void **)(uintptr_t)regs->esi = b->vtable;
-        if (s_trace) ce_log("trace: card %u object %08x bound to vtable %p", regs->ebx, regs->esi, b->vtable);
+        uint8_t *card = (uint8_t *)(uintptr_t)regs->esi;
+        *(const void **)card = b->vtable;
+        const ce_hooks_t *h = (const ce_hooks_t *)b->hooks;
+        if (h && h->active_recharge) active_init(card, h);
+        if (s_trace) ce_log("trace: card %u object %08x bound to vtable %p%s", regs->ebx, regs->esi, b->vtable,
+                            h && h->active_recharge ? " (active)" : "");
     }
     return BP_EXEC_ORIGINAL;
 }

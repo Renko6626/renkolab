@@ -22,9 +22,16 @@
 | --- | --- | --- | --- | --- | --- |
 | 63 | 强欲之壶 | 购买时立刻获得两张随机卡牌（商店随机池的规则：未拥有、本关可用、按权重）；本身不进卡组 | `ctor` 里 `pick_weighted_random_offer` ×2 → `allocate_new_card(mode 2)`，返回 1 当场销毁（即时卡）| `pot.c` | 🔧 |
 
+## 致敬・UNO
+
+| id | 名字 | 效果 | 实现（槽 / 事件） | 文件 | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| 64 | 反转牌 | 主动（C 键）：场上所有子弹速度方向反向；充能 60 s | 第一张主动卡：`active_recharge = 3600`，`on_activate` 扫子弹池翻 `velocity` 与 `angle`（不动激光）| `reverse.c` | 🔧 |
+
 ## 约定
 
 - **即时卡**（买了就生效、不进卡组）：`ctor` 或 `dtor` 施加效果后 `return 1`（零售 EXTEND / 六文钱同款，`02-lifecycle.md` §3）。
   这种卡 `deck_visible: 0`（编成里不列，初始携带不调 ctor 会变成死卡）、`repeatable: 1`（可再刷出）。
 - 「随机」一律走游戏自己的 RNG 或确定性计数，不引入自己的随机源（replay）。
+- 主动卡：`category: 0`，`active_recharge` 给帧数（零售瞬发卡 20–60 s），`on_activate` 返回 0 瞬发 / 1 持续。
 - 文案不能含 ASCII `%`，用 `％`。

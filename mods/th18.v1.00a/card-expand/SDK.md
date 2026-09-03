@@ -133,6 +133,8 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 | `ce_shop_pick_random(lo, hi, exclude[], n)` | 按商店随机池的规则抽一张（未拥有、本关可用、按权重、游戏 RNG）| `pick_weighted_random_offer` `0x416f50` fastcall(ecx=out, edx=lo; hi, exclude, n) `ret 0xc` |
 | `ce_table_entry(id)` / `ce_entry_id(e)` | 表行（ctor 里 `card+0x4c` 还没写，用这个）| `TableCardData__get` `0x407d70` fastcall(ecx=id) |
 | `ce_log(fmt, …)` | 一行进 `th18_card_expand.log` | — |
+| `ce_play_sound(id, x)` | 音效，x = 世界 x（声像）| `0x476c70` stdcall(id) + xmm2 |
+| `CE_BULLET_MGR()` + `CE_BM_*` / `CE_BULLET_*` | 子弹池：2000 张，起点 `+0xec`，stride `0xfa0`，状态 `+0xf68`，`velocity/speed/angle` `+0x644/+0x650/+0x654` | `cancel_all` `0x4297a0` 的扫法 + ExpHP 结构 |
 
 ## 6. SDK 事件（虚表之外）
 
@@ -172,15 +174,36 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 
 验收 = 日志里 `sdk: 58 bound (.on_item_score = on_item_score)` 五行 + trace 行 + 游戏里体感（移速、回收、无敌时长可目测；伤害与得点看数字）。
 
-## 9. 边界与不做的
+## 9. 主动卡（C 键）
+
+零售 12 张主动卡共用一套模板（`04-active-cards.md` §3–§5，样本 Tenshi）；SDK 把它做成三个回调字段（AUDIT O19–O21）：
+
+```c
+CE_CARD(64, .active_recharge = 3600, .on_activate = f, .on_active_tick = g);
+```
+
+| 字段 | 语义 |
+| --- | --- |
+| `active_recharge` | 充能帧数（装填时 × `mgr+0xc58` 倍率）。非 0 = 主动卡：绑定时 SDK 把 flags 改成主动 case 的写法（`& ~0x46 \| 8`）、写 `+0x48`、按 Tenshi 初始化两个 zTimer——引擎据此把它放进主动卡组 / HUD / C 键分派 |
+| `on_activate(c)` | C 键发动（门：state 空闲且充能到底；SDK 已装填充能、置「释放中」）。返回 0 = 瞬发，直接收尾；1 = 进持续态 |
+| `on_active_tick(c, elapsed)` | 持续态每帧；返回 0 = 结束进收尾 |
+
+SDK 在 `+0x2c` 桩里先跑状态机（空闲：清释放位、门控下递减充能；收尾：经过帧 > 8 回空闲；每帧门控下递增经过帧），
+再调卡自己的 `on_tick_2`；`+0x34`（关卡开场）清状态与经过帧、不动充能，`+0x4c`（局末）连充能一起清——与零售一致。
+状态放私有状态（零售放 `+0x54`，超出 0x54 字节的基类对象）。充能存取 / HUD / replay 用的槽 `+0x38..+0x40` 透传基类。
+主动卡的 JSON：`category: 0`。
+
+引擎辅助：`ce_play_sound(id, x)`（`0x476c70` stdcall + xmm2，三行内联汇编，AUDIT O22）。
+
+## 10. 边界与不做的
 
 - 即时卡：`ctor` / `dtor` 里施加效果后 `return 1`（零售同款）；这种卡 `deck_visible: 0`（mode 1 不调 ctor，初始携带会是死卡）。ctor 里可以再调 `allocate_new_card`（AUDIT O17）。
-- 主动卡（C 键、充能、HUD、replay）：第二批，SDK 加「主动卡基类」。
+- 激光：`LASER_MANAGER` 另一套，反转牌不动它。
 - 对象大小固定 0x54：要更大对象的卡走第 4 节的私有状态，不改分配。
 - 事件断点每个都要过 AUDIT；本批只加一个。
 - 图鉴 ≤ 127 条目（新卡 ≤ 71）、`abcard.anm` sprite 追加：另外的会话。
 
-## 10. 文件
+## 11. 文件
 
 ```
 native/

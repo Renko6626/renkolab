@@ -18,18 +18,28 @@
 #define CE_ADDR_MAX_POWER          0x4ccd3c
 #define CE_ADDR_PLAYER_PTR         0x4cf410   /* zPlayer*（ExpHP statics；Nitori/Momoyo 都从这读）*/
 #define CE_ADDR_ABILITY_MGR_PTR    0x4cf298   /* zAbilityManager*（OM §4）*/
+#define CE_ADDR_BULLET_MGR_PTR     0x4cf2bc   /* zBulletManager*（ExpHP statics；cancel_all 0x4297a9 读）*/
+#define CE_ADDR_GAME_THREAD_PTR    0x4cf2e0   /* +0x1b0 != 0 = 对话中（Player tick 0x45c069、Tenshi state0 0x40ea0d）*/
+#define CE_ADDR_ENEMY_MGR_PTR      0x4cf2d0   /* +0x198 == 0 = 关卡没在跑（同上 0x45c07b / 0x40ea1f）*/
+#define CE_ADDR_INPUT_PRESSED      0x4ca434   /* 本帧上升沿；bit 0x400 = C 键（0x45c084）*/
 
 #define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)
 #define CE_MONEY()        (*(int32_t *)CE_ADDR_MONEY)
 #define CE_MONEY_TOTAL()  (*(int32_t *)CE_ADDR_MONEY_TOTAL)
 #define CE_PLAYER()       (*(uint8_t **)CE_ADDR_PLAYER_PTR)
 #define CE_ABILITY_MGR()  (*(uint8_t **)CE_ADDR_ABILITY_MGR_PTR)
+#define CE_BULLET_MGR()   (*(uint8_t **)CE_ADDR_BULLET_MGR_PTR)
+#define CE_GAME_THREAD()  (*(uint8_t **)CE_ADDR_GAME_THREAD_PTR)
+#define CE_ENEMY_MGR()    (*(uint8_t **)CE_ADDR_ENEMY_MGR_PTR)
+#define CE_GT_DIALOGUE     0x1b0
+#define CE_EM_STAGE_RUNNING 0x198
 
 /* ---- zAbilityManager ---- */
 #define CE_MGR_CARD_LIST_HEAD      0x18       /* 表头；首结点在 +0x1c（尾段 lea ecx,[edi+0x18]；on_tick 0x408683 读 +0x1c）*/
 #define CE_MGR_CARD_LIST_FIRST     0x1c
 #define CE_MGR_OWNED               0xd70      /* int[255]，本 mod 搬过来的（战线 C）*/
 #define CE_MGR_RECHARGE_MULT       0xc58      /* float，reset 置 1.0（OM §5）*/
+#define CE_MGR_SELECTED_ACTIVE     0x38       /* 选中的主动卡（C 键分派 0x45c090）*/
 
 /* 卡链表结点（= card+0xc）：{+0 card*, +4 next, +8 prev}（0x412e90 插入；0x408690 遍历 mov ecx,[edi]; mov edi,[edi+4]）*/
 #define CE_NODE_CARD               0x0
@@ -40,7 +50,12 @@
 #define CE_CARD_ID                 0x04
 #define CE_CARD_ARRAY_INDEX        0x08
 #define CE_CARD_LIST_NODE          0x0c
+#define CE_CARD_ELAPSED_TIMER      0x20       /* zTimer：激活经过帧（每帧 Timer__increment；OM §3 订正）*/
+#define CE_CARD_RECHARGE_TIMER     0x34       /* zTimer：充能倒计时（空闲时 Timer__decrement；c_press 门控 +0x38 <= 0）*/
 #define CE_CARD_RECHARGE_TIME      0x48
+#define CE_FLAG_ACTIVE             0x08       /* flags bit3：主动卡（尾段按它入 selected / num_active）*/
+#define CE_FLAG_FIRING             0x20       /* flags bit5：正在释放（HUD 配色，method_40）*/
+#define CE_FLAG_ACTIVE_CLEAR       0x46       /* 主动卡 case 清的位（0x411d83 and ~0x46 | 8）*/
 #define CE_CARD_TABLE_ENTRY        0x4c
 #define CE_CARD_FLAGS              0x50       /* bit0 存档/replay 装载，bit3 主动，bit5 开火中，bit6 装备 */
 #define CE_CARD_OBJECT_SIZE        0x54
@@ -79,10 +94,27 @@ typedef struct { int32_t prev; int32_t cur; float cur_f; } ce_timer_t;   /* zTim
 #define CE_FN_MARK_OBTAINED        0x418de0   /* fastcall(id, notify)：置解锁位（本 mod 的断点把新 id 转进影子 + side-car）*/
 #define CE_FN_TABLE_GET            0x407d70   /* fastcall(id) → zTableCardData*；未命中回落 NULL 行 */
 #define CE_FN_SHOP_PICK_RANDOM     0x416f50   /* fastcall(out*, tier_lo; tier_hi, exclude[], n)：商店随机池抽一张（未拥有、本关可用、按权重、游戏 RNG）；返回非 0 = 抽到，*out = 表行 */
+#define CE_FN_TIMER_DECREMENT      0x409750   /* thiscall(zTimer*)：prev = cur, cur_f -= 游戏速度, cur = (int)cur_f */
+#define CE_FN_TIMER_INCREMENT      0x405990   /* thiscall(zTimer*)：同上方向相反 */
+#define CE_FN_PLAY_SOUND           0x476c70   /* stdcall(id) + xmm2 = 世界 x（声像）；ret 4 */
 #define CE_MODE_ITEM    0
 #define CE_MODE_SAVE    1
 #define CE_MODE_SHOP    2
 #define CE_MODE_REPLAY  3
+
+/* ---- zTimer（20 字节；Tenshi case 0x411d9c.. 的初始化；Timer__decrement 读 +0xc 当游戏速度源索引）---- */
+typedef struct { int32_t prev; int32_t cur; float cur_f; int32_t speed_src; uint32_t control; } ce_ztimer_t;
+
+/* ---- zBulletManager / zBullet（ExpHP 结构 + cancel_all 0x4297a0 的扫描：起点 mgr+0xec，2000 张，stride 0xfa0）---- */
+#define CE_BM_BULLETS              0xec       /* 第 0 张（ExpHP 叫 list_0_tail_dummy_bullet；cancel_all 从它起扫 0x7d0 张）*/
+#define CE_BM_BULLET_COUNT         0x7d0
+#define CE_BULLET_STRIDE           0xfa0
+#define CE_BULLET_FLAGS            0x20
+#define CE_BULLET_POS              0x638      /* float3 */
+#define CE_BULLET_VELOCITY         0x644      /* float3；普通子弹每帧 pos += velocity（0x423f1f..）*/
+#define CE_BULLET_SPEED            0x650      /* float；ex 状态改速时从 speed/angle 重算 velocity（0x429bc0）*/
+#define CE_BULLET_ANGLE            0x654      /* float；tick 里归一到 (-π, π]（0x4241b8..）*/
+#define CE_BULLET_STATE            0xf68      /* uint16：0 = 空槽，3 = 消弹中（cancel_all 都跳过）*/
 
 /* ---- zPlayerBullet ---- */
 #define CE_BULLET_DAMAGE           0x9c       /* int；PlayerBullet__create 0x45e396 写、0x45e7f5 调槽 +0x28、0x45e837 用；Momoyo 覆写（SDK）*/
