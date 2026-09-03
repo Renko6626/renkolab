@@ -26,7 +26,7 @@
 ```
 table: 255 rows filled … NULL/BACK shop weight := 6
 grow: … shop loops 255 ids
-cards: 58 "黑桃 10" (SPADE_10) tier 5 weight 2 …      ← 五行
+cards: 58 "黑桃 10" (SPADE_10) tier 5 weight 2 dmode 0 sprites 116/117 initial_unlocked   ← 五行（卡池在 _255 自己的 th18/cards.js）
 cards: 5 registered from cards.js; shop pool 397/560 slots, guaranteed offers <= 17/57
 cards_dev: start_deck has 5 ids, trace=1
 menu: … (56 retail + 5 new + NULL, rest BACK); encyclopedia entries = 61 …
