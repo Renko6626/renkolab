@@ -3,5 +3,5 @@
 来源：Wikimedia Commons「English pattern playing cards」系列，作者 Dmitry Fomin，**CC0 公有领域**。
 文件 `English_pattern_{10,jack,queen,king,ace}_of_spades.svg`（`Special:FilePath` 取回，2026-09-04）。
 
-处理：`rsvg-convert -h 640` → `fit_card.py <NAME> <png> --no-detect --trim 0 --bg '#00000000' --margin 8`
-（牌面 214:320，等比缩到高 304，透明底居中；不做去白边，否则白牌面会被当边裁掉）。
+处理：`rsvg-convert -h 640` → `fit_card.py <NAME> <png> --no-detect --trim 0 --bg '#ffffff' --margin 8`
+（牌面 214:320，等比缩到高 304，白底居中、两侧白色填充；不做去白边，否则白牌面会被当边裁掉）。
