@@ -13,6 +13,7 @@
 #define CE_ADDR_SCORE              0x4cccfc   /* int，封顶 999999999（SM §1）*/
 #define CE_ADDR_MONEY              0x4ccd34   /* int（SM §1）*/
 #define CE_ADDR_MONEY_TOTAL        0x4ccd30   /* int，只记收入（SM §1）*/
+#define CE_ADDR_MONEY_ITEMS        0x4ccd20   /* int，吃到的金钱道具个数（collect_money_item 0x446d22 inc）*/
 #define CE_ADDR_CURRENT_POWER      0x4ccd38   /* OM §7 */
 #define CE_ADDR_MAX_POWER          0x4ccd3c
 #define CE_ADDR_PLAYER_PTR         0x4cf410   /* zPlayer*（ExpHP statics；Nitori/Momoyo 都从这读）*/

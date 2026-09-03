@@ -1,10 +1,16 @@
-/* 黑桃 10 —— 道具得点 +10%。事件 on_item_score：身价算完、弹窗与计分之前（sdk.c BP_ce_item_score）。 */
+/* 黑桃 10 —— 从道具获得的金钱 +10％：每吃第 10 个金钱道具，那一个给 2。
+ * 事件 on_item_money：collect_money_item 里 MONEY += 1 之前（sdk.c BP_ce_item_money），bonus 由断点同时加进
+ * MONEY 与 MONEY_TOTAL_COLLECTED。用确定性计数而不是随机：replay 靠输入重放，自带随机会失同步。
+ * 计数在卡的私有状态里，随卡对象一局一建。 */
 #include "sdk.h"
 
-static void on_item_score(ce_card_t *c, int32_t *value)
+typedef struct { uint32_t n; } s10_state_t;
+
+static void on_item_money(ce_card_t *c, int32_t *bonus)
 {
-    (void)c;
-    *value += *value / 10;
+    s10_state_t *st = ce_state(c, s10_state_t);
+    if (!st) return;
+    if (++st->n >= 10) { st->n = 0; *bonus += 1; }
 }
 
-CE_CARD(58, .on_item_score = on_item_score);
+CE_CARD(58, .on_item_money = on_item_money);

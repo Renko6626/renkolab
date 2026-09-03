@@ -983,6 +983,12 @@
       "cavesize": 6,
       "expected": "8d872c0c0000",
       "title": "行为 SDK → BP_ce_item_score：collect_money_item：esi=道具身价，弹窗与计分之前；沿卡链表调 on_item_score(&esi)"
+    },
+    "ce_item_money": {
+      "addr": "0x446d28",
+      "cavesize": 6,
+      "expected": "ff0530cd4c00",
+      "title": "行为 SDK → BP_ce_item_money：collect_money_item：inc [MONEY_TOTAL]（下一条 inc [MONEY]）；沿卡链表调 on_item_money(&bonus)，两个全局一起 += bonus"
     }
   }
 }

@@ -40,6 +40,7 @@ typedef struct {
     void (*on_run_reset)(ce_card_t *);                           /* +0x4c */
     /* 虚表之外的事件（SDK §6，断点实现）*/
     void (*on_item_score)(ce_card_t *, int32_t *value);          /* 道具身价算完、显示与计分之前 */
+    void (*on_item_money)(ce_card_t *, int32_t *bonus);          /* 金钱道具入账（MONEY += 1）之前：*bonus 是额外要加的钱，MONEY 与 MONEY_TOTAL 一起加 */
 } ce_hooks_t;
 
 /* sdk.c */

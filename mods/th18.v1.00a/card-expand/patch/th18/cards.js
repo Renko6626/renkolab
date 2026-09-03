@@ -1,7 +1,7 @@
 {
   "58": {
     "name": "黑桃 10",
-    "desc": ["道具得点 +10％。", "德州扑克・皇家同花顺之一。"],
+    "desc": ["从道具获得的金钱 +10％", "（每 10 个金钱道具多给 1）。", "德州扑克・皇家同花顺之一。"],
     "internal_name": "SPADE_10",
     "initial_unlocked": 1, "price_tier": 5, "weight": 2, "sprite_large": 116, "sprite_small": 117
   },

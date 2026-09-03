@@ -30,7 +30,7 @@ cards: 58 "黑桃 10" (SPADE_10) tier 5 weight 2 dmode 0 sprites 116/117 initial
 cards: 5 registered from cards.js; shop pool 397/560 slots, guaranteed offers <= 17/57
 cards_dev: start_deck has 5 ids, trace=1
 menu: … (56 retail + 5 new + NULL, rest BACK); encyclopedia entries = 61 …
-sdk: 58 bound (.on_item_score = on_item_score)         ← 五行
+sdk: 58 bound (.on_item_money = on_item_money)         ← 五行
 sdk: 5 behaviors, 0 registered cards without behavior; base vtable @ 004b4c78 verified; trace=1
 OK: … cards loaded, menu extended, behaviors bound, 100/100 sites verified
 ```
@@ -41,11 +41,11 @@ OK: … cards loaded, menu extended, behaviors bound, 100/100 sites verified
 test: initial deck slot 0: empty -> id 58   … slot 4 -> id 62
 trace: card 58 object … bound to vtable …    ← 五行
 trace: allocate_new_card(id=58, mode=1)  <- NEW ID   … （自动 mark_obtained）
-trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bullet_created / card 60 on_load / card 58 on_item_score
+trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bullet_created / card 60 on_load / card 58 on_item_money
 ```
 
 体感：J 移速明显快一点；Q 道具老远就飞过来；K 打 boss 快一点（看血条）；死一次 → A 的无敌时间明显更长（280 → 420 帧）；
-吃钱道具弹窗数字比平时大 10%。商店里五张会以 5–9 档价出现。任何 `FAIL:` / `mitigation:` / 游戏崩溃都是回归——
+10♠：吃满 10 个金钱道具时钱数跳 2（右上角金钱）。商店里五张会以 5–9 档价出现。任何 `FAIL:` / `mitigation:` / 游戏崩溃都是回归——
 崩溃优先怀疑：绑定断点的寄存器（O1）、`on_tick_2` 里 `PLAYER_PTR` 为空（已判空）、桩签名（O3）。
 
 通过后：MAP 第 7/9/10 段 🔧 → ✅；AUDIT §N / §O 顶部各记一行「实跑通过」。

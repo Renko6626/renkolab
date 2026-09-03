@@ -695,6 +695,8 @@ SDK_SITES = [
      "allocate_new_card 公共尾段 mov [esi+4],ebx（esi=卡对象, ebx=id）+ mov eax,[edi+0x28]：登记了行为的 id 换虚表"),
     ("ce_item_score", 0x446cf6, 6, "8d872c0c0000",
      "collect_money_item：esi=道具身价，弹窗与计分之前；沿卡链表调 on_item_score(&esi)"),
+    ("ce_item_money", 0x446d28, 6, "ff0530cd4c00",
+     "collect_money_item：inc [MONEY_TOTAL]（下一条 inc [MONEY]）；沿卡链表调 on_item_money(&bonus)，两个全局一起 += bonus"),
 ]
 
 
@@ -921,6 +923,7 @@ def emit_header(sites, unlock_reads, order_sites, menu_binhacks):
               "#define CE_BP_TEXT_NOTIFY_RVA 0x%06x" % (TEXT_SITES[2][1] - 0x400000),
               "#define CE_BP_CARD_BIND_RVA   0x%06x" % (SDK_SITES[0][1] - 0x400000),
               "#define CE_BP_ITEM_SCORE_RVA  0x%06x" % (SDK_SITES[1][1] - 0x400000),
+              "#define CE_BP_ITEM_MONEY_RVA  0x%06x" % (SDK_SITES[2][1] - 0x400000),
               "#define CE_TEST_DECK_SAVE_OFF 0x5f608   /* reset_cards：byte [eax+esi+0x5f608] 初始卡组一格 */",
               "#define CE_ORDER_RVA      0x%06x" % ORDER_RVA,
               "#define CE_ORDER_COUNT    %d" % ORDER_COUNT,

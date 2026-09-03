@@ -4,7 +4,9 @@
  *                      id 有登记的行为 → 对象虚表换成 DLL 里那份；放行原指令。此时 ctor 槽还没被调。
  *   BP_ce_item_score   0x446cf6  lea eax,[edi+0xc2c]（collect_money_item：esi = 道具身价，已钳 ≥ 10；
  *                      后面 push esi 给弹窗、mul esi 进计分）。沿卡链表调 on_item_score(&esi)。
- *   ce_sdk_setup       门里：基类虚表 21 槽与 engine.h 的常量逐一比对（布局假设的运行时守卫）、两个断点已挂、
+ *   BP_ce_item_money   0x446d28  inc [MONEY_TOTAL]（紧接 inc [MONEY]）。沿卡链表调 on_item_money(&bonus)，
+ *                      bonus > 0 时 MONEY 与 MONEY_TOTAL_COLLECTED 一起 += bonus；原两条 inc 照常放行。
+ *   ce_sdk_setup       门里：基类虚表 21 槽与 engine.h 的常量逐一比对（布局假设的运行时守卫）、三个断点已挂、
  *                      与 cards.js 对账（C 有 JSON 无 → FAIL）、每张行为卡记一行。
  */
 #include <string.h>
@@ -14,7 +16,8 @@
 
 /* ---- trace ---- */
 static int      s_trace;
-static uint8_t  s_seen[CE_SDK_MAX_BEHAVIORS][21];
+#define CE_TRACE_SLOTS 23                  /* 21 个虚表槽 + 事件 0x54 / 0x58 */
+static uint8_t  s_seen[CE_SDK_MAX_BEHAVIORS][CE_TRACE_SLOTS];
 
 void ce_sdk_set_trace(int on) { s_trace = on; }
 
@@ -23,7 +26,7 @@ void ce_sdk_trace(uint32_t id, unsigned slot, const char *name)
     if (!s_trace) return;
     unsigned k = 0, n = ce_sdk_behavior_count();
     for (; k < n; ++k) if (ce_sdk_behavior_at(k)->id == id) break;
-    if (k >= n || slot / 4 >= 21) return;
+    if (k >= n || slot / 4 >= CE_TRACE_SLOTS) return;
     if (s_seen[k][slot / 4]) return;
     s_seen[k][slot / 4] = 1;
     ce_log("trace: card %u %s (+0x%02x) first hit", id, name, slot);
@@ -81,6 +84,28 @@ int __cdecl BP_ce_item_score(x86_reg_t *regs, void *bp_info)
     return BP_EXEC_ORIGINAL;
 }
 
+int __cdecl BP_ce_item_money(x86_reg_t *regs, void *bp_info)
+{
+    (void)regs; (void)bp_info;
+    uint8_t *mgr = CE_ABILITY_MGR();
+    if (!mgr) return BP_EXEC_ORIGINAL;
+    int32_t bonus = 0;
+    unsigned guard = 0;
+    for (const uint8_t *node = *(const uint8_t *const *)(mgr + CE_MGR_CARD_LIST_FIRST);
+         node && guard < 256;
+         node = *(const uint8_t *const *)(node + CE_NODE_NEXT), ++guard) {
+        uint8_t *card = *(uint8_t *const *)(node + CE_NODE_CARD);
+        if (!card) continue;
+        const ce_hooks_t *h = hooks_of(card);
+        if (h && h->on_item_money) {
+            h->on_item_money((ce_card_t *)card, &bonus);
+            ce_sdk_trace(ce_card_id(card), 0x58, "on_item_money");
+        }
+    }
+    if (bonus > 0) { CE_MONEY() += bonus; CE_MONEY_TOTAL() += bonus; }
+    return BP_EXEC_ORIGINAL;
+}
+
 /* ---- 门里的核对 ---- */
 static int bp_applied(const uint8_t *p, unsigned len)
 {
@@ -104,9 +129,10 @@ int ce_sdk_setup(uint8_t *base, int trace)
             ce_verdict("FAIL: sdk: base vtable slot %u = %08x, expected %08x — not the layout we know", chk[i].i, vt[chk[i].i], chk[i].want);
             return 0;
         }
-    /* 2. 两个断点已挂 */
+    /* 2. 三个断点已挂 */
     if (!bp_applied(base + CE_BP_CARD_BIND_RVA, 6))  { ce_verdict("FAIL: sdk: breakpoint ce_card_bind not applied");  return 0; }
     if (!bp_applied(base + CE_BP_ITEM_SCORE_RVA, 6)) { ce_verdict("FAIL: sdk: breakpoint ce_item_score not applied"); return 0; }
+    if (!bp_applied(base + CE_BP_ITEM_MONEY_RVA, 6)) { ce_verdict("FAIL: sdk: breakpoint ce_item_money not applied"); return 0; }
     /* 3. 对账 */
     uint32_t ids[CE_CARD_MAX_NEW];
     unsigned n = ce_new_card_count();

@@ -64,6 +64,7 @@
 | `ce_text_name` / `_desc` / `_notify` | `0x416694` / `0x416779` / `0x41926a` | 6/7/6 | id≥57 的文案指向 DLL 缓冲 | `text.c` | §L |
 | `ce_card_bind` | `0x412cec` 分配公共尾段 | 6 | esi = 卡对象、ebx = id：有行为的换虚表 | `sdk.c` | §O1–O2 |
 | `ce_item_score` | `0x446cf6` `collect_money_item` | 6 | esi = 道具身价，沿卡链表调 `on_item_score` | `sdk.c` | §O10 |
+| `ce_item_money` | `0x446d28` `collect_money_item` 尾 | 6 | 金钱入账前，沿卡链表调 `on_item_money`，`MONEY`/`MONEY_TOTAL` 一起 += bonus | `sdk.c` | §O14 |
 
 ### codecave
 

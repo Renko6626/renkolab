@@ -110,7 +110,7 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 
 对象没有余量。`ce_state(c, size)` 返回这张卡对象的私有内存（首次调用分配并清零，同一对象重复调用返回同一块）。
 实现：DLL 侧 256 槽表，键 = 对象指针；`operator_delete` 桩释放（`reset_cards` / 局末 `recount` / 即时卡删除都走这个槽，不会漏）。
-`size` 上限 256 字节；第一批五张都不需要（A♠ 靠计时器的 {279,280} 签名识别「刚复活」，不用状态）。
+`size` 上限 256 字节；第一批只有 10♠ 用它（金钱道具计数）；A♠ 靠计时器的 {279,280} 签名识别「刚复活」，不用状态。
 
 ## 5. 引擎访问：`engine.h`
 
@@ -133,7 +133,8 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 
 | 事件 | 断点 | 回调 | 本批用 |
 | --- | --- | --- | --- |
-| `on_item_score` | `0x446cf6`（`collect_money_item` 里 `lea eax,[edi+0xc2c]`，esi = 身价，已钳 ≥10；之后 `push esi` 给弹窗、`mul esi` 计分）| `void (ce_card_t*, int32_t *value)` | 10♠：`*value += *value / 10`，弹窗数字与得分一起变 |
+| `on_item_score` | `0x446cf6`（`collect_money_item` 里 `lea eax,[edi+0xc2c]`，esi = 身价，已钳 ≥10；之后 `push esi` 给弹窗、`mul esi` 计分）| `void (ce_card_t*, int32_t *value)` | 暂无（留给以后的得分卡）|
+| `on_item_money` | `0x446d28`（同函数尾部 `inc [MONEY_TOTAL]`，紧接 `inc [MONEY]`）；断点把 `*bonus` 同时加进 `MONEY` 与 `MONEY_TOTAL_COLLECTED` | `void (ce_card_t*, int32_t *bonus)` | 10♠：每第 10 个金钱道具 `*bonus += 1` |
 
 以后加事件照此：一个断点 + 一个回调名 + AUDIT 一条。
 
@@ -141,7 +142,7 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 
 | 牌 | id | 槽 / 事件 | 实现 | 状态 |
 | --- | --- | --- | --- | --- |
-| 10♠ 道具得点 +10% | 58 | `on_item_score` | `*value += *value/10`，弹窗数字与得分一起变 | ✅ 已反（AUDIT O10）|
+| 10♠ 道具金钱 +10％ | 58 | `on_item_money` | 私有状态计数，每第 10 个金钱道具 `*bonus += 1`（确定性计数而非随机：replay 靠输入重放，自带随机会失同步）| ✅ 已反（AUDIT O10、O14）|
 | J♠ 移速 +10% | 59 | `on_tick_2` | `player+0x477ec`（每帧移速倍率）`*= 1.1`。Player tick 末尾复位 1.0，AbilityManager tick（优先级 0x16）先于 Player（0x17），所以只能在 `on_tick_2` 写；`on_tick` 在复位前，白写 | ✅ 已反（AUDIT O7）|
 | Q♠ 道具回收范围 | 60 | `on_load` | 抄 `CardNitori` 的 `on_load`：`attract_speed / collect_radius / attract_r_focused / attract_r_unfocused` = {10, 30, 250, 250}（默认 {5,30,70,70}，Nitori {10,30,110,110}；字段名来自 ExpHP）| ✅ 已反 |
 | K♠ 伤害 ×1.1 | 61 | `on_bullet_created` | `bullet+0x9c`（int）`= d*11/10`；`PlayerBullet__create` 在调槽前已写好它 | ✅ 已反（AUDIT O9）|
