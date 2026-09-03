@@ -546,9 +546,9 @@ if (entry->id == ABILITY_NULL) { ... }        // 判空
 - 卡组编成界面里 NULL 条目的**实际观感**（机制已 ✅ 闭合，只是没看过它长什么样）。
 - `0x4c5f88` / `0x4c5f8c` 这两个全局各是什么语义（`Enemy__ecl_get_int_global` 会读它，
   说明至少 `0x4c5f8c` 是一个 ECL 可见的全局；搬表时要一起挪，所以得先知道它是什么）。
-- 三个卡牌 ANM（`abcard_anm` / `ability_anm` / `abmenu_anm`）的 sprite 索引余量
-  —— 行 57 只用到 sprite 2/3，行 56 用 116/117，说明 `abcard_anm` 至少有 118 个 sprite，
-  但**上限未知**，要解包 ANM 才能答。
+- ~~三个卡牌 ANM 的 sprite 索引余量~~ → 已解包（2026-09-04）：`abcard.anm` 正好 118 个 sprite（0..117，
+  2/3 = `BACK_max`/`dummy`，116/117 = `empty_max`/`dummy`，与两行哨兵完全对上），格式层可无限追加；
+  运行时上限仍 🟡。见 [`10-extensibility-limits.md`](10-extensibility-limits.md) §5。
 - `zScoreFile` 中 `0x5f5c1`–`0x5f608` 那 71 字节未知区是否空闲（`unlocked_cards` 后紧跟的空档，
   是唯一可能不改存档尺寸就扩解锁位的地方）。
 - `initial_cards_per_shottype` 到底是 `[3][16]` 还是 `[4][16]`（§4.5.4 的 `0x30` vs `0x40` 疑点）。

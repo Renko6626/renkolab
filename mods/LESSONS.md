@@ -1,5 +1,7 @@
 # LESSONS —— 用 thcrap + DLL 改造东方引擎时踩过的坑（card-expand 一线总结）
 
+> **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+
 > 版本无关的方法论；例子全来自 TH18 v1.00a 的 card-expand（2026-09-01 → 09-04，A–E 五条战线 + 行为 SDK）。
 > 每条给「现象 → 根因 → 以后怎么做」，一手证据在 [`th18.v1.00a/card-expand/AUDIT.md`](th18.v1.00a/card-expand/AUDIT.md) 的对应小节。
 > 动手前的检查单在 [`_template/AUDIT-checklist.md`](_template/AUDIT-checklist.md)；这里是它背后的故事。

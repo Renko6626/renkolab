@@ -9,7 +9,7 @@
 | 层 | 在哪 | 谁写 | 什么时候能看到效果 |
 | --- | --- | --- | --- |
 | **登记**（本文）| 任何 thcrap patch 的 `th18/cards.js` | 你，JSON | 下次启动：图鉴 / 编成 / 商店里出现，能买、能拿、能存档 |
-| **卡图** | `abcard.anm` 的 sprite | 你，thanm/truanm | JSON 里填索引即可，DLL 不碰 ANM |
+| **卡图** | `abcard.anm` 的 sprite | 你，两张 PNG 放 [`assets/cards/`](assets/README.md) | `make anm` 重编 → 随 `_255` 整文件替换；JSON 填打印出的索引，DLL 不碰 ANM |
 | **行为** | `native/cards/` 里一个 `.c`（[`SDK.md`](SDK.md)）| 你，C | 下次启动 |
 
 先写登记，卡就已经能在游戏里走完一圈（无行为）；再写行为。两层能分开排错。已实装的卡见 [`CARDS.md`](CARDS.md)。
@@ -100,11 +100,16 @@ DLL 装载时按合并后的表**现算**这三条，超了写 `FAIL:` 并把分
 `cards: 58 "测试卡牌" (TEST58) tier 5 weight 2 dmode 0 sprites 116/117`，再一行汇总
 `cards: N registered from cards.js; shop pool P/560 slots, guaranteed offers <= G/57`。
 
-## 6. 卡图（你自己做）
+## 6. 卡图（放两张 PNG，其余交给 `assets/`）
 
-新卡行的 `+0x2c/+0x30` 就是 sprite 索引。用 thanm/truanm 往 `abcard.anm` 加 sprite，以文件替换的方式随 patch 分发
-（thcrap 的 `th18/abcard.anm`），把索引填进 JSON。索引余量 ⏳ 未查，加的时候数一下并回填到
-[`engine/card/th18/10-extensibility-limits.md`](../../../engine/card/th18/10-extensibility-limits.md)。
+新卡行的 `+0x2c/+0x30` 就是 `abcard.anm` 的 sprite 索引。零售 `abcard.anm` 一手解包（thanm release 12，2026-09-04）：
+**118 个 entry（0..117），一 entry 一 sprite，sprite 号 = entry 号**；0/1 是卡框 / 道具图，2..117 是卡图 `_max`
+（256×320）/ `_min`（64×80）成对。格式层面追加没有上限，新卡从 **118** 起两两追加；运行时上限 🟡 未验（先只加到 127）。
+
+做法见 [`assets/README.md`](assets/README.md)：`assets/cards/<NAME>_max.png` + `_min.png`，`ORDER.txt` 追加一行，
+`make anm` 打印 `sprite_large / sprite_small`（`118 + 2k` / `119 + 2k`）照抄进 JSON。构建脚本校验 JSON 与 ORDER 一致，
+不一致直接报错。产物 `th18/abcard.anm`（≈22 MB，含零售贴图）随 `_255` patch 整文件替换分发——thcrap 对任何
+dat 内文件都做同路径覆盖，替换文件更大也没事（`bp_file.cpp` 把分配大小改成替换文件的）。
 
 **零售 58 张的 sprite 对**（`large/small`，一手 dump 自 `0x4c53c0`；没有自己的图之前借一对用）：
 
@@ -120,6 +125,11 @@ DLL 装载时按合并后的表**现算**这三条，超了写 `FAIL:` 并把分
 48 LILY 94/95  49 BASSDRUM 96/97  50 PSYCO 98/99  51 MAGATAMA 106/107  52 CYLINDER 108/109  53 RICEBALL 110/111
 54 MUKADE 112/113  55 MAGATAMA2 114/115  56 NULL 116/117  57 BACK 2/3
 ```
+
+上表是 exe 里的 `internal_name`；`abcard.anm` 的 entry 名对 boss 卡不同：100 `MANEKI_NEKO`、102 `boss2`（YAMAWARO）、
+104 `boss3`（KISERU）、106 `boss4`（MAGATAMA）、108 `boss5b`（CYLINDER）、110 `boss5`（RICEBALL）、112 `boss7`（MUKADE）、
+114 `magatama`（MAGATAMA2）、116 `empty`（NULL）；3 与 117 都叫 `dummy`（透明小图）。
+**本 mod 追加**：118–127 = 黑桃 10/J/Q/K/A（`assets/cards/ORDER.txt`）。
 
 ## 7. 示范
 

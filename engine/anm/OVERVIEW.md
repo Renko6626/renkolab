@@ -16,6 +16,14 @@ MSG 的文本绘制走它（[`../msg/OVERVIEW.md`](../msg/OVERVIEW.md)）、弹�
 >
 > **本页不许出现没有出处的断言。** 从某作借到另一作的判断一律 🟡，在该版本 exe 上验过才能改 ✅（[`METHOD.md`](../../METHOD.md)）。
 
+## 工具与样本（2026-09-04 就位）
+
+- 标准 thtk（thanm / thdat，release 12）本机编好：[`tooling/thtk/`](../../tooling/thtk/README.md)；`unpack.py` 把 th18 的
+  56 个 anm 全解成「一目录 = spec + 贴图」（`local/th18.v1.00a/anm/`，不入库）。`-l` → `-c` 往返字节一致。
+- anmmap：thpages `v8.anmm`（th18 在用，150 条指令名）——这是 opcode 语义研究时的社区参照，运行时实现仍须在 exe 上自证。
+- 第一个产物线：card-expand 的卡图追加（`mods/th18.v1.00a/card-expand/assets/`）。它只动格式层，没有引擎结论；
+  引擎侧待答的第一问是 **运行时 sprite 数上限**（`AnmManager__preload_anm` → `AnmLoaded`）。
+
 ## 开工前必读
 
 [th16/README.md](th16/README.md) 里的「起步锚点」全部是做 [`../bullet/`](../bullet/OVERVIEW.md)

@@ -93,10 +93,18 @@ ROADMAP 里问的是「`allocate_new_card` 的完整 switch/default：未知 ID 
 
 ## 5. 图标
 
-`zTableCardData` 的 `sprite_large` `+0x2c` / `sprite_small` `+0x30` 是 **ANM sprite 索引**。
-新卡要有图就得往对应 ANM 里加 sprite（`abcard_anm` / `ability_anm` / `abmenu_anm`，
-见 `zAbilityManager` `+0x0c`/`+0x10`/`+0x14`），用 thanm/truanm 编辑后作为文件替换分发。
-**本次未展开**：没有确认这三个 ANM 各自装什么、sprite 索引空间还有多少余量。
+`zTableCardData` 的 `sprite_large` `+0x2c` / `sprite_small` `+0x30` 是 **`abcard.anm` 的 sprite 索引**。
+三个卡牌 ANM（`zAbilityManager` `+0x0c`/`+0x10`/`+0x14`）各装什么——thanm release 12 一手解包（2026-09-04）：
+
+| 文件 | entry / sprite | 脚本 | 装什么 |
+| --- | --- | --- | --- |
+| `abcard.anm` | 118 / 118（**一 entry 一 sprite，号相同**） | 18 | 0/1 卡框与道具图；2..117 卡图 `_max` 256×320 / `_min` 64×80 成对；116/117 = `empty`/`dummy` |
+| `ability.anm` | 7 / 267 | 68 | 场上特效（借 player / bullet 素材）；主动卡效果脚本在这（Tenshi 用 0x1c） |
+| `abmenu.anm` | 3 / 43 | 19 | 卡组编成 / 图鉴 UI |
+
+**余量**：格式层面 sprite 数只是 header 计数，追加无上限；新卡从 118 起两两追加（card-expand 已加到 127，
+`mods/th18.v1.00a/card-expand/assets/`）。**运行时**是否对 sprite 数设上限 🟡 未验——要看 `AnmManager__preload_anm`
+如何为 `AnmLoaded` 分配 sprite 表；实跑 118–127 能显示即为下界证据。分发走 thcrap 整文件替换（`th18/abcard.anm`）。
 
 ## 6. 三条可能的路线（判据，不是方案）
 

@@ -18,7 +18,7 @@
 | 5 | 名字与说明 | `zAbilityText` `0x63e0` = 57 × `0x1c0` | 57，对象尾部就是别的字段 | 不扩对象，3 处读按 id 重定向到 DLL 缓冲 | ✅ |
 | 6 | 在图鉴 / 卡组编成里出现 | 显示顺序表 `0x4b3600` 57 项；`zAbilityMenu.__card_ids[56]`；条目数 `0x38` ×7 | 57 / 56 / 56 | 顺序表搬迁重排；对象扩容；条目数由 DLL 现写 56+N | ✅ |
 | 7 | 在商店里出现 | `AbilityShop` 三处循环只看前 56 个 id；随机池 560 份、offer 57 槽 | 56 | 上界 → rows；cave 里 NULL/BACK 行 `+0x14 := 6` 排除幻影；容量装载时现算 | 🔧 待实跑 |
-| 8 | 卡图 | `abcard.anm` 的 sprite，行里 `+0x2c/+0x30` | 已知用到 116/117 | JSON 给索引（`sprite_large/small`），ANM 由写卡的人用 thanm/truanm 加、以文件替换分发；DLL 不碰 | ✅（手工）|
+| 8 | 卡图 | `abcard.anm` 的 sprite，行里 `+0x2c/+0x30` | 零售 118 个 sprite（= entry 号） | [`assets/`](assets/README.md)：两张 PNG + ORDER → `make anm` 重编 `abcard.anm`（118 起追加）→ 随 `_255` 整文件替换；JSON 填索引；DLL 不碰 | 🔧（工具就位，黑桃五张 118–127 待实跑）|
 | 9 | 行为 | 跳转表指向的构造器 + 虚表 | — | 跳转表不动：断点 `ce_card_bind`（`0x412cec`）把登记了行为的 id 的对象虚表换成 DLL 里的拷贝，槽是 C 写的 `thiscall` 桩（[`SDK.md`](SDK.md)）| 🔧 待实跑 |
 | 10 | 数据从哪来 | — | — | thcrap 栈里每个 patch 的 `th18/cards.js` 深合并 → 门里逐张校验、写 cave 行 + 文案 + 注册表（[`DATA.md`](DATA.md)）| 🔧 待实跑 |
 
@@ -102,5 +102,5 @@
 ## 5. 还没做的段落各自卡在哪
 
 - **行为**：已做（第 9 段，[`SDK.md`](SDK.md)），待实跑。主动卡（C 键 / 充能 / HUD）的基类是第二批。
-- **卡图**：不是代码活。sprite 索引余量未查（[`engine/card/th18/10-extensibility-limits.md`](../../../engine/card/th18/10-extensibility-limits.md)）。
+- **卡图**：不是代码活。`assets/build_abcard.py` 重编；余量结论见 [`engine/card/th18/10-extensibility-limits.md`](../../../engine/card/th18/10-extensibility-limits.md) §5（运行时上限 🟡）。
 - ~~商店~~、~~数据~~：已做（第 7 / 10 段），待实跑。
