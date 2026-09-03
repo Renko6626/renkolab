@@ -8,12 +8,13 @@ script script68 {
     anchor(0, 0);
     scale(0.6f, 0.6f);
     alpha(0);
+    rotate(0.0f, 0.0f, -0.35f);
 0:
-    pos(0.0f, 224.0f, 0.0f);
+    pos(0.0f, 128.0f, 0.0f);
     alphaTime(6, 0, 255);
-    rotateTime(36, 0, 0.0f, 6.2831855f, 0.0f);
-+36: // 36
+    rotateTime(40, 10, 0.0f, 6.2831855f, 0.35f);
++40: // 40
     alphaTime(10, 0, 0);
-+10: // 46
++10: // 50
     delete();
 }
