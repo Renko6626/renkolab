@@ -51,5 +51,10 @@ void ce_card_encode_row(const ce_card_def_t *d, uint32_t name_ptr, uint8_t row[C
  *   pool       = Σ_{weight∉{0,6}} (weight + 5)              ≤ CE_SHOP_POOL_SLOTS
  *   guaranteed = count(weight==0) + count(dmode∈1..5) + 6   ≤ CE_SHOP_OFFER_SLOTS
  * 返回 1；0 时 err 里说明哪条超了。pool / guaranteed 可为 NULL。*/
+/* 开发用权重覆盖（cards_dev.js 的 retail_weight / new_weight）：零售行 1..55 里 weight ∉ {0,6} 的改成 retail_weight，
+ * new_ids 里的行改成 new_weight；传 -1 表示不动。返回改了几行。6 = 永不进随机池，0 = 保底资源卡（不动）。*/
+unsigned ce_weight_override(uint8_t *table, unsigned nrows, int retail_weight, int new_weight,
+                            const uint32_t *new_ids, unsigned n_new);
+
 int  ce_shop_capacity_check(const uint8_t *table, unsigned nrows, unsigned *pool, unsigned *guaranteed,
                             char *err, unsigned cap);

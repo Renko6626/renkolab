@@ -29,6 +29,7 @@ local/
 │   ├── thpages/          ★ ExpHP 指令参考站源码(ANM 渲染管线/坐标系/MSG 指令表)
 │   ├── thtk/             thecl/thanm/thmsg/thstd/thdat;build/ 是本机编的 thanm+thdat(tooling/thtk/build.sh)
 │   ├── bisonflex/        免 sudo 解出来的 bison/flex/m4(.deb → dpkg -x),只给编 thanm 用
+│   ├── eclmap/           Priw8 的 ECL 指令名表（th18.eclm 等），thecl -m 用
 │   ├── truth/            ExpHP 现代重写(truanm 等,Apache-2.0);只借它的 map/ 当 anmmap 备份源
 │   ├── sht-webedit/      SHT 字节布局的社区事实标准
 │   ├── shmupcc-sht/      另一个 SHT 参考实现

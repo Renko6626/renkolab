@@ -100,6 +100,18 @@ DLL 装载时按合并后的表**现算**这三条，超了写 `FAIL:` 并把分
 `cards: 58 "测试卡牌" (TEST58) tier 5 weight 2 dmode 0 sprites 116/117`，再一行汇总
 `cards: N registered from cards.js; shop pool P/560 slots, guaranteed offers <= G/57`。
 
+## 5b. 开发环境（`_test` 的 `th18/cards_dev.js`）
+
+| 键 | 作用 |
+| --- | --- |
+| `start_deck` | 起手把空槽换成这些 id |
+| `trace` | 桩被调时记日志 |
+| `retail_weight` | 零售行 1–55 里 weight ∉ {0,6} 的全改成这个值；**6 = 退出随机池**（保底资源卡 weight 0 不动）。随机池总份数 ≤ 560，零售 56 张哪怕压到 1 也会爆表，所以「压低」只能做成退出 |
+| `new_weight` | 所有新卡的 weight 改成这个值（如 20 → 每张 25 份 + 未拥有 5 份）|
+
+覆盖在容量检查之前应用，日志 `cards_dev: … retail_weight=6 new_weight=20 (N rows changed)`。
+`_test` 还带 `st01.ecl` / `st01bs.ecl`（`assets/ecl/make_dev_ecl.py` 现场从零售反编译改出来的）：一关近乎空壳，logo → 对话 → 一发一阶段的 boss → 关底商店。
+
 ## 6. 卡图（放两张 PNG，其余交给 `assets/`）
 
 新卡行的 `+0x2c/+0x30` 就是 `abcard.anm` 的 sprite 索引。零售 `abcard.anm` 一手解包（thanm release 12，2026-09-04）：

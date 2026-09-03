@@ -15,7 +15,7 @@
 
 本地：`local/vendor/thtk`（**已编好** `build/thanm` `build/thdat`，`tooling/thtk/build.sh`）；
 `local/vendor/truth`（Apache-2.0，只借 `map/*.anmm` 当 anmmap 备份源；主用 thpages 的 `static/mapfile/v8.anmm`）。
-**ANM 编译只用标准 thanm**——产物要和社区生态互通，truanm 不用。
+ECL 指令名：`local/vendor/eclmap`（Priw8/eclmap，`eclmap/th18.eclm`）。**ANM 编译只用标准 thanm**——产物要和社区生态互通，truanm 不用。
 
 ✅ **关键事实:thtk 和 ExpHp 的 truth 都不解析 SHT**(thtk 只能用 thdat 从 .dat 里解出 `.sht`
 blob,不解析内部)。**不存在 `thsht` 这种官方工具**。网上"thsht 存符卡名"是错的(符卡名属 MSG)。

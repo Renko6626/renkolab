@@ -164,9 +164,10 @@ unsigned ce_dev_deck_count(void)      { return s_dev_deck_n; }
 uint32_t ce_dev_deck_id(unsigned i)   { return i < s_dev_deck_n ? s_dev_deck[i] : 0; }
 int      ce_dev_trace(void)           { return s_dev_trace; }
 
-static void load_dev_config(void)
+static void load_dev_config(uint8_t *cave, unsigned rows)
 {
     s_dev_deck_n = 0; s_dev_trace = 0;
+    int retail_w = -1, new_w = -1;
     json_t *root = p_stack_game_json_resolve("cards_dev.js", NULL);
     if (!root) return;
     if (root->type == J_OBJECT) {
@@ -182,10 +183,16 @@ static void load_dev_config(void)
         }
         const json_t *tr = p_json_object_get(root, "trace");
         s_dev_trace = tr && tr->type == J_TRUE;
+        const json_t *rw = p_json_object_get(root, "retail_weight");
+        if (rw && rw->type == J_INTEGER) retail_w = (int)p_json_integer_value(rw);
+        const json_t *nw = p_json_object_get(root, "new_weight");
+        if (nw && nw->type == J_INTEGER) new_w = (int)p_json_integer_value(nw);
     } else
         ce_log("cards_dev: cards_dev.js root is not an object — ignored");
     p_json_decref_safe(root);
-    ce_log("cards_dev: start_deck has %u ids, trace=%d", s_dev_deck_n, s_dev_trace);
+    unsigned changed = ce_weight_override(cave, rows, retail_w, new_w, s_ids, s_count);
+    ce_log("cards_dev: start_deck has %u ids, trace=%d, retail_weight=%d new_weight=%d (%u rows changed)",
+           s_dev_deck_n, s_dev_trace, retail_w, new_w, changed);
 }
 
 /* ---- 入口 ---- */
@@ -238,12 +245,12 @@ int ce_cards_load(uint8_t *base, uint8_t *cave, unsigned rows)
     p_json_decref_safe(root);
     if (!ok) { s_count = 0; return 0; }
 
+    load_dev_config(cave, rows);                 /* 权重覆盖要在容量检查之前 */
     unsigned pool = 0, guaranteed = 0;
     if (!ce_shop_capacity_check(cave, rows, &pool, &guaranteed, err, sizeof err)) {
         ce_verdict("FAIL: cards: %s", err); s_count = 0; return 0;
     }
     ce_log("cards: %u registered from cards.js; shop pool %u/%u slots, guaranteed offers <= %u/%u",
            s_count, pool, (unsigned)CE_SHOP_POOL_SLOTS, guaranteed, (unsigned)CE_SHOP_OFFER_SLOTS);
-    load_dev_config();
     return 1;
 }

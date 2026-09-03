@@ -68,6 +68,10 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 | ANM 特效 | 🔧 已有第一例：`ce_anm_spawn` + `assets/ability/`（反转牌 script68 亮牌），待实跑；透视真假当场看 | AUDIT O24；`engine/anm/th18/01-vm-instantiate.md` |
 | 更多事件 | 按需：击破、符卡开始 / 结束、擦弹… | 每个 = 一个断点 + AUDIT 一条 |
 
+## 2b. 开发辅助（`_test`）
+
+`make ecl`：st01 近乎空壳（`assets/ecl/make_dev_ecl.py`）；`cards_dev.js` 的 `retail_weight: 6` / `new_weight: 20` 让商店基本只出新卡。都只在 `_test`，正式包不受影响。
+
 ## 3. 工具链与验收（照旧）
 
 ```bash

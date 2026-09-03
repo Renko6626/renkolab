@@ -15,7 +15,7 @@ def refresh(patch_dir):
     for root, _dirs, names in os.walk(patch_dir):
         for name in sorted(names):
             rel = os.path.relpath(os.path.join(root, name), patch_dir).replace(os.sep, "/")
-            if rel == "files.js" or not rel.endswith((".js", ".anm")):
+            if rel == "files.js" or not rel.endswith((".js", ".anm", ".ecl")):
                 continue
             with open(os.path.join(root, name), "rb") as f:
                 out[rel] = zlib.crc32(f.read()) & 0xffffffff

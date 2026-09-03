@@ -1,4 +1,4 @@
-# tooling/thtk — 标准 thtk（thanm / thdat）编译与解包
+# tooling/thtk — 标准 thtk（thanm / thdat / thecl）编译与解包
 
 版本无关的资产工具链：把游戏 `.dat` 解开、把 `.anm` 反成 thanm spec + 贴图，
 以及（在 mod 侧）用 thanm 把改过的 spec 编回去。**只用标准 thtk**，不用 truanm——
@@ -42,6 +42,12 @@ local/<版本>/
 仓库的 `map/`（Apache-2.0），内容几乎一致（thpages 多一条 432 `slowdownImmune`）。
 
 ⚠️ **`thanm -c` 编译时必须用和 `-l` 同一份 anmmap**，否则助记符解析不了。
+
+## thecl（ECL）
+
+`thecl -d 18 -m local/vendor/eclmap/eclmap/th18.eclm x.ecl x.txt` 反编译、`-c` 编回；指令名靠 Priw8 的 eclmap
+（`git clone https://github.com/Priw8/eclmap local/vendor/eclmap`）。th18 的 `st01.ecl` / `st01bs.ecl` 往返字节一致（2026-09-04）。
+⚠️ 反编译文本里的字符串是 Shift-JIS，Python 处理要 `errors="surrogateescape"`。
 
 ## thanm 速查
 

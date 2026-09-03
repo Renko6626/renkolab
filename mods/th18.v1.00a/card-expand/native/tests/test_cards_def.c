@@ -143,8 +143,25 @@ static void test_capacity(void)
     CHECK(ce_shop_capacity_check(big, 51, &pool, &guaranteed, err, sizeof err));
 }
 
+static void test_weight_override(void)
+{
+    static uint8_t t[255 * CE_ROW_BYTES];
+    memset(t, 0, sizeof t);
+    #define W(id) (*(uint32_t *)(t + (id) * CE_ROW_BYTES + 0x14))
+    W(1) = 2; W(2) = 0; W(3) = 6; W(55) = 4; W(56) = 2; W(57) = 2; W(58) = 2; W(59) = 0;
+    uint32_t ids[2] = { 58, 59 };
+    CHECK(ce_weight_override(t, 255, 6, 20, ids, 2) == 3);    /* 1、55、58 */
+    CHECK(W(1) == 6 && W(55) == 6);
+    CHECK(W(2) == 0 && W(3) == 6);                                     /* 保底 / 已排除 不动 */
+    CHECK(W(56) == 2 && W(57) == 2);                                   /* 哨兵不动 */
+    CHECK(W(58) == 20 && W(59) == 0);                                  /* 新卡改，weight 0 的新卡不动 */
+    CHECK(ce_weight_override(t, 255, -1, -1, ids, 2) == 0);   /* -1 = 不动 */
+    #undef W
+}
+
 int main(void)
 {
+    test_weight_override();
     test_defaults();
     test_text_ok();
     test_validate();

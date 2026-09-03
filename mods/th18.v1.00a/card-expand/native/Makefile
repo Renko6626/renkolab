@@ -2,7 +2,7 @@
 ROWS ?= 255
 PATCH := ../patch/th18.v1.00a.js
 
-.PHONY: all check gen verify files clean test-host anm anm-verify
+.PHONY: all check gen verify files clean test-host anm anm-verify ecl
 
 all: gen verify test-host dll
 
@@ -22,6 +22,10 @@ check: anm-verify
 anm:
 	python3 ../assets/build_abcard.py
 	python3 ../assets/build_ability.py
+
+## ecl    —— 开发辅助：st01 近乎空壳（道中删除、boss 一发一阶段）→ build/ecl/，只进 _test
+ecl:
+	python3 ../assets/ecl/make_dev_ecl.py
 
 ## anm-verify —— 只校验（build/abcard.anm 已存在）：entry 数 / 原贴图逐张一致 / 新 entry 字段 / JSON 索引
 anm-verify:
@@ -93,13 +97,14 @@ dllverify: $(DLL)
 ## dist —— 在 ../dist/ 摆出可直接安装的整套：一个 DLL + patch-step1 / patch-step3 / patch-test
 ##         （dist/ 已 gitignore：DLL 是构建产物，不入库；随时 make dist 重建）
 DIST := ../dist
-dist: anm
+dist: anm ecl
 	rm -rf $(DIST) && mkdir -p $(DIST)/bin $(DIST)/patch-step1 $(DIST)/patch-step3 $(DIST)/patch-test
 	$(MAKE) -s ROWS=58  gen dll files >/dev/null
 	cp $(DLL) $(DIST)/bin/ && cp ../patch/*.js $(DIST)/patch-step1/ && cp -r ../patch-test/. $(DIST)/patch-test/
 	$(MAKE) -s ROWS=255 gen files >/dev/null
 	cp -r ../patch/. $(DIST)/patch-step3/
 	cp build/abcard.anm build/ability.anm $(DIST)/patch-step3/th18/ && python3 mkfiles.py $(DIST)/patch-step3 >/dev/null
+	cp build/ecl/st01.ecl build/ecl/st01bs.ecl $(DIST)/patch-test/th18/ && python3 mkfiles.py $(DIST)/patch-test >/dev/null
 	cp ../DIST-README.txt $(DIST)/README.txt
 	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test README.txt
 	@echo "dist/ 就绪："; ls $(DIST)

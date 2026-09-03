@@ -26,6 +26,8 @@ MAP = {                                   # dist 里的 → modkit 里的
     "patch-step3/th18/ability.anm": "thcrap/repos/Renko_1055/th18_card_expand_255/th18/ability.anm",
     "patch-test/th18.v1.00a.js":  "thcrap/repos/Renko_1055/th18_card_expand_test/th18.v1.00a.js",
     "patch-test/th18/cards_dev.js": "thcrap/repos/Renko_1055/th18_card_expand_test/th18/cards_dev.js",
+    "patch-test/th18/st01.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st01.ecl",
+    "patch-test/th18/st01bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st01bs.ecl",
     "bin/th18_card_expand.dll":   "mods/th18_card_expand.dll",
 }
 PATCH_DIRS = ("th18_card_expand", "th18_card_expand_255", "th18_card_expand_test")
@@ -66,7 +68,7 @@ def main():
         for root, _dirs, names in os.walk(d):           # 递归：th18/cards.js 这类子目录文件也要进清单
             for n in sorted(names):
                 rel = os.path.relpath(os.path.join(root, n), d).replace(os.sep, "/")
-                if rel.endswith((".js", ".anm")) and rel != "files.js":
+                if rel.endswith((".js", ".anm", ".ecl")) and rel != "files.js":
                     out[rel] = zlib.crc32(open(os.path.join(root, n), "rb").read()) & 0xffffffff
         out = dict(sorted(out.items()))
         f = os.path.join(d, "files.js")

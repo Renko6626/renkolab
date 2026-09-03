@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 一键编标准 thtk（thanm + thdat）到 local/vendor/thtk/build/。
+# 一键编标准 thtk（thanm + thdat + thecl）到 local/vendor/thtk/build/。
 #
 #   bash tooling/thtk/build.sh          # 幂等，可重跑
 #
@@ -57,9 +57,9 @@ if [ ! -f "$BUILD/CMakeCache.txt" ]; then
     (cd "$BUILD" && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF "${CMAKE_EXTRA[@]}" > cmake.log 2>&1) \
         || { echo "!! cmake 失败，见 $BUILD/cmake.log" >&2; exit 1; }
 fi
-(cd "$BUILD" && make -j"$JOBS" thanm thdat > make.log 2>&1) \
+(cd "$BUILD" && make -j"$JOBS" thanm thdat thecl > make.log 2>&1) \
     || { echo "!! make 失败，见 $BUILD/make.log" >&2; exit 1; }
 
 echo ">> 产物："
-ls -la "$BUILD/thanm/thanm" "$BUILD/thdat/thdat"
+ls -la "$BUILD/thanm/thanm" "$BUILD/thdat/thdat" "$BUILD/thecl/thecl"
 "$BUILD/thanm/thanm" -V

@@ -111,3 +111,27 @@ int ce_shop_capacity_check(const uint8_t *table, unsigned nrows, unsigned *pool,
     }
     return 1;
 }
+
+
+/* ── 开发用权重覆盖 ──────────────────────────────────────────────── */
+unsigned ce_weight_override(uint8_t *table, unsigned nrows, int retail_weight, int new_weight,
+                            const uint32_t *new_ids, unsigned n_new)
+{
+    unsigned changed = 0;
+    if (retail_weight >= 0 && retail_weight <= 255) {
+        for (unsigned id = 1; id < 56 && id < nrows; ++id) {           /* 0 空白卡、56/57 哨兵不动 */
+            uint32_t *w = (uint32_t *)(table + id * CE_ROW_BYTES + 0x14);
+            if (*w == 0 || *w == 6) continue;                           /* 保底资源卡 / 本来就不进池 */
+            if (*w != (uint32_t)retail_weight) { *w = (uint32_t)retail_weight; ++changed; }
+        }
+    }
+    if (new_weight >= 0 && new_weight <= 255) {
+        for (unsigned i = 0; i < n_new; ++i) {
+            if (new_ids[i] >= nrows) continue;
+            uint32_t *w = (uint32_t *)(table + new_ids[i] * CE_ROW_BYTES + 0x14);
+            if (*w == 0 || *w == 6) continue;
+            if (*w != (uint32_t)new_weight) { *w = (uint32_t)new_weight; ++changed; }
+        }
+    }
+    return changed;
+}

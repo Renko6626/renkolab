@@ -20,7 +20,7 @@ unset _renkolab_root _renkolab_env
 # ── thtk（thanm / thdat / anmmap）——与 Ghidra 无关，纯 bash 探测 ────────────
 # PATH 里有就用 PATH 的；否则用 tooling/thtk/build.sh 编在 local/vendor/thtk/build/ 的。
 _renkolab_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-for _t in thanm thdat; do
+for _t in thanm thdat thecl; do
     _p="$(command -v "$_t" 2>/dev/null || true)"
     [ -z "$_p" ] && [ -x "$_renkolab_root/local/vendor/thtk/build/$_t/$_t" ] && _p="$_renkolab_root/local/vendor/thtk/build/$_t/$_t"
     if [ -n "$_p" ]; then
