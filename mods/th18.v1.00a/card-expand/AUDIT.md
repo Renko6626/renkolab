@@ -427,7 +427,7 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 | O19 | 绑定时把被动对象改成主动的写法与零售等价 | **CONFIRMED** —— 见下「O19 证据」 |
 | O20 | SDK 的 c_press / 状态机 / 重置与 Tenshi 模板逐条对应 | **CONFIRMED** —— 见下「O20 证据」 |
 | O21 | 反转牌扫子弹池的范围与字段 | **CONFIRMED** —— 见下「O21 证据」 |
-| O22 | `ce_play_sound` 的内联汇编 | **CONFIRMED** —— `0x476c70`：`mov edx,[ebp+8]` 取 id、`mulss xmm2` 取声像 x、尾 `ret 4` → stdcall(id) + xmm2。内联：`movss x,xmm2; push id; call`，不清栈；clobber 列出全部 caller-saved 通用与 xmm 寄存器；`reverse.o` objdump 与之一致。这是 SDK 里唯一一处内联汇编 |
+| O22 | `ce_play_sound` 的内联汇编（SDK 里唯一一处）| **CONFIRMED** —— 见下「O22 证据」 |
 | O18 | 壶不会抽到自己 / 无限递归 | **CONFIRMED** —— 排除表里放自己的表行（`pick` 按 `entry->id` 排除，`0x4170e6`）；再加静态深度护栏（嵌套 > 0 直接返回 1）；随机走商店自己的 `pick`，RNG 与商店同源 |
 
 **O1 证据**：尾段 `0x412cec mov [esi+4],ebx`（`89 5e 04`）紧接 `0x412cef mov eax,[edi+0x28]`（`8b 47 28`），都无相对寻址。
@@ -475,6 +475,9 @@ state 2 清 0x20、`+0x24 > 8` 回 0；末尾门控下 `Timer__increment(+0x20)`
 ExpHP `zBullet.state = +0xf68` ⇒ 第 0 张在 `mgr + 0x5a8 + 0xaac − 0xf68 = mgr + 0xec`（= ExpHP 的 `list_0_tail_dummy_bullet`），
 `bullets[0x7d0]` 紧随其后（`0xec + 0xfa0 = 0x108c` ✓）。`velocity +0x644 / speed +0x650 / angle +0x654`：`Bullet__on_tick` `0x423f1f..` 用 velocity 推位置，
 `0x424083` 从 speed/angle 经 `0x429bc0`（`fsincos`）重算 velocity，`0x4241b8..0x424227` 把 angle 归一到 (−π, π]。反转两边都翻，与任一路径自洽。
+
+**O22 证据**：`0x476c70`：`mov edx,[ebp+8]` 取 id、`mulss xmm2,…` 取声像 x、尾 `ret 4` → stdcall(id) + xmm2。
+内联：`movss x,xmm2; push id; call`，不清栈；clobber 列出全部 caller-saved 通用寄存器与 xmm0–7；`reverse.o` objdump 与之一致。
 
 **未实跑。** 各卡的验收在 [`NEXT.md`](NEXT.md) §1。
 
