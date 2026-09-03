@@ -68,7 +68,8 @@ static int game_running(void)
     return gui && *(int32_t *)(gui + CE_GUI_MSG) == 0 && em && *(int32_t *)(em + CE_EM_ENEMY_COUNT) != 0;
 }
 
-typedef void (__attribute__((thiscall)) *ce_fn_timer_t)(void *timer);
+/* ★ 两个 Timer 函数尾是 `ret 4`：thiscall + 一个没用到的栈参（Tenshi 调用前 push ecx）。少压这 4 字节会把调用方的栈撕掉——第一版就是这么崩的（AUDIT O23）。*/
+typedef void (__attribute__((thiscall)) *ce_fn_timer_t)(void *timer, uint32_t unused);
 
 int ce_sdk_c_press(void *self, const ce_hooks_t *h)
 {
@@ -101,7 +102,7 @@ void ce_sdk_active_tick(void *self, const ce_hooks_t *h)
     switch (a->state) {
     case 0:
         *(uint32_t *)(card + CE_CARD_FLAGS) &= ~(uint32_t)CE_FLAG_FIRING;
-        if (running && rc->cur > 0) ((ce_fn_timer_t)CE_FN_TIMER_DECREMENT)(rc);
+        if (running && rc->cur > 0) ((ce_fn_timer_t)CE_FN_TIMER_DECREMENT)(rc, 0);
         break;
     case 1:
         if (!h->on_active_tick || !h->on_active_tick((ce_card_t *)card, (uint32_t)el->cur)) {
@@ -114,7 +115,7 @@ void ce_sdk_active_tick(void *self, const ce_hooks_t *h)
         if (el->cur > 8) a->state = 0;
         break;
     }
-    if (running) ((ce_fn_timer_t)CE_FN_TIMER_INCREMENT)(el);
+    if (running) ((ce_fn_timer_t)CE_FN_TIMER_INCREMENT)(el, 0);
 }
 
 void ce_sdk_active_reset(void *self, const ce_hooks_t *h, int clear_recharge)

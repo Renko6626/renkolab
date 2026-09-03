@@ -125,7 +125,8 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 | `PLAYER_PTR` | `0x4cf410` | 移速倍率 `+0x477ec`、无敌 zTimer `+0x47774`、道具回收四参 `+0x47988..94`、状态机 `+0x476ac`、聚焦 `+0x476cc` |
 | 自机弹 | `bullet+0x9c` | int 伤害（`PlayerBullet__create` 写；`CardMomoyo` 覆写）|
 
-辅助函数随卡长出来（方案 3 的约定：先在卡里写，出现第二次就提炼进 `sdk.h`）。已有的（`sdk.h`，调用约定一手，AUDIT O16）：
+辅助函数随卡长出来（方案 3 的约定：先在卡里写，出现第二次就提炼进 `sdk.h`）。已有的（`sdk.h`，调用约定一手，AUDIT O16）。
+**加新的引擎调用前必看它全部 `ret N` 出口**——`Timer__*` 是 `ret 4` 却看着像无参 thiscall，第一版就栽在这（AUDIT O23）：
 
 | 函数 | 干什么 | 引擎侧 |
 | --- | --- | --- |
@@ -133,7 +134,8 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 | `ce_shop_pick_random(lo, hi, exclude[], n)` | 按商店随机池的规则抽一张（未拥有、本关可用、按权重、游戏 RNG）| `pick_weighted_random_offer` `0x416f50` fastcall(ecx=out, edx=lo; hi, exclude, n) `ret 0xc` |
 | `ce_table_entry(id)` / `ce_entry_id(e)` | 表行（ctor 里 `card+0x4c` 还没写，用这个）| `TableCardData__get` `0x407d70` fastcall(ecx=id) |
 | `ce_log(fmt, …)` | 一行进 `th18_card_expand.log` | — |
-| `ce_play_sound(id, x)` | 音效，x = 世界 x（声像）| `0x476c70` stdcall(id) + xmm2 |
+| `ce_play_sound(id, x)` | 音效，x = 世界 x（声像）| `0x476c70` stdcall(id) + xmm2 `ret 4` |
+| （SDK 内部）`Timer__decrement / increment` | 充能 / 经过帧 | `0x409750` / `0x405990` thiscall(zTimer*, 未用栈参) **`ret 4`** |
 | `CE_BULLET_MGR()` + `CE_BM_*` / `CE_BULLET_*` | 子弹池：2000 张，起点 `+0xec`，stride `0xfa0`，状态 `+0xf68`，`velocity/speed/angle` `+0x644/+0x650/+0x654` | `cancel_all` `0x4297a0` 的扫法 + ExpHP 结构 |
 
 ## 6. SDK 事件（虚表之外）

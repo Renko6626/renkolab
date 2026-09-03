@@ -49,3 +49,5 @@
 
 每条 claim 标 **CONFIRMED（一手，附地址）/ REFUTED（附反证）/ OPEN（说清缺什么）**。
 只解开了某个分支，别写成「整个问题已解」。
+
+- [ ] **调引擎函数**：看过它**全部** `ret N` 出口（不是只看序言）？栈参个数、`this` 在 ecx 还是 edx、xmm 传参、被调方是否清栈，各写一行证据。（card-expand AUDIT O23：`ret 4` 当成无参调，崩在下一个 UpdateFunc）
