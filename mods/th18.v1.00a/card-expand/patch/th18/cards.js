@@ -28,5 +28,12 @@
     "desc": ["Miss 后的无敌时间 +50％。", "德州扑克・皇家同花顺之一。"],
     "internal_name": "SPADE_A",
     "initial_unlocked": 1, "price_tier": 9, "weight": 2, "sprite_large": 116, "sprite_small": 117
+  },
+  "63": {
+    "name": "强欲之壶",
+    "desc": ["购买时立刻获得两张随机卡牌。", "壶本身不会进入卡组。", "致敬・游戏王。"],
+    "internal_name": "POT_OF_GREED",
+    "initial_unlocked": 1, "deck_visible": 0, "repeatable": 1, "hud_show": 0,
+    "price_tier": 10, "weight": 2, "sprite_large": 116, "sprite_small": 117
   }
 }

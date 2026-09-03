@@ -125,7 +125,14 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 | `PLAYER_PTR` | `0x4cf410` | 移速倍率 `+0x477ec`、无敌 zTimer `+0x47774`、道具回收四参 `+0x47988..94`、状态机 `+0x476ac`、聚焦 `+0x476cc` |
 | 自机弹 | `bullet+0x9c` | int 伤害（`PlayerBullet__create` 写；`CardMomoyo` 覆写）|
 
-辅助函数随卡长出来（方案 3 的约定：先在卡里写，出现第二次就提炼进 `sdk.h`）。第一批五张各写各的，还没有一个动作出现两次。
+辅助函数随卡长出来（方案 3 的约定：先在卡里写，出现第二次就提炼进 `sdk.h`）。已有的（`sdk.h`，调用约定一手，AUDIT O16）：
+
+| 函数 | 干什么 | 引擎侧 |
+| --- | --- | --- |
+| `ce_give_card(id, mode, notify)` | 给玩家一张卡 = 商店成交的两步 | `allocate_new_card(mgr; id, mode)` `0x411460` thiscall `ret 8` + `mark_obtained(id, notify)` `0x418de0` fastcall |
+| `ce_shop_pick_random(lo, hi, exclude[], n)` | 按商店随机池的规则抽一张（未拥有、本关可用、按权重、游戏 RNG）| `pick_weighted_random_offer` `0x416f50` fastcall(ecx=out, edx=lo; hi, exclude, n) `ret 0xc` |
+| `ce_table_entry(id)` / `ce_entry_id(e)` | 表行（ctor 里 `card+0x4c` 还没写，用这个）| `TableCardData__get` `0x407d70` fastcall(ecx=id) |
+| `ce_log(fmt, …)` | 一行进 `th18_card_expand.log` | — |
 
 ## 6. SDK 事件（虚表之外）
 
@@ -149,6 +156,7 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 | A♠ Miss 后无敌 +50% | 62 | `on_tick_2` | 无敌 zTimer `player+0x47774`；复活把它置成 {prev 279, cur 280, 280.0}，这个组合只在刚置好那一帧出现 → 改成 420。`+0x14` 槽在复活置值**之前**触发，所以不用它 | ✅ 已反（AUDIT O8）|
 
 数值（`price_tier` / `weight` / sprite）在 `patch/th18/cards.js` 里给（`_255` 自带的卡池，`initial_unlocked: 1`）；sprite 先全用 116/117 占位。
+已实装卡的总表在 [`CARDS.md`](CARDS.md)（含 63 强欲之壶：第一张**即时卡**，`ctor` 里 `ce_shop_pick_random` ×2 → `ce_give_card` → `return 1` 当场销毁；`deck_visible: 0`）。
 「皇家同花顺」（五张齐 → 隐藏效果）不在本批：接缝是购买 `AbilityShop__on_tick` `0x4185c7` + `owned[]`。
 
 ## 8. 开发循环
@@ -166,6 +174,7 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 
 ## 9. 边界与不做的
 
+- 即时卡：`ctor` / `dtor` 里施加效果后 `return 1`（零售同款）；这种卡 `deck_visible: 0`（mode 1 不调 ctor，初始携带会是死卡）。ctor 里可以再调 `allocate_new_card`（AUDIT O17）。
 - 主动卡（C 键、充能、HUD、replay）：第二批，SDK 加「主动卡基类」。
 - 对象大小固定 0x54：要更大对象的卡走第 4 节的私有状态，不改分配。
 - 事件断点每个都要过 AUDIT；本批只加一个。

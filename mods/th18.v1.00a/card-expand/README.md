@@ -4,7 +4,7 @@
 
 把 `zTableCardData[]` 从 `.data` 搬进 codecave，为「加新卡」腾出行数。
 **「加一张卡到底改了什么」的追溯表在 [`MAP.md`](MAP.md)**——150 条 binhack、7 个断点、5 个 codecave 各自的出处。
-**想加一张卡：读 [`DATA.md`](DATA.md)**（登记，JSON）和 **[`SDK.md`](SDK.md)**（行为，C）。
+**想加一张卡：读 [`DATA.md`](DATA.md)**（登记，JSON）和 **[`SDK.md`](SDK.md)**（行为，C）；已有的卡在 [`CARDS.md`](CARDS.md)。
 方案全貌见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)，
 边界依据见 [`engine/card/th18/11-sentinels-56-57.md`](../../../engine/card/th18/11-sentinels-56-57.md)。
 
@@ -282,6 +282,7 @@ card-expand/
 ├── README.md          # 你在这
 ├── DATA.md            # ★ 怎么用 th18/cards.js 登记一张新卡
 ├── SDK.md             # ★ 怎么给一张卡写行为（C）
+├── CARDS.md           # ★ 已实装的卡：id / 效果 / 实现 / 状态
 ├── NEXT.md            # ★ 下一个会话从这里开始
 ├── MAP.md             # ★ 追溯表:一张卡要经过的 10 段路,每条 binhack/断点/codecave 的出处
 ├── TARGET.md          # ★ 死绑登记
@@ -304,7 +305,7 @@ card-expand/
 │   ├── sdk.h engine.h ★ 行为 SDK:CE_CARD 宏 / 桩 / 引擎地址
 │   ├── sdk_core.h/.c  注册表 / 对账 / 状态槽(主机单测)
 │   ├── sdk.c          ★ 断点 ce_card_bind / ce_item_score、门里守卫与对账
-│   ├── cards/         每张行为卡一个 .c(黑桃 s10 sj sq sk sa)
+│   ├── cards/         每张行为卡一个 .c(黑桃 s10 sj sq sk sa、pot 强欲之壶)
 │   ├── menu.c         战线 E 第二块:顺序表重排 + 图鉴条目数 + 站点核对
 │   ├── bp_trace.c     测试断点:记录 allocate_new_card(id, mode);新 id 顺手 mark_obtained
 │   ├── thcrap_bp.h    断点 ABI(与 mouse-control 同一份)

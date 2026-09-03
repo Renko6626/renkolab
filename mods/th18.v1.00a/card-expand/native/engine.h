@@ -74,5 +74,15 @@ typedef struct { int32_t prev; int32_t cur; float cur_f; } ce_timer_t;   /* zTim
 #define CE_PLAYER_INVULN()   ((ce_timer_t *)(CE_PLAYER() + CE_PLAYER_INVULN_TIMER))
 #define CE_RESPAWN_INVULN_FRAMES   0x118      /* 280 */
 
+/* ---- 可从卡里调的引擎函数（调用约定一手：SDK.md / AUDIT §O16）---- */
+#define CE_FN_ALLOCATE_NEW_CARD    0x411460   /* thiscall(mgr; id, mode)：mode 0 道具 / 1 存档 / 2 购买 / 3 replay；返回 num_total，-1 = 拒 */
+#define CE_FN_MARK_OBTAINED        0x418de0   /* fastcall(id, notify)：置解锁位（本 mod 的断点把新 id 转进影子 + side-car）*/
+#define CE_FN_TABLE_GET            0x407d70   /* fastcall(id) → zTableCardData*；未命中回落 NULL 行 */
+#define CE_FN_SHOP_PICK_RANDOM     0x416f50   /* fastcall(out*, tier_lo; tier_hi, exclude[], n)：商店随机池抽一张（未拥有、本关可用、按权重、游戏 RNG）；返回非 0 = 抽到，*out = 表行 */
+#define CE_MODE_ITEM    0
+#define CE_MODE_SAVE    1
+#define CE_MODE_SHOP    2
+#define CE_MODE_REPLAY  3
+
 /* ---- zPlayerBullet ---- */
 #define CE_BULLET_DAMAGE           0x9c       /* int；PlayerBullet__create 0x45e396 写、0x45e7f5 调槽 +0x28、0x45e837 用；Momoyo 覆写（SDK）*/

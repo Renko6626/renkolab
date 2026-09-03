@@ -43,6 +43,34 @@ typedef struct {
     void (*on_item_money)(ce_card_t *, int32_t *bonus);          /* 金钱道具入账（MONEY += 1）之前：*bonus 是额外要加的钱，MONEY 与 MONEY_TOTAL 一起加 */
 } ce_hooks_t;
 
+/* ---- 引擎调用（薄包装，签名见 engine.h）---- */
+typedef int      (__attribute__((thiscall)) *ce_fn_alloc_t)(void *mgr, uint32_t id, uint32_t mode);
+typedef void     (__attribute__((fastcall)) *ce_fn_mark_t)(uint32_t id, uint32_t notify);
+typedef uint8_t *(__attribute__((fastcall)) *ce_fn_table_get_t)(uint32_t id);
+typedef int      (__attribute__((fastcall)) *ce_fn_pick_t)(uint8_t **out, int tier_lo, int tier_hi, uint8_t **exclude, int n);
+
+/* 给玩家一张卡（= 商店成交的两步：allocate_new_card(mode) + mark_obtained）。返回 allocate 的返回值。*/
+static inline int ce_give_card(uint32_t id, uint32_t mode, uint32_t notify)
+{
+    void *mgr = CE_ABILITY_MGR();
+    if (!mgr) return -1;
+    int r = ((ce_fn_alloc_t)CE_FN_ALLOCATE_NEW_CARD)(mgr, id, mode);
+    ((ce_fn_mark_t)CE_FN_MARK_OBTAINED)(id, notify);
+    return r;
+}
+/* 表行（不依赖 card+0x4c：ctor 里它还没写）*/
+static inline uint8_t *ce_table_entry(uint32_t id) { return ((ce_fn_table_get_t)CE_FN_TABLE_GET)(id); }
+#define ce_entry_id(e)  (*(uint32_t *)((e) + 0x04))
+/* 商店随机池抽一张（价格档 [lo, hi]，exclude 里的表行不抽）；返回表行或 NULL */
+static inline uint8_t *ce_shop_pick_random(int tier_lo, int tier_hi, uint8_t **exclude, int n)
+{
+    uint8_t *e = 0;
+    return ((ce_fn_pick_t)CE_FN_SHOP_PICK_RANDOM)(&e, tier_lo, tier_hi, exclude, n) ? e : 0;
+}
+
+/* 日志（card_expand.h 的 ce_log，卡里也能用：th18_card_expand.log 一行）*/
+void ce_log(const char *fmt, ...);
+
 /* sdk.c */
 void ce_sdk_trace(uint32_t id, unsigned slot, const char *name);   /* trace 开着才记；每张卡每槽记第一次 */
 void ce_sdk_register_or_log(const ce_behavior_t *b);
