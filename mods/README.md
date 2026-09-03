@@ -2,6 +2,7 @@
 
 > **动手前先读 [`thcrap-platform.md`](thcrap-platform.md)**：改动住在 patch 还是 DLL、
 > asm 怎么变成 codecave、怎么分发。选错路线的代价比写错代码大。
+> 然后读 [`LESSONS.md`](LESSONS.md)：card-expand 一线踩过的坑（ABI、对象模型、时序、自检、崩溃日志怎么读）。
 
 **版本为主，死绑 build。** 一个 mod 的每个写入点都是「某个 exe 的某个地址上的某几个字节」——
 换一个 build 就全部作废。所以目录第一层是版本，不是 mod 名：

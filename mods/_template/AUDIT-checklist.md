@@ -5,6 +5,10 @@
 
 ## A. ABI / 栈平衡（★ 最易错，历史上唯一的真 BLOCKER 出在这）
 
+- [ ] 调用的**每一个**引擎函数（cave 或 DLL 都算），看过它**全部** `ret N` 出口，不是只看序言？
+      栈参个数、`this` 在 ecx 还是 edx、xmm 传参、被调方是否清栈，各写一行证据。
+      反例：`Timer__decrement` 看着是无参 thiscall，其实 `ret 4`（零售调它前 `push ecx`）——少压 4 字节，
+      崩在调用方的下一个间接调用（card-expand AUDIT O23）。
 - [ ] cave 调用的**每一个**引擎函数，查明调用约定：结尾是 `RET imm`（stdcall，callee 清栈）
       还是 `RET`（cdecl，caller 清栈）？逐个列出地址与结论。
 - [ ] 交叉验：**引擎自己**怎么调这个函数？调用点后面有没有 `add esp`？
@@ -28,6 +32,8 @@
 
 - [ ] 每个结构偏移都能回指 `engine/` 里的一手文档（有地址）？
 - [ ] 池 / 数组的算式（base + idx\*stride）与一手文档一致？有没有多减少加一？
+- [ ] 复用引擎对象时，**对象大小**够引擎写的全部字段吗？（派生类各 case 自己 `new` 自己的大小；基类 0x54 放不下 `+0x54` 的 state——放 DLL 侧）
+- [ ] 每帧写的量：写入点所在 UpdateFunc 的**优先级**在「引擎复位它之后、读它之前」吗？（移速倍率只能在 AbilityManager tick 里写，card-expand AUDIT O7）
 - [ ] 空指针路径：被重指的槽若原值为 0，引擎是否会 `call 0`？找到派发点确认它有 `if (ptr) call; else ...`。
 - [ ] 释放后使用（UAF）：cave 若自释放，返回值语义是否让调用方**不再碰**该槽？
 
@@ -50,4 +56,3 @@
 每条 claim 标 **CONFIRMED（一手，附地址）/ REFUTED（附反证）/ OPEN（说清缺什么）**。
 只解开了某个分支，别写成「整个问题已解」。
 
-- [ ] **调引擎函数**：看过它**全部** `ret N` 出口（不是只看序言）？栈参个数、`this` 在 ecx 还是 edx、xmm 传参、被调方是否清栈，各写一行证据。（card-expand AUDIT O23：`ret 4` 当成无参调，崩在下一个 UpdateFunc）

@@ -5,6 +5,7 @@
 把 `zTableCardData[]` 从 `.data` 搬进 codecave，为「加新卡」腾出行数。
 **「加一张卡到底改了什么」的追溯表在 [`MAP.md`](MAP.md)**——150 条 binhack、7 个断点、5 个 codecave 各自的出处。
 **想加一张卡：读 [`DATA.md`](DATA.md)**（登记，JSON）和 **[`SDK.md`](SDK.md)**（行为，C）；已有的卡在 [`CARDS.md`](CARDS.md)。
+踩过的坑与方法论总结在 [`../../LESSONS.md`](../../LESSONS.md)。
 方案全貌见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)，
 边界依据见 [`engine/card/th18/11-sentinels-56-57.md`](../../../engine/card/th18/11-sentinels-56-57.md)。
 

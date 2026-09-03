@@ -81,6 +81,8 @@ make release PUSH=1
 
 ## 4. 别忘了
 
+- 先读 [`../../LESSONS.md`](../../LESSONS.md)——ABI / 对象模型 / 时序 / 自检 / 崩溃日志的经验都在那。
+
 - 自检门是断点 `ce_gate`，**不要用 `*_mod_post_init`**（AUDIT §H′）。
 - **「编译器把什么放在哪一格」的假设都要从上下文重取**（AUDIT §K′、§M6、§O1）。
 - 移速类效果只能写 `on_tick_2`（AbilityManager tick 先于 Player tick）；`on_tick` 在复位之前（O7）。
