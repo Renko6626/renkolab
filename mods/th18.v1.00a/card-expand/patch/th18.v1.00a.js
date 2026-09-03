@@ -971,6 +971,18 @@
       "cavesize": 6,
       "expected": "69c3c0010000",
       "title": "文案重定向 → BP_ce_text_notify：id<57 照算 id*0x1c0，否则指向 DLL 的扩展文案缓冲（获得通知：imul eax, ebx, 0x1c0）"
+    },
+    "ce_card_bind": {
+      "addr": "0x412cec",
+      "cavesize": 6,
+      "expected": "895e048b4728",
+      "title": "行为 SDK → BP_ce_card_bind：allocate_new_card 公共尾段 mov [esi+4],ebx（esi=卡对象, ebx=id）+ mov eax,[edi+0x28]：登记了行为的 id 换虚表"
+    },
+    "ce_item_score": {
+      "addr": "0x446cf6",
+      "cavesize": 6,
+      "expected": "8d872c0c0000",
+      "title": "行为 SDK → BP_ce_item_score：collect_money_item：esi=道具身价，弹窗与计分之前；沿卡链表调 on_item_score(&esi)"
     }
   }
 }

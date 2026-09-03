@@ -689,34 +689,42 @@ def verify_unlock_binhack(name, bh, text, text_va):
     return bad
 
 
+# ---- 行为 SDK（SDK.md §1、§6）：两个断点 ----
+SDK_SITES = [
+    ("ce_card_bind",  0x412cec, 6, "895e048b4728",
+     "allocate_new_card 公共尾段 mov [esi+4],ebx（esi=卡对象, ebx=id）+ mov eax,[edi+0x28]：登记了行为的 id 换虚表"),
+    ("ce_item_score", 0x446cf6, 6, "8d872c0c0000",
+     "collect_money_item：esi=道具身价，弹窗与计分之前；沿卡链表调 on_item_score(&esi)"),
+]
+
+
+def emit_sdk_breakpoints(text, text_va):
+    out = {}
+    for name, va, n, exp, title in SDK_SITES:
+        raw = text[va - text_va:va - text_va + n]
+        if raw.hex() != exp:
+            raise ShapeError("%s @ 0x%06x：exe 里是 %s，表里写的是 %s" % (name, va, raw.hex(), exp))
+        out[name] = {"addr": "0x%06x" % va, "cavesize": n, "expected": exp, "title": "行为 SDK → BP_%s：%s" % (name, title)}
+    return out
+
+
 def emit_test_patch():
     """patch-test：只在验证战线 B 时进栈。两个钩子：
 
     ① 0x407ee3 `movzx eax, byte [eax+esi+0x5f608]`（8 字节，reset_cards 读初始卡组的一格）
-       → `call [cave]` + 3 nop；cave 里执行原指令，然后 **空槽(56) 改成 58**。
-       不写存档、不改任何文件；卡组编成里把第一格清空，开局就会分配一张 id 58。
-       flags：原 movzx 不设 flags，cave 里的 cmp 设了；紧接着是 push eax; call —— 无人读 flags。
+       挂断点 → BP_ce_test_deck：空槽(56) 依次换成 cards_dev.js `start_deck` 里的 id（默认 58）。
+       不写存档、不改任何文件；卡组编成里把前几格清空，开局就会分配这些卡。
     ② 0x411469 `cmp [edi+0x28], 0x100`（7 字节）挂 thcrap 断点 → BP_ce_trace_alloc
        把每次 allocate_new_card(id, mode) 记进日志。定论用它，不靠肉眼。
     """
-    # 空槽改发的 id 从 codecave `th18_ce_test_id` 读（一个 dword），改 patch 里那一个字节
-    # 就能测别的 id（战线 C 之后 59..254 都合法）。
-    cave = ("0fb6843008f60500"       # movzx eax, byte [eax+esi+0x5f608]  ← 原指令原样
-            "83f838"                 # cmp eax, 0x38
-            "7505"                   # jne +5 (跳过 5 字节的 mov eax,[imm32])
-            "a1<codecave:th18_ce_test_id>"   # mov eax, [test_id]
-            "c3")                    # ret
+    # 初始卡组钩子改为断点（无手写机器码）：BP_ce_test_deck 执行原 movzx 的语义，读到空槽(56) 且
+    # cards_dev.js 的 start_deck 还有 id 就换成下一个；返回 0 跳过原指令。esi = 槽序号（0 起）、eax = 存档偏移基。
     return {
-        "codecaves": {"th18_ce_test_deck58": {"code": cave, "access": "RX",
-                      "title": "测试：初始卡组的空槽(56) → th18_ce_test_id 里的 id"},
-                      "th18_ce_test_id": {"code": "3a000000", "access": "RW",
-                      "title": "测试：空槽改发哪个 id（默认 0x3a = 58；改这个 dword 测 59..254）"}},
-        "binhacks": {"test_deck58_%06x" % TEST_MOVZX: {
-            "addr": "0x%06x" % TEST_MOVZX,
-            "code": "e8[codecave:th18_ce_test_deck58]909090",
+        "breakpoints": {"ce_test_deck": {
+            "addr": "0x%06x" % TEST_MOVZX, "cavesize": 8,
             "expected": "0fb6843008f60500",
-            "title": "测试：reset_cards 读到空槽时改发 id 58"}},
-        "breakpoints": {"ce_trace_alloc": {
+            "title": "测试：reset_cards 读初始卡组，空槽 → cards_dev.js start_deck 里的下一个 id"},
+        "ce_trace_alloc": {
             "addr": "0x%06x" % TEST_TRACE, "cavesize": 7,
             "expected": "817f2800010000",
             "title": "测试：记录每次 allocate_new_card(id, mode)"}},
@@ -911,6 +919,9 @@ def emit_header(sites, unlock_reads, order_sites, menu_binhacks):
               "#define CE_BP_TEXT_NAME_RVA   0x%06x" % (TEXT_SITES[0][1] - 0x400000),
               "#define CE_BP_TEXT_DESC_RVA   0x%06x" % (TEXT_SITES[1][1] - 0x400000),
               "#define CE_BP_TEXT_NOTIFY_RVA 0x%06x" % (TEXT_SITES[2][1] - 0x400000),
+              "#define CE_BP_CARD_BIND_RVA   0x%06x" % (SDK_SITES[0][1] - 0x400000),
+              "#define CE_BP_ITEM_SCORE_RVA  0x%06x" % (SDK_SITES[1][1] - 0x400000),
+              "#define CE_TEST_DECK_SAVE_OFF 0x5f608   /* reset_cards：byte [eax+esi+0x5f608] 初始卡组一格 */",
               "#define CE_ORDER_RVA      0x%06x" % ORDER_RVA,
               "#define CE_ORDER_COUNT    %d" % ORDER_COUNT,
               "#define CE_ORDER_CAVE_NAME \"codecave:%s\"" % ORDER_CAVE,
@@ -1074,6 +1085,7 @@ def main():
         doc["binhacks"].update(emit_menu_binhacks(text, text_va))
         doc["breakpoints"].update(emit_unlock_breakpoints(text, text_va))
         doc["breakpoints"].update(emit_text_breakpoints(text, text_va))
+        doc["breakpoints"].update(emit_sdk_breakpoints(text, text_va))
     txt = json.dumps(doc, indent=2, ensure_ascii=False)
     if a.out:
         out = a.out if os.path.isabs(a.out) else os.path.join(HERE, a.out)

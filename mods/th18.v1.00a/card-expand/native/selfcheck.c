@@ -167,6 +167,8 @@ int ce_selfcheck(uint8_t *base)
     /* 战线 E 第 10 段：cards.js → 表行 + 文案 + 注册表；顺序表 / 图鉴条目数（menu）消费注册表，所以在它前面 */
     if (alloc && !ce_cards_load(base, cave, rows)) { restore_alloc_bound(base); return 0; }
     if (alloc && !ce_menu_setup(base))             { restore_alloc_bound(base); return 0; }
+    /* 行为 SDK：基类虚表守卫、两断点、与 cards.js 对账 */
+    if (alloc && !ce_sdk_setup(base, ce_dev_trace())) { restore_alloc_bound(base); return 0; }
 
     unsigned ok = 0, bad = 0, first_bad = 0;
     for (unsigned i = 0; i < CE_NSITES; ++i) {

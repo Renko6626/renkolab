@@ -47,14 +47,14 @@ TOOLCHAIN ?= $(HOME)/Tools/llvm-mingw-20260826-msvcrt-ubuntu-22.04-x86_64
 CC        := $(TOOLCHAIN)/bin/i686-w64-mingw32-gcc
 OBJDUMP   := $(TOOLCHAIN)/bin/i686-w64-mingw32-objdump
 DLL       := th18_card_expand.dll
-CFLAGS    := -O2 -Wall -Wextra -mfpmath=sse -msse2
+CFLAGS    := -O2 -Wall -Wextra -mfpmath=sse -msse2 -I.
 LDFLAGS   := -shared -static-libgcc -s -lkernel32 -Wl,--no-insert-timestamp
 
 ## dll    —— 编 DLL（依赖 gen 出的 sites_gen.h）
 dll: $(DLL)
-SRCS      := dll_main.c selfcheck.c unlocked.c text.c cards_def.c cards.c menu.c bp_trace.c
+SRCS      := dll_main.c selfcheck.c unlocked.c text.c cards_def.c cards.c menu.c bp_trace.c sdk_core.c sdk.c $(wildcard cards/*.c)
 OBJS      := $(SRCS:.c=.o)
-%.o: %.c card_expand.h sites_gen.h thcrap_bp.h cards_def.h
+%.o: %.c card_expand.h sites_gen.h thcrap_bp.h cards_def.h sdk.h sdk_core.h engine.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(DLL): $(OBJS) th18_card_expand.def
 	$(CC) $(CFLAGS) -o $@ $(OBJS) th18_card_expand.def $(LDFLAGS)

@@ -1,0 +1,77 @@
+/* engine.h —— 行为卡能碰的引擎地址 / 偏移。只放一手确认过的，每条带出处。
+ *
+ * 版本：TH18 v1.00a（imagebase 0x400000）。全是绝对地址（游戏 exe 不重定位：imagebase 固定，
+ * 现有 100 处 binhack 也是这么写的）。出处缩写：
+ *   OM  = engine/card/th18/01-object-model.md   SM = engine/card/th18/05-shop-and-money.md
+ *   HK  = engine/card/th18/03-hooks.md          PL = engine/player/th18/01-position-and-state-timers.md
+ *   SDK = ../SDK.md（本会话 Ghidra 一手，AUDIT §O）
+ */
+#pragma once
+#include <stdint.h>
+
+/* ---- 全局 ---- */
+#define CE_ADDR_SCORE              0x4cccfc   /* int，封顶 999999999（SM §1）*/
+#define CE_ADDR_MONEY              0x4ccd34   /* int（SM §1）*/
+#define CE_ADDR_MONEY_TOTAL        0x4ccd30   /* int，只记收入（SM §1）*/
+#define CE_ADDR_CURRENT_POWER      0x4ccd38   /* OM §7 */
+#define CE_ADDR_MAX_POWER          0x4ccd3c
+#define CE_ADDR_PLAYER_PTR         0x4cf410   /* zPlayer*（ExpHP statics；Nitori/Momoyo 都从这读）*/
+#define CE_ADDR_ABILITY_MGR_PTR    0x4cf298   /* zAbilityManager*（OM §4）*/
+
+#define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)
+#define CE_MONEY()        (*(int32_t *)CE_ADDR_MONEY)
+#define CE_MONEY_TOTAL()  (*(int32_t *)CE_ADDR_MONEY_TOTAL)
+#define CE_PLAYER()       (*(uint8_t **)CE_ADDR_PLAYER_PTR)
+#define CE_ABILITY_MGR()  (*(uint8_t **)CE_ADDR_ABILITY_MGR_PTR)
+
+/* ---- zAbilityManager ---- */
+#define CE_MGR_CARD_LIST_HEAD      0x18       /* 表头；首结点在 +0x1c（尾段 lea ecx,[edi+0x18]；on_tick 0x408683 读 +0x1c）*/
+#define CE_MGR_CARD_LIST_FIRST     0x1c
+#define CE_MGR_OWNED               0xd70      /* int[255]，本 mod 搬过来的（战线 C）*/
+#define CE_MGR_RECHARGE_MULT       0xc58      /* float，reset 置 1.0（OM §5）*/
+
+/* 卡链表结点（= card+0xc）：{+0 card*, +4 next, +8 prev}（0x412e90 插入；0x408690 遍历 mov ecx,[edi]; mov edi,[edi+4]）*/
+#define CE_NODE_CARD               0x0
+#define CE_NODE_NEXT               0x4
+
+/* ---- zCardBaseClass（0x54 字节；case 56 与尾段一手，SDK §2）---- */
+#define CE_CARD_VTABLE             0x00
+#define CE_CARD_ID                 0x04
+#define CE_CARD_ARRAY_INDEX        0x08
+#define CE_CARD_LIST_NODE          0x0c
+#define CE_CARD_RECHARGE_TIME      0x48
+#define CE_CARD_TABLE_ENTRY        0x4c
+#define CE_CARD_FLAGS              0x50       /* bit0 存档/replay 装载，bit3 主动，bit5 开火中，bit6 装备 */
+#define CE_CARD_OBJECT_SIZE        0x54
+
+/* 基类虚表（终值，case 56 写入）与 21 个槽的实现（本会话读 0x4b4c78，SDK §2）*/
+#define CE_ADDR_BASE_VTABLE        0x4b4c78
+#define CE_BASE_SLOT_CTOR          0x413010
+#define CE_BASE_SLOT_C_PRESS       0x413030
+#define CE_BASE_SLOT_METHOD_38     0x4130f0
+#define CE_BASE_SLOT_METHOD_3C     0x413130
+#define CE_BASE_SLOT_METHOD_40     0x413140
+#define CE_BASE_SLOT_OPDELETE      0x411410   /* CardNull__operator_delete(this, flag)，thiscall + 1 栈参 */
+
+/* ---- zPlayer ---- */
+#define CE_PLAYER_X                0x620      /* float px（PL §1）*/
+#define CE_PLAYER_Y                0x624
+#define CE_PLAYER_STATE            0x476ac    /* PL §3 */
+#define CE_PLAYER_FOCUSED          0x476cc    /* PL §3 */
+#define CE_PLAYER_INVULN_TIMER     0x47774    /* zTimer{prev,cur,float}；复活 0x45c35e 置 {0x117,0x118,280.0}，决死救回 60，炸弹各自置（SDK）*/
+#define CE_PLAYER_SPEED_MULT       0x477ec    /* float；Player tick 末尾 0x45c702 复位 1.0；移动 0x45b5b6 读。AbilityManager tick(0x16) 先于 Player(0x17) → on_tick_2 里写生效（SDK）*/
+#define CE_PLAYER_SPEED_BASE       0x477f0    /* float×2，每帧从 0x5217dc 复制（0x45c717）*/
+#define CE_PLAYER_SHT_PTR          0x47940
+#define CE_PLAYER_DAMAGE_MULT      0x47980    /* float；EnemyManager tick 读后复位 1.0（0x42e02f）——别用，顺序不可控 */
+#define CE_PLAYER_ITEM_ATTRACT_SPD 0x47988    /* float：Player__reset {5,30,70,70}，Nitori on_load {10,30,110,110}（ExpHP 名 + SDK）*/
+#define CE_PLAYER_ITEM_COLLECT_R   0x4798c
+#define CE_PLAYER_ITEM_ATTRACT_RF  0x47990    /* focused */
+#define CE_PLAYER_ITEM_ATTRACT_RU  0x47994    /* unfocused */
+#define CE_PLAYER_POC_HEIGHT       0x47998    /* Kanako 置 224.0 */
+
+typedef struct { int32_t prev; int32_t cur; float cur_f; } ce_timer_t;   /* zTimer 前三个字段（Bomb / Card 的写法一致）*/
+#define CE_PLAYER_INVULN()   ((ce_timer_t *)(CE_PLAYER() + CE_PLAYER_INVULN_TIMER))
+#define CE_RESPAWN_INVULN_FRAMES   0x118      /* 280 */
+
+/* ---- zPlayerBullet ---- */
+#define CE_BULLET_DAMAGE           0x9c       /* int；PlayerBullet__create 0x45e396 写、0x45e7f5 调槽 +0x28、0x45e837 用；Momoyo 覆写（SDK）*/

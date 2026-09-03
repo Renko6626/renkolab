@@ -42,5 +42,11 @@ int      ce_cards_load(uint8_t *module_base, uint8_t *cave, unsigned rows);
 unsigned ce_new_card_count(void);
 uint32_t ce_new_card_id(unsigned i);
 int      ce_new_card_initial_unlocked(unsigned i);
+/* 开发配置 th18/cards_dev.js（只在 _test 里）：起手卡组与钩子追踪 */
+unsigned ce_dev_deck_count(void);
+uint32_t ce_dev_deck_id(unsigned i);
+int      ce_dev_trace(void);
+/* 行为 SDK（sdk.c）：门里核对 + 对账；返回 1 = 通过 */
+int      ce_sdk_setup(uint8_t *module_base, int trace);
 /* 战线 E 第二块（menu.c）：顺序表重排、图鉴条目数、站点核对 */
 int ce_menu_setup(uint8_t *module_base);

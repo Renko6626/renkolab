@@ -9,3 +9,6 @@ EXPORTS
 	BP_ce_text_name		@7
 	BP_ce_text_desc		@8
 	BP_ce_text_notify	@9
+	BP_ce_card_bind		@10
+	BP_ce_item_score	@11
+	BP_ce_test_deck		@12

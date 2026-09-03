@@ -15,6 +15,7 @@ typedef struct {
     uint32_t    id;
     const void *vtable;
     const char *slots;                 /* 例如 "ctor,on_tick_2" */
+    const void *hooks;                 /* ce_hooks_t*（sdk.h）；事件断点按虚表找到它 */
 } ce_behavior_t;
 
 /* 登记；返回 0 = 满了或 id 重复（两种都是编程错误，调用方记日志） */

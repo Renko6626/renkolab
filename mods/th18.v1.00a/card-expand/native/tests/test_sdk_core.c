@@ -11,7 +11,7 @@ static int vt_a[21], vt_b[21];
 static void test_registry(void)
 {
     ce_sdk_reset_for_test();
-    ce_behavior_t a = { 58, vt_a, "ctor" }, b = { 60, vt_b, "on_tick_2" }, dup = { 58, vt_b, "x" };
+    ce_behavior_t a = { 58, vt_a, "ctor", 0 }, b = { 60, vt_b, "on_tick_2", 0 }, dup = { 58, vt_b, "x", 0 };
     CHECK(ce_sdk_register(&a));
     CHECK(ce_sdk_register(&b));
     CHECK(!ce_sdk_register(&dup));                 /* 同 id 两次 = 编程错误 */
@@ -32,7 +32,7 @@ static void test_registry(void)
 static void test_bind_check(void)
 {
     ce_sdk_reset_for_test();
-    ce_behavior_t a = { 58, vt_a, "" }, b = { 60, vt_b, "" };
+    ce_behavior_t a = { 58, vt_a, "", 0 }, b = { 60, vt_b, "", 0 };
     ce_sdk_register(&a); ce_sdk_register(&b);
     uint32_t bad = 0; unsigned unbound = 99;
 

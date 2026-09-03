@@ -145,6 +145,9 @@ static const ce_grow_t CE_GROW[] = {
 #define CE_BP_TEXT_NAME_RVA   0x016694
 #define CE_BP_TEXT_DESC_RVA   0x016779
 #define CE_BP_TEXT_NOTIFY_RVA 0x01926a
+#define CE_BP_CARD_BIND_RVA   0x012cec
+#define CE_BP_ITEM_SCORE_RVA  0x046cf6
+#define CE_TEST_DECK_SAVE_OFF 0x5f608   /* reset_cards：byte [eax+esi+0x5f608] 初始卡组一格 */
 #define CE_ORDER_RVA      0x0b3600
 #define CE_ORDER_COUNT    57
 #define CE_ORDER_CAVE_NAME "codecave:th18_card_order"
