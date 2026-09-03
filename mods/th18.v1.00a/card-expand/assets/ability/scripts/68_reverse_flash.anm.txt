@@ -7,7 +7,7 @@ script script68 {
     blendMode(0);
     zWriteDisable(1);
     anchor(0, 0);
-    scale(0.6f, 0.6f);
+    scale(4.0f, 4.0f);   // 诊断用：超大，哪怕偏到角落也能看见；定位对了再改回 0.6
     alpha(0);
     rotate(0.0f, 0.0f, 0.0f);
 0:
