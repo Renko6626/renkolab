@@ -18,13 +18,18 @@ local/
 │   └── th16.exe_ghidra/  早期工程(已弃用,留档)
 ├── th18.v1.00a/          TH18《虹龍洞》
 │   ├── th18.exe          md5 9969cac756098c1da05a81de45437a70  (847,360 B)
+│   ├── th18.dat          原始归档(112 MB)
+│   ├── dat/              thdat -x 解出的 225 个文件(tooling/thtk/unpack.py)
+│   ├── anm/<名>/         每个 anm 一目录:<名>.anm.txt(thanm spec)+ 贴图;56 个
 │   └── ghidra_projects/  ★ 主工程 th18.exe.{gpr,rep}
 ├── vendor/               第三方仓库克隆(只记来源，不转发源码)
 │   ├── th-re-data/       ★★ ExpHP 逐版本符号金矿(funcs/statics/structs)
 │   ├── thcrap/           ★ thcrap 一手源码(插件/breakpoint/binhack 机制的权威)
 │   ├── thcrap-patches/   ★ ExpHP 的 17 个玩法补丁(零 DLL 的真实范例 + keystone 构建链)
 │   ├── thpages/          ★ ExpHP 指令参考站源码(ANM 渲染管线/坐标系/MSG 指令表)
-│   ├── thtk/             thecl/thanm/thmsg/thstd/thdat
+│   ├── thtk/             thecl/thanm/thmsg/thstd/thdat;build/ 是本机编的 thanm+thdat(tooling/thtk/build.sh)
+│   ├── bisonflex/        免 sudo 解出来的 bison/flex/m4(.deb → dpkg -x),只给编 thanm 用
+│   ├── truth/            ExpHP 现代重写(truanm 等,Apache-2.0);只借它的 map/ 当 anmmap 备份源
 │   ├── sht-webedit/      SHT 字节布局的社区事实标准
 │   ├── shmupcc-sht/      另一个 SHT 参考实现
 │   └── th16.eclm th16.eclmap

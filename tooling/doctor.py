@@ -119,6 +119,28 @@ def check_vendor():
           "     （上游无 LICENSE：本地逆向可用，不转发。见 local/README.md）")
 
 
+# ── 3b. thtk（资产工具链：解 dat / 反编 anm）─────────────────────────
+def check_thtk():
+    build = REPO / "local/vendor/thtk/build"
+    for name in ("thanm", "thdat"):
+        p = shutil.which(name) or str(build / name / name)
+        have = Path(p).is_file() and os.access(p, os.X_OK)
+        check(f"thtk {name}", have, p if have else "没编",
+              "bash tooling/thtk/build.sh   （免 sudo；缺 bison/flex 会自动拉 .deb）")
+    maps = [d for d in ("local/vendor/thpages/static/mapfile", "local/vendor/truth/map")
+            if (REPO / d / "v8.anmm").is_file()]
+    check("anmmap (v8.anmm)", bool(maps), maps[0] if maps else "没有",
+          "git clone https://github.com/ExpHP/thpages local/vendor/thpages")
+    for v in sorted((REPO / "local").glob("th*")):
+        if not v.is_dir():
+            continue
+        dat = list(v.glob("*.dat"))
+        unpacked = (v / "anm").is_dir() and any((v / "anm").iterdir())
+        check(f"  {v.name} .dat / anm 解包", bool(dat) and unpacked,
+              (dat[0].name if dat else "没有 .dat") + (" · anm/ 已解" if unpacked else " · 未解包"),
+              f"放好 {v.name}/thXX.dat 后：python3 tooling/thtk/unpack.py {v.name}", soft=True)
+
+
 # ── 4. MCP ────────────────────────────────────────────────────────────
 def check_mcp():
     exe = shutil.which("re-mcp-ghidra") or os.path.expanduser("~/.local/bin/re-mcp-ghidra")
@@ -166,6 +188,7 @@ def main():
     py = check_pyghidra(j)
     check_samples(a.version)
     check_vendor()
+    check_thtk()
     check_mcp()
     check_repo()
 
