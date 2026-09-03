@@ -63,6 +63,6 @@
 
 - ~~世界层投影是否透视~~ → 全透视 ✅（§3b）。
 - ~~层号 → 渲染阶段 → 相机的精确表~~ → [02-render-stages.md](02-render-stages.md) ✅（两个大桩的层号 41/42 🟡）。
-- 模式 8 的 9 块预制四边形（锚点）定义：未读；实跑表现为顶边对齐，用 `pos` 上移半张补偿 🟡。
+- 模式 8 的 9 块预制四边形已读（[02 §4](02-render-stages.md)）：几何居中；实跑顶边对齐的原因仍未定位，用 `pos` 上移半张补偿 🟡。
 - `layer(n)` 指令对 originMode / resolutionMode 的默认设置：未反，沿用零售层 20 脚本的写法。
 - `AnmManager__interrupt_tree` 的 ABI 没看（未用）。
