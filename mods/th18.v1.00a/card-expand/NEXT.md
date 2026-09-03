@@ -65,7 +65,7 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 | **主动卡基类** | C 键 / 充能 / HUD 图标 / replay 复原 | `04-active-cards.md` §3–§6：`c_press` 模板、`+0x38/+0x3c/+0x40` 三件套、flags bit3；SDK 里做一份可继承的「主动卡」桩集 |
 | 辅助函数提炼 | 动作出现第二次就进 `sdk.h` | 方案 3 的约定 |
 | 图鉴上限 | 新卡 > 71 时才需要：两处 `cmp r,imm8` → cave | AUDIT §M3 |
-| ANM 特效 | 主动卡效果脚本在 `ability.anm`（68 个）；SDK `ce_spawn_effect(script)` + 用 thanm 写新脚本 | B 阶段；`10-extensibility-limits.md` §5、`tooling/thtk/README.md` |
+| ANM 特效 | 🔧 已有第一例：`ce_anm_spawn` + `assets/ability/`（反转牌 script68 亮牌），待实跑；透视真假当场看 | AUDIT O24；`engine/anm/th18/01-vm-instantiate.md` |
 | 更多事件 | 按需：击破、符卡开始 / 结束、擦弹… | 每个 = 一个断点 + AUDIT 一条 |
 
 ## 3. 工具链与验收（照旧）

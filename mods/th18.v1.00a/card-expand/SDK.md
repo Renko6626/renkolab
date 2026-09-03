@@ -196,7 +196,11 @@ SDK 在 `+0x2c` 桩里先跑状态机（空闲：清释放位、门控下递减�
 状态放私有状态（零售放 `+0x54`，超出 0x54 字节的基类对象）。充能存取 / HUD / replay 用的槽 `+0x38..+0x40` 透传基类。
 主动卡的 JSON：`category: 0`。
 
-引擎辅助：`ce_play_sound(id, x)`（`0x476c70` stdcall + xmm2，三行内联汇编，AUDIT O22）。
+引擎辅助：`ce_play_sound(id, x)`（`0x476c70` stdcall + xmm2，三行内联汇编，AUDIT O22）；
+`ce_anm_spawn(anm, script, layer)`（`0x405bf0` thiscall ret 0x10，AUDIT O24）：从 `CE_ABILITY_ANM()`（`ability.anm`）起一个脚本挂 world 列表，
+实体坐标 (0,0,0) = 场地正中，返回 anm id。特效脚本与卡图副本用 [`assets/ability/`](assets/ability/README.md) 追加进 `ability.anm`，
+脚本号 / sprite 号由 `build_ability.py` 生成到 `anm_ids.h`（`CE_ANM_ABILITY_SCRIPT_*`）。样例：反转牌 `on_activate` 起 `script68` 亮牌一圈。
+引擎侧一手：[`engine/anm/th18/01-vm-instantiate.md`](../../../engine/anm/th18/01-vm-instantiate.md)。
 
 ## 10. 边界与不做的
 

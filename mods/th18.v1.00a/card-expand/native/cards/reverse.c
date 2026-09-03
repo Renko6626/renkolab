@@ -28,7 +28,10 @@ static int on_activate(ce_card_t *c)
     }
     uint8_t *p = CE_PLAYER();
     ce_play_sound(0x4d, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);   /* 0x4d = Tenshi 发动音 */
-    ce_log("reverse: %u bullets reversed", n);
+    /* 亮牌：ability.anm 追加的 script68（assets/ability/scripts/68_reverse_flash.anm.txt），卡图副本 sprite109，
+     * 场地中央绕 Y 轴转一圈后自灭。层 16（与零售 abcard script14 一致，画在子弹之上）。*/
+    uint32_t fx = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_REVERSE_FLASH, 16);
+    ce_log("reverse: %u bullets reversed; flash anm id %08x", n, fx);
     return 0;
 }
 

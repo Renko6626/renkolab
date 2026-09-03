@@ -1,0 +1,20 @@
+script script68 {
+-1:
+    sprite(@REVERSE);
+    originMode(1);
+    layer(16);
+    type(8);
+    blendMode(0);
+    zWriteDisable(1);
+    anchor(0, 0);
+    scale(0.6f, 0.6f);
+    alpha(0);
+    rotate(0.0f, 0.0f, 0.0f);
+0:
+    alphaTime(6, 0, 255);
+    rotateTime(36, 0, 0.0f, 6.2831855f, 0.0f);
++36: // 36
+    alphaTime(10, 0, 0);
++10: // 46
+    delete();
+}

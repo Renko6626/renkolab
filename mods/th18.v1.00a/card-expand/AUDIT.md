@@ -486,6 +486,17 @@ Tenshi 调它们之前都有一条 `push ecx`（`0x40ea2e`、`0x40ead3`）——
 → `C0000005 … could not be executed at 0x0717d458`，日志停在 `card 64 on_tick_2 first hit`。**教训写进 checklist**：
 调任何引擎函数前必须看它**全部** `ret N` 出口，不能只看序言；O16 的四个函数当时看了，Timer 这两个只看了头。
 
+**O24（2026-09-04）反转牌发动亮牌：`ce_anm_spawn` 调 `AnmLoaded__instantiate_vm_to_world_list_back` `0x405bf0`**。
+一手：`mov edi, ecx`（this = `AnmLoaded*`），`[ebp+8]` out_id、`[ebp+0xc]` script、`[ebp+0x10]` layer、`[ebp+0x14]` out_vm，
+**唯一出口 `ret 0x10`**（O23 教训：全部出口都看了）。内部自己进 `DAT_00521738` 临界区，调用方不用管；实体坐标固定 (0,0,0)。
+`CardTenshi__c_press` `0x40ebf0` 内联的就是这套（层 13、脚本 0x1c、坐标改玩家位），证明从 c_press 时点调它安全。
+C 侧用 `__attribute__((thiscall))` 函数指针，4 个栈参；`reverse.o` objdump：`mov ecx,[0x4cf298+0x10]`、`push out_vm; push 0x10; push 0x44; push out_id; call`，
+call 后直接 `mov eax,[esp]` 读 id、**无 `add esp`**——与被调方清栈一致。`ce_anm_spawn` 对 `anm == NULL` 早退返回 0。
+备查未用：`AnmLoaded__set_sprite` `0x477b00` thiscall ret 8（两出口）、`0x488cf0` stdcall(id) ret 4。
+ANM 侧：`ability.anm` 追加 entry7（`REVERSE.png`，字段抄 abcard `BLANK_max`）/ `sprite109`、`script68`（`assets/ability/scripts/68_reverse_flash.anm.txt`），
+`build_ability.py` 校验零售 7 entry / 68 脚本 / 贴图逐项不变，`thanm -l` 往返一致。脚本自 `delete()`，卡对象不记 id。
+🟡 世界层投影是否透视未验（只影响观感，不影响安全）。**未实跑。**
+
 **未实跑。** 各卡的验收在 [`NEXT.md`](NEXT.md) §1。
 
 ## G. OPEN —— 还没解决的

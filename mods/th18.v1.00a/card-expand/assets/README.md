@@ -49,4 +49,4 @@ make dist         # 把 build/abcard.anm 放进 dist/patch-step3/th18/，files.j
 
 - 一次重建 = modkit 历史多 20 MB。**只在真的加了新图时**才重建 / 发布，日常改 JSON、DLL 不碰它。
 - 运行时 sprite 数上限**未验**（格式层无上限）；目前只加到 127，C 阶段在 `AnmManager__preload_anm` 坐实。
-- 其它两个 ANM：`ability.anm`（场上特效脚本，68 个）、`abmenu.anm`（编成 / 图鉴 UI）——本目录暂不管它们。
+- `ability.anm`（场上特效）的追加在 [`ability/`](ability/README.md)：卡图副本 entry + 特效脚本，`make anm` 一起重建。`abmenu.anm` 不管。

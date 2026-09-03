@@ -12,6 +12,7 @@
 #pragma once
 #include <stdint.h>
 #include "engine.h"
+#include "anm_ids.h"      /* build_ability.py 生成：ability.anm 追加的 sprite / 脚本号 */
 #include "sdk_core.h"
 
 typedef struct ce_card ce_card_t;          /* = zCardBaseClass*，只通过下面的取值函数看 */
@@ -83,6 +84,19 @@ static inline void ce_play_sound(uint32_t id, float x)
                       "call *%[fn]"
                       : : [x] "m"(x), [id] "r"(id), [fn] "r"((uintptr_t)CE_FN_PLAY_SOUND)
                       : "eax", "ecx", "edx", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "cc");
+}
+
+/* ANM：从一个已装载的 anm（CE_ABILITY_ANM() / 取 CE_MGR_ABCARD_ANM）起脚本，挂 world 列表，实体坐标 (0,0,0)
+ * = 场地正中（脚本里 originMode(1)）。返回 anm id（0 = 失败）。脚本自己 delete() 的一次性特效不用记 id。
+ * 只能在主线程（桩 / 断点里）调；引擎函数 thiscall + ret 0x10，四个栈参由被调方清（AUDIT O24）。*/
+#define CE_ABILITY_ANM()  (*(void **)(CE_ABILITY_MGR() + CE_MGR_ABILITY_ANM))
+typedef int *(__attribute__((thiscall)) *ce_fn_anm_inst_t)(void *anm, int *out_id, int script, int layer, void **out_vm);
+static inline uint32_t ce_anm_spawn(void *anm, int script, int layer)
+{
+    int id = 0; void *vm = 0;
+    if (!anm) return 0;
+    ((ce_fn_anm_inst_t)CE_FN_ANM_INSTANTIATE_WORLD_BACK)(anm, &id, script, layer, &vm);
+    return (uint32_t)id;
 }
 
 /* sdk.c：主动卡机器（桩里调）*/

@@ -18,13 +18,15 @@ step3: anm
 check: anm-verify
 	python3 sites.py check
 
-## anm    —— 把 ../assets/cards/ 的新卡图追加进零售 abcard.anm → build/abcard.anm，并校验 cards.js 索引
+## anm    —— abcard.anm（../assets/cards/ 新卡图）+ ability.anm（../assets/ability/ 贴图副本 + 特效脚本）→ build/；生成 anm_ids.h
 anm:
 	python3 ../assets/build_abcard.py
+	python3 ../assets/build_ability.py
 
 ## anm-verify —— 只校验（build/abcard.anm 已存在）：entry 数 / 原贴图逐张一致 / 新 entry 字段 / JSON 索引
 anm-verify:
 	python3 ../assets/build_abcard.py --verify-only
+	python3 ../assets/build_ability.py --verify-only
 
 ## list   —— 25 个查表实例的全表
 list:
@@ -87,7 +89,7 @@ dllverify: $(DLL)
 	@$(OBJDUMP) -p $(DLL) | grep -A 6 '^Export Table:' | sed -n '1,8p'
 	@echo "--- 依赖 ---"; $(OBJDUMP) -p $(DLL) | grep 'DLL Name'
 
-## dist   —— 三个 patch + DLL + zip；_255（patch-step3）里带重建的 th18/abcard.anm（≈22 MB，含零售贴图）
+## dist   —— 三个 patch + DLL + zip；_255（patch-step3）里带重建的 th18/abcard.anm（≈22 MB）与 th18/ability.anm（≈1.7 MB），都含零售贴图
 ## dist —— 在 ../dist/ 摆出可直接安装的整套：一个 DLL + patch-step1 / patch-step3 / patch-test
 ##         （dist/ 已 gitignore：DLL 是构建产物，不入库；随时 make dist 重建）
 DIST := ../dist
@@ -97,7 +99,7 @@ dist: anm
 	cp $(DLL) $(DIST)/bin/ && cp ../patch/*.js $(DIST)/patch-step1/ && cp -r ../patch-test/. $(DIST)/patch-test/
 	$(MAKE) -s ROWS=255 gen files >/dev/null
 	cp -r ../patch/. $(DIST)/patch-step3/
-	cp build/abcard.anm $(DIST)/patch-step3/th18/abcard.anm && python3 mkfiles.py $(DIST)/patch-step3 >/dev/null
+	cp build/abcard.anm build/ability.anm $(DIST)/patch-step3/th18/ && python3 mkfiles.py $(DIST)/patch-step3 >/dev/null
 	cp ../DIST-README.txt $(DIST)/README.txt
 	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test README.txt
 	@echo "dist/ 就绪："; ls $(DIST)

@@ -95,3 +95,30 @@ def test_insert_entries_goes_after_last_entry_before_first_script():
     out = b.insert_entries(BLANK_SPEC, [new_block])
     assert out.index("entry entry4 {") < out.index("entry entry118 {") < out.index("script script0 {")
     assert [e["idx"] for e in b.parse_entries(out)] == [3, 4, 118]
+
+
+# ── anmlib（ability.anm 用到的部分）──────────────────────────────────
+import anmlib as L  # noqa: E402
+
+
+def test_parse_scripts_and_append_keeps_order():
+    s = L.parse_scripts(BLANK_SPEC)
+    assert [x["idx"] for x in s] == [0]
+    out = L.append_scripts(BLANK_SPEC, ["script script1 {\n    delete();\n}\n"])
+    assert [x["idx"] for x in L.parse_scripts(out)] == [0, 1]
+    assert out.index("script script0 {") < out.index("script script1 {")
+    assert [e["idx"] for e in L.parse_entries(out)] == [3, 4]  # entry 不受影响
+
+
+def test_max_sprite_id_and_make_entry_with_explicit_sprite():
+    assert L.max_sprite_id(BLANK_SPEC) == 4
+    tpl = L.parse_entries(BLANK_SPEC)[1]
+    out = L.make_entry(tpl, 7, "ability/REVERSE.png", sprite_idx=109)
+    assert "entry entry7 {" in out and "sprite109:" in out and "sprite7:" not in out
+
+
+def test_substitute_tokens_and_reject_unknown():
+    assert L.substitute("sprite(@REVERSE); x(@A)", {"REVERSE": "sprite109", "A": 1}) == "sprite(sprite109); x(1)"
+    import pytest
+    with pytest.raises(SystemExit):
+        L.substitute("sprite(@NOPE)", {"REVERSE": "sprite109"})
