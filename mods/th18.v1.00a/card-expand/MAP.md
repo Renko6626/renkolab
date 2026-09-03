@@ -19,7 +19,7 @@
 | 6 | 在图鉴 / 卡组编成里出现 | 显示顺序表 `0x4b3600` 57 项；`zAbilityMenu.__card_ids[56]`；条目数 `0x38` ×7 | 57 / 56 / 56 | 顺序表搬迁重排；对象扩容；条目数由 DLL 现写 56+N | ✅ |
 | 7 | 在商店里出现 | `AbilityShop` 三处循环只看前 56 个 id；随机池 560 份、offer 57 槽 | 56 | 上界 → rows；cave 里 NULL/BACK 行 `+0x14 := 6` 排除幻影；容量装载时现算 | 🔧 待实跑 |
 | 8 | 卡图 | `abcard.anm` 的 sprite，行里 `+0x2c/+0x30` | 已知用到 116/117 | JSON 给索引（`sprite_large/small`），ANM 由写卡的人用 thanm/truanm 加、以文件替换分发；DLL 不碰 | ✅（手工）|
-| 9 | 行为 | 跳转表指向的构造器 + 虚表 | — | 未做；新 id 现在挂基类虚表（无行为） | ⏳ |
+| 9 | 行为 | 跳转表指向的构造器 + 虚表 | — | 跳转表不动：断点 `ce_card_bind`（`0x412cec`）把登记了行为的 id 的对象虚表换成 DLL 里的拷贝，槽是 C 写的 `thiscall` 桩（[`SDK.md`](SDK.md)）| 🔧 待实跑 |
 | 10 | 数据从哪来 | — | — | thcrap 栈里每个 patch 的 `th18/cards.js` 深合并 → 门里逐张校验、写 cave 行 + 文案 + 注册表（[`DATA.md`](DATA.md)）| 🔧 待实跑 |
 
 第 1–6 段跑通的标志（✅ 2026-09-02）：用 `_test` 把 id 58 塞进空槽 → 开局分配到它 → 「获得」→ 重启仍解锁 → 图鉴里有它 → 编成里能选它。
@@ -34,6 +34,7 @@
 | **thcrap 断点** | 需要在某条指令处跑 C 逻辑 | `cavesize` = 整条指令，无相对寻址；返回 1 放行 / 0 跳过 | patch 声明，DLL 导出 `BP_<名>` |
 | **DLL 运行时写代码** | 值到运行时才知道（新卡数量）| 门里 `VirtualProtect` 写，写前核对原值 | `menu.c`；`restore_alloc_bound` 同类 |
 | **thcrap 栈 JSON** | 数据由写卡的人给、可被别的 patch 叠加 | `stack_game_json_resolve` 深合并全栈的 `th18/cards.js`；DLL 只读、逐张校验、全有或全无 | `cards.c` ← `cards_def.c`（主机单测）|
+| **断点换虚表** | 新卡要有行为 | 对象由游戏 `new`，尾段断点把虚表指针换成 DLL 里的 21 槽拷贝；槽 = 编译器生成的 `thiscall` 桩 | `sdk.h` / `sdk.c` ← `sdk_core.c`（主机单测）；AUDIT §O |
 
 **没有一个字节手写机器码**（除 `_patch_init` 那段 `rep movsd` 拷表和测试钩子的 5 条指令）。
 
@@ -61,6 +62,8 @@
 | `ce_unlock_write` | `0x418e04` `mark_obtained` | 8 | 影子[id]=1；id<57 放行，否则写 side-car 并跳过 | `unlocked.c` | §K6–K9 |
 | `ce_unlock_all` | `0x4648fe` | 6 | 作弊解锁镜像到影子 | `unlocked.c` | §K12 |
 | `ce_text_name` / `_desc` / `_notify` | `0x416694` / `0x416779` / `0x41926a` | 6/7/6 | id≥57 的文案指向 DLL 缓冲 | `text.c` | §L |
+| `ce_card_bind` | `0x412cec` 分配公共尾段 | 6 | esi = 卡对象、ebx = id：有行为的换虚表 | `sdk.c` | §O1–O2 |
+| `ce_item_score` | `0x446cf6` `collect_money_item` | 6 | esi = 道具身价，沿卡链表调 `on_item_score` | `sdk.c` | §O10 |
 
 ### codecave
 
@@ -83,10 +86,11 @@
 
 | 项 | 地址 | 干什么 |
 | --- | --- | --- |
-| binhack `test_deck58_` + cave `th18_ce_test_deck58` | `0x407ee3` | 初始卡组的空槽(56) 改发 `th18_ce_test_id`（默认 58）|
+| 断点 `ce_test_deck` → `BP_ce_test_deck` | `0x407ee3` | 初始卡组的空槽(56) 依次改发 `th18/cards_dev.js` 的 `start_deck`（§O11）|
 | 断点 `ce_trace_alloc` → `BP_ce_trace_alloc` | `0x411469` | 记录每次 `allocate_new_card`；新 id 第一次出现时调 `mark_obtained(id,1)` |
+| `th18/cards.js` / `cards_dev.js` | — | 示范卡（黑桃五张）与开发配置（起手卡组、`trace`）|
 
-图鉴 / 编成通了以后，`_test` 只剩「第一次获得」这一个用途；商店通了以后可以退役。
+`_test` 现在是**开发环境**：起手直接拿到要测的卡、每个桩第一次被调记日志。不再有手写 cave。
 
 ## 4. 换 build 要重取什么
 
@@ -96,8 +100,6 @@
 
 ## 5. 还没做的段落各自卡在哪
 
-- **行为**：跳转表项指向 case 56（无行为构造器）。有行为 = DLL 提供构造器 + 虚表，跳转表项指过去——
-  `0x412cd5` 公共尾段的栈契约（AUDIT §A）这时才需要真正满足。按 id 绑定，JSON 不知道行为的存在。
-  下一轮做成「行为 SDK」（[`NEXT.md`](NEXT.md)）。
+- **行为**：已做（第 9 段，[`SDK.md`](SDK.md)），待实跑。主动卡（C 键 / 充能 / HUD）的基类是第二批。
 - **卡图**：不是代码活。sprite 索引余量未查（[`engine/card/th18/10-extensibility-limits.md`](../../../engine/card/th18/10-extensibility-limits.md)）。
 - ~~商店~~、~~数据~~：已做（第 7 / 10 段），待实跑。

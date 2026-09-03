@@ -7,20 +7,21 @@
 ## 0. 一张有行为的卡长什么样
 
 ```c
-/* native/cards/ace_spade.c —— A♠：Miss 后无敌时间 +50% */
+/* native/cards/sk.c —— 黑桃 K：自机弹伤害 ×1.1 */
 #include "sdk.h"
 
-static int on_death_frame2(ce_card_t *c)
+static int on_bullet_created(ce_card_t *c, void *bullet)
 {
     (void)c;
-    ce_player_invuln_scale(1.5f);
+    int32_t *dmg = (int32_t *)((uint8_t *)bullet + CE_BULLET_DAMAGE);
+    *dmg = *dmg * 11 / 10;
     return 0;
 }
 
-CE_CARD(62, .on_death_frame2 = on_death_frame2);
+CE_CARD(61, .on_bullet_created = on_bullet_created);
 ```
 
-加上 `th18/cards.js` 里的 `"62": {…}`，这张卡就完整了。`CE_CARD` 展开成：这张卡的回调表、一份 21 槽虚表（基类拷贝，用到的槽换成桩）、
+加上 `th18/cards.js` 里的 `"61": {…}`，这张卡就完整了。`CE_CARD` 展开成：这张卡的回调表、一份 21 槽虚表（基类拷贝，用到的槽换成桩）、
 一条登记进 `ce_behaviors[]`。**不用改任何别的文件**——`native/cards/*.c` 由 Makefile 通配。
 
 ## 1. 机制：断点换虚表，跳转表不动
@@ -85,7 +86,8 @@ return 1;   /* 放行原指令 */
 桩按**虚表**分派，不按对象：`CE_CARD` 为这张卡生成独立的桩函数集，直接调它的回调，没有运行时查表。
 没写的回调保持基类槽（`xor eax,eax; ret`）。
 
-`ce_card_t` 就是对象指针的别名，SDK 提供取值函数：`ce_card_id(c)`、`ce_card_entry(c)`（表行）、`ce_card_flags(c)`。
+`ce_card_t` 就是对象指针的别名，SDK 提供取值宏：`ce_card_id(c)`、`ce_card_entry(c)`（表行）、`ce_card_flags(c)`；
+私有状态 `ce_state(c, T)`（§4）。透传槽由门里的守卫核对（AUDIT O4）。
 
 ## 3. 登记与对账
 
@@ -97,18 +99,18 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 
 | 情况 | 结果 |
 | --- | --- |
-| JSON 有、C 有 | 绑定；日志 `sdk: 62 bound (ctor, on_death_frame2)` |
-| JSON 有、C 无 | 允许；日志 `sdk: 60 has no behavior (base vtable)`——开发期正常 |
+| JSON 有、C 有 | 绑定；日志 `sdk: 61 bound (.on_bullet_created = on_bullet_created)` |
+| JSON 有、C 无 | 允许；汇总行里计数 `N registered cards without behavior`——开发期正常 |
 | C 有、JSON 无 | **FAIL**：有行为却没登记的卡进不了游戏，是 bug |
 | C 里同一 id 两次 | 编译期链接冲突（符号名含 id）|
 
-`ce_behaviors[]` 由链接器段（`__attribute__((section("ce_cards")))`）收集，加卡不改任何清单。
+登记靠 `__attribute__((constructor))`（mingw 的 `.ctors`，DLL 装载时跑），加卡不改任何清单；门里再把已登记的行为与 JSON 对账。
 
 ## 4. 私有状态
 
 对象没有余量。`ce_state(c, size)` 返回这张卡对象的私有内存（首次调用分配并清零，同一对象重复调用返回同一块）。
 实现：DLL 侧 256 槽表，键 = 对象指针；`operator_delete` 桩释放（`reset_cards` / 局末 `recount` / 即时卡删除都走这个槽，不会漏）。
-`size` 上限 256 字节；第一批只有 A♠ 需要（防止同一次死亡里放大两次）。
+`size` 上限 256 字节；第一批五张都不需要（A♠ 靠计时器的 {279,280} 签名识别「刚复活」，不用状态）。
 
 ## 5. 引擎访问：`engine.h`
 
@@ -119,12 +121,11 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 | `SCORE` | `0x4cccfc` | `05-shop-and-money.md` §1 |
 | `MONEY` / `MONEY_TOTAL_COLLECTED` | `0x4ccd34` / `0x4ccd30` | 同上 |
 | `CURRENT_POWER` / `MAX_POWER` | `0x4ccd38` / `0x4ccd3c` | `01-object-model.md` §7 |
-| `ABILITY_MANAGER_PTR` | 现有 `sites_gen.h` | 卡链表头 `+0x18`、`owned[]` `+0xd70`、充能倍率 `+0xc58` |
-| `PLAYER_PTR` 与玩家字段 | ⏳ RE | 四档移速、无敌帧、道具回收四参 |
-| 自机弹字段 | ⏳ RE | `on_bullet_created` 参数里的伤害（抄 `CardMomoyo`）|
+| `ABILITY_MANAGER_PTR` | `0x4cf298` | 卡链表首结点 `+0x1c`（结点 `{card,next,prev}`）、`owned[]` `+0xd70`、充能倍率 `+0xc58` |
+| `PLAYER_PTR` | `0x4cf410` | 移速倍率 `+0x477ec`、无敌 zTimer `+0x47774`、道具回收四参 `+0x47988..94`、状态机 `+0x476ac`、聚焦 `+0x476cc` |
+| 自机弹 | `bullet+0x9c` | int 伤害（`PlayerBullet__create` 写；`CardMomoyo` 覆写）|
 
-辅助函数随第一批卡长出来（方案 3 的约定：先在卡里写，出现第二次就提炼进 `sdk.h`）：
-`ce_player_speed_scale(f)`、`ce_player_invuln_scale(f)`、`ce_player_item_catch_set(a,b,c,d)`、`ce_bullet_damage_scale(bullet, f)`。
+辅助函数随卡长出来（方案 3 的约定：先在卡里写，出现第二次就提炼进 `sdk.h`）。第一批五张各写各的，还没有一个动作出现两次。
 
 ## 6. SDK 事件（虚表之外）
 
@@ -132,35 +133,35 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 
 | 事件 | 断点 | 回调 | 本批用 |
 | --- | --- | --- | --- |
-| `on_item_score` | `ItemManager__collect_money_item` `0x446b00`，身价算完、写 `SCORE` 前（具体指令 ⏳ RE）| `void (ce_card_t*, int *value)` | 10♠：`*value += *value / 10` |
+| `on_item_score` | `0x446cf6`（`collect_money_item` 里 `lea eax,[edi+0xc2c]`，esi = 身价，已钳 ≥10；之后 `push esi` 给弹窗、`mul esi` 计分）| `void (ce_card_t*, int32_t *value)` | 10♠：`*value += *value / 10`，弹窗数字与得分一起变 |
 
 以后加事件照此：一个断点 + 一个回调名 + AUDIT 一条。
 
 ## 7. 第一批：黑桃五张
 
-| 牌 | id | 槽 / 事件 | 实现 | 要反的 |
+| 牌 | id | 槽 / 事件 | 实现 | 状态 |
 | --- | --- | --- | --- | --- |
-| 10♠ 道具得点 +10% | 58 | `on_item_score` | `*value += *value/10` | `0x446b00` 里写 `SCORE` 前的那条指令与寄存器 |
-| J♠ 移速 +10% | 59 | `on_tick` | 每帧四档移速 = 零售值 × 1.1（零售值每关由 sht 重置，所以每帧写；读「零售值」= 先记下未放大的值）| TH18 玩家对象四档移速偏移（TH16 `+0x16650..5c`），以及谁在写 |
-| Q♠ 道具回收范围 | 60 | `ctor` + `on_load` | 抄 `CardNitori`（id 21）写玩家 `+0x47988..94`，数值放大 | Nitori 构造器里四个数各自含义（🟡） |
-| K♠ 伤害 ×1.1 | 61 | `on_bullet_created` | 抄 `CardMomoyo`（id 54）：`bullet->damage *= 1.1` | Momoyo 桩里弹字段的偏移与类型 |
-| A♠ Miss 后无敌 +50% | 62 | `on_death_frame2` | 无敌帧计数 × 1.5 | TH18 无敌帧偏移（TH16 `+0x1663c`）；`+0x14` 触发时计数已置 |
+| 10♠ 道具得点 +10% | 58 | `on_item_score` | `*value += *value/10`，弹窗数字与得分一起变 | ✅ 已反（AUDIT O10）|
+| J♠ 移速 +10% | 59 | `on_tick_2` | `player+0x477ec`（每帧移速倍率）`*= 1.1`。Player tick 末尾复位 1.0，AbilityManager tick（优先级 0x16）先于 Player（0x17），所以只能在 `on_tick_2` 写；`on_tick` 在复位前，白写 | ✅ 已反（AUDIT O7）|
+| Q♠ 道具回收范围 | 60 | `on_load` | 抄 `CardNitori` 的 `on_load`：`attract_speed / collect_radius / attract_r_focused / attract_r_unfocused` = {10, 30, 250, 250}（默认 {5,30,70,70}，Nitori {10,30,110,110}；字段名来自 ExpHP）| ✅ 已反 |
+| K♠ 伤害 ×1.1 | 61 | `on_bullet_created` | `bullet+0x9c`（int）`= d*11/10`；`PlayerBullet__create` 在调槽前已写好它 | ✅ 已反（AUDIT O9）|
+| A♠ Miss 后无敌 +50% | 62 | `on_tick_2` | 无敌 zTimer `player+0x47774`；复活把它置成 {prev 279, cur 280, 280.0}，这个组合只在刚置好那一帧出现 → 改成 420。`+0x14` 槽在复活置值**之前**触发，所以不用它 | ✅ 已反（AUDIT O8）|
 
 数值（`price_tier` / `weight` / sprite）在 `patch-test/th18/cards.js` 里给；sprite 先全用 116/117 占位。
 「皇家同花顺」（五张齐 → 隐藏效果）不在本批：接缝是购买 `AbilityShop__on_tick` `0x4185c7` + `owned[]`。
 
 ## 8. 开发循环
 
-`th18/cards_dev.js`（只放 `_test`，读法同 `cards.js`）：
+`th18/cards_dev.js`（只放 `_test`，读法同 `cards.js`；实现在 `cards.c` / `bp_trace.c`）：
 
 ```json
 { "start_deck": [58, 59, 60, 61, 62], "trace": true }
 ```
 
-- `start_deck`：`_test` 的初始卡组钩子改为读这个列表（现在写死 58）；空槽依次填。
-- `trace`：每个桩被调记一行 `trace: card 62 on_death_frame2`（每帧槽只记第一次）。
+- `start_deck`：`_test` 的初始卡组钩子改成断点 `ce_test_deck`（`0x407ee3`），空槽依次填这些 id；每次 `reset_cards` 从头发。
+- `trace`：每张卡每个槽第一次被调记一行 `trace: card 62 on_tick_2 (+0x2c) first hit`；绑定时记 `bound to vtable`。
 
-验收 = 日志里 `sdk: … bound` 五行 + trace 行 + 游戏里体感（移速、回收、无敌时长可目测；伤害与得点看数字）。
+验收 = 日志里 `sdk: 58 bound (.on_item_score = on_item_score)` 五行 + trace 行 + 游戏里体感（移速、回收、无敌时长可目测；伤害与得点看数字）。
 
 ## 9. 边界与不做的
 
@@ -173,10 +174,12 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 
 ```
 native/
-├── sdk.h            写卡的人 include 这个：ce_card_t、CE_CARD、回调表、ce_state、辅助函数
+├── sdk.h            写卡的人 include 这个：ce_card_t、CE_CARD（回调表 + 桩 + 虚表 + 登记）、ce_state
 ├── engine.h         一手地址 / 偏移（每条带出处）
-├── sdk.c            断点 ce_card_bind、对账、状态槽、事件断点、trace
-├── sdk_vtable.c     基类虚表拷贝与桩的生成（CE_CARD 宏的后端）
+├── sdk_core.h/.c    注册表 / 对账 / 状态槽（纯逻辑，make test-host）
+├── sdk.c            断点 ce_card_bind、ce_item_score；门里的守卫与对账；trace
 └── cards/           每张卡一个 .c（Makefile 通配）
     ├── s10.c  sj.c  sq.c  sk.c  sa.c
 ```
+
+审计：[`AUDIT.md`](AUDIT.md) §O。

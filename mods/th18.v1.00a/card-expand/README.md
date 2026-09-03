@@ -4,7 +4,7 @@
 
 把 `zTableCardData[]` 从 `.data` 搬进 codecave，为「加新卡」腾出行数。
 **「加一张卡到底改了什么」的追溯表在 [`MAP.md`](MAP.md)**——150 条 binhack、7 个断点、5 个 codecave 各自的出处。
-**想加一张卡：读 [`DATA.md`](DATA.md)**——一个 `th18/cards.js` 就够（行为除外）。
+**想加一张卡：读 [`DATA.md`](DATA.md)**（登记，JSON）和 **[`SDK.md`](SDK.md)**（行为，C）。
 方案全貌见 [`../card-rework/PLAN-255-ids.md`](../card-rework/PLAN-255-ids.md)，
 边界依据见 [`engine/card/th18/11-sentinels-56-57.md`](../../../engine/card/th18/11-sentinels-56-57.md)。
 
@@ -17,7 +17,8 @@
 | 3 / 战线 B | 分配器搬迁 + 验证钩子（`make step3`） | ✅ **实跑通过**：`allocate_new_card(id=58)` 真的发到手上 |
 | C | `zAbilityManager` 扩容，`owned[]` 255 项（并入 `_255`）| ✅ **实跑通过** |
 | D | 存档影子数组 + side-car（并入 `_255`）| ✅ **实跑通过**：id 58 获得 → 重启仍解锁。见下「战线 D」 |
-| E | 图鉴 / 顺序表 / 文案 / 图 / 商店 / 数据 | 文案 ✅、图鉴 + 编成 ✅ **实跑通过**；**商店 + JSON 数据装载**（[`DATA.md`](DATA.md)）静态审计通过 **待实跑**；图由写卡的人改 ANM；行为 = 下一轮（行为 SDK）|
+| E | 图鉴 / 顺序表 / 文案 / 图 / 商店 / 数据 | 文案 ✅、图鉴 + 编成 ✅ **实跑通过**；**商店 + JSON 数据装载**（[`DATA.md`](DATA.md)）静态审计通过 **待实跑**；图由写卡的人改 ANM |
+| **9 行为** | 行为 SDK + 黑桃五张 | 断点换虚表 + `thiscall` 桩（[`SDK.md`](SDK.md)），静态审计通过（AUDIT §O）**待实跑** |
 
 第 1 步的价值不在功能，而在用「和香草没差别」这个最容易判定的标准，
 一次性验证 100 处搬迁 + 生成器 + 对账器 + 开机自检。
@@ -280,7 +281,8 @@ OK: table filled (58 rows @ 0x…), 100/100 sites verified
 card-expand/
 ├── README.md          # 你在这
 ├── DATA.md            # ★ 怎么用 th18/cards.js 登记一张新卡
-├── NEXT.md            # ★ 下一个会话从这里开始（行为 SDK）
+├── SDK.md             # ★ 怎么给一张卡写行为（C）
+├── NEXT.md            # ★ 下一个会话从这里开始
 ├── MAP.md             # ★ 追溯表:一张卡要经过的 10 段路,每条 binhack/断点/codecave 的出处
 ├── TARGET.md          # ★ 死绑登记
 ├── AUDIT.md           # 对抗审计
@@ -298,7 +300,11 @@ card-expand/
 │   ├── text.c         战线 E 第一块:id≥57 文案重定向(三个断点)
 │   ├── cards_def.h/.c ★ 一张卡的定义:校验 / 表行编码 / 商店容量(纯逻辑)
 │   ├── tests/         cards_def 的主机单测(make test-host)
-│   ├── cards.c        ★ 战线 E 第 10 段:装 th18/cards.js → 表行 + 文案 + 注册表
+│   ├── cards.c        ★ 战线 E 第 10 段:装 th18/cards.js → 表行 + 文案 + 注册表;cards_dev.js
+│   ├── sdk.h engine.h ★ 行为 SDK:CE_CARD 宏 / 桩 / 引擎地址
+│   ├── sdk_core.h/.c  注册表 / 对账 / 状态槽(主机单测)
+│   ├── sdk.c          ★ 断点 ce_card_bind / ce_item_score、门里守卫与对账
+│   ├── cards/         每张行为卡一个 .c(黑桃 s10 sj sq sk sa)
 │   ├── menu.c         战线 E 第二块:顺序表重排 + 图鉴条目数 + 站点核对
 │   ├── bp_trace.c     测试断点:记录 allocate_new_card(id, mode);新 id 顺手 mark_obtained
 │   ├── thcrap_bp.h    断点 ABI(与 mouse-control 同一份)
@@ -311,6 +317,7 @@ card-expand/
 └── patch-test/         只在测试时叠上
     ├── patch.js        依赖 th18_card_expand
     ├── files.js
-    ├── th18/cards.js   示范卡 58(DATA.md 的例子)
-    └── th18.v1.00a.js  ★ 生成物:空槽→58 + 分配追踪断点
+    ├── th18/cards.js   黑桃五张(58–62)
+    ├── th18/cards_dev.js 起手卡组 + trace
+    └── th18.v1.00a.js  ★ 生成物:两个测试断点(起手卡组 / 分配追踪)
 ```
