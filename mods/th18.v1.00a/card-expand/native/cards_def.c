@@ -42,13 +42,17 @@ int ce_card_validate(const ce_card_def_t *d, char *err, unsigned cap)
 {
     if (d->id < CE_CARD_ID_MIN || d->id > CE_CARD_ID_MAX)
         return fail(err, cap, "id", "must be 58..254 (56/57 are retail sentinels)");
-    if (!ce_card_text_ok(d->name))
-        return fail(err, cap, "name", "required, <= 63 bytes UTF-8, no '%'");
+    if (!ce_card_text_ok(d->name)) {
+        if (err && cap) snprintf(err, cap, "name: \"%.40s\" — required, <= 63 bytes UTF-8, no '%%' (use U+FF05 fullwidth percent if you need one)", d->name);
+        return 0;
+    }
     if (d->ndesc > CE_CARD_DESC_LINES)
         return fail(err, cap, "desc", "at most 6 lines");
     for (unsigned i = 0; i < d->ndesc; ++i)
-        if (!ce_card_text_ok(d->desc[i]))
-            return fail(err, cap, "desc", "each line <= 63 bytes UTF-8, non-empty, no '%'");
+        if (!ce_card_text_ok(d->desc[i])) {
+            if (err && cap) snprintf(err, cap, "desc[%u]: \"%.40s\" — each line <= 63 bytes UTF-8, non-empty, no '%%' (use U+FF05 fullwidth percent if you need one)", i, d->desc[i]);
+            return 0;
+        }
     if (!in_range(err, cap, "price_tier", d->price_tier, 0, 14, "must be 0..14 (price table 0x4b35c4)")) return 0;
     if (!in_range(err, cap, "weight", d->weight, 0, 255, "must be 0..255")) return 0;
     if (!in_range(err, cap, "dmode", d->dmode, 0, 12, "must be 0..12")) return 0;
