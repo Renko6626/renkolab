@@ -65,6 +65,8 @@ test-host:
 	@mkdir -p tests/build
 	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_cards_def tests/test_cards_def.c cards_def.c
 	./tests/build/test_cards_def
+	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_sdk_core tests/test_sdk_core.c sdk_core.c
+	./tests/build/test_sdk_core
 
 ## x87 自检 —— 只看我们自己的目标文件
 dllx87: $(OBJS)
