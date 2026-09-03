@@ -1,18 +1,18 @@
 script script68 {
 -1:
     sprite(@REVERSE);
-    layer(20);
-    resolutionMode(1);
-    type(8);
-    blendMode(0);
-    zWriteDisable(1);
+    ins_431(1);
+    randMode(1);
+    type(1);
+    originMode(1);
     anchor(0, 0);
-    scale(4.0f, 4.0f);   // 诊断用：超大，哪怕偏到角落也能看见；定位对了再改回 0.6
+    scale(2.0f, 2.0f);
     alpha(0);
-    rotate(0.0f, 0.0f, 0.0f);
 0:
+    pos(0.0f, 0.0f, 0.0f);
+    layer(16);
     alphaTime(6, 0, 255);
-    rotateTime(36, 0, 0.0f, 6.2831855f, 0.0f);
+    rotateTime(36, 0, 0.0f, 0.0f, 6.2831855f);
 +36: // 36
     alphaTime(10, 0, 0);
 +10: // 46
