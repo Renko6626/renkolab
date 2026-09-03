@@ -129,7 +129,7 @@ dat 内文件都做同路径覆盖，替换文件更大也没事（`bp_file.cpp`
 上表是 exe 里的 `internal_name`；`abcard.anm` 的 entry 名对 boss 卡不同：100 `MANEKI_NEKO`、102 `boss2`（YAMAWARO）、
 104 `boss3`（KISERU）、106 `boss4`（MAGATAMA）、108 `boss5b`（CYLINDER）、110 `boss5`（RICEBALL）、112 `boss7`（MUKADE）、
 114 `magatama`（MAGATAMA2）、116 `empty`（NULL）；3 与 117 都叫 `dummy`（透明小图）。
-**本 mod 追加**：118–127 = 黑桃 10/J/Q/K/A（`assets/cards/ORDER.txt`）。
+**本 mod 追加**：118–127 = 黑桃 10/J/Q/K/A，128/129 = 反转牌 REVERSE（`assets/cards/ORDER.txt`；第三方素材出处见 `assets/cards/_src/README.md`）。
 
 ## 7. 示范
 
