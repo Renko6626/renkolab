@@ -40,8 +40,9 @@
 #define CE_MGR_OWNED               0xd70      /* int[255]，本 mod 搬过来的（战线 C）*/
 #define CE_MGR_RECHARGE_MULT       0xc58      /* float，reset 置 1.0（OM §5）*/
 #define CE_MGR_SELECTED_ACTIVE     0x38       /* 选中的主动卡（C 键分派 0x45c090）*/
-#define CE_MGR_ABCARD_ANM          0x0c       /* AnmLoaded*：abcard.anm（卡图；HUD/编成/图鉴起脚本后 set_sprite）*/
-#define CE_MGR_ABILITY_ANM         0x10       /* AnmLoaded*：ability.anm（场上特效；CardTenshi__c_press 0x40ebf0 取它起 script 0x1c）*/
+#define CE_MGR_ABILITY_ANM         0x0c       /* AnmLoaded*：ability.anm（场上特效）。ExpHP zAbilityManager +0x0c；CardTenshi__c_press 0x40ebf0 `mov ecx,[eax+0xc]` 取它起 script 0x1c。★ 第一版写成 0x10 拿到了 abcard，script68 越界成垃圾 VM（AUDIT O24′）*/
+#define CE_MGR_ABCARD_ANM          0x10       /* AnmLoaded*：abcard.anm（卡图；HUD/编成/图鉴起脚本后 set_sprite）。ExpHP +0x10 */
+#define CE_MGR_ABMENU_ANM          0x14       /* AnmLoaded*：abmenu.anm（编成 / 图鉴 UI）。ExpHP +0x14 */
 
 /* 卡链表结点（= card+0xc）：{+0 card*, +4 next, +8 prev}（0x412e90 插入；0x408690 遍历 mov ecx,[edi]; mov edi,[edi+4]）*/
 #define CE_NODE_CARD               0x0

@@ -94,7 +94,7 @@ ROADMAP 里问的是「`allocate_new_card` 的完整 switch/default：未知 ID 
 ## 5. 图标
 
 `zTableCardData` 的 `sprite_large` `+0x2c` / `sprite_small` `+0x30` 是 **`abcard.anm` 的 sprite 索引**。
-三个卡牌 ANM（`zAbilityManager` `+0x0c`/`+0x10`/`+0x14`）各装什么——thanm release 12 一手解包（2026-09-04）：
+三个卡牌 ANM（`zAbilityManager`：**`+0x0c` = `ability_anm`、`+0x10` = `abcard_anm`、`+0x14` = `abmenu_anm`**，ExpHP 结构体 + `CardTenshi__c_press` `0x40ebf0` 一手；本文旧版把前两个写反过）各装什么——thanm release 12 一手解包（2026-09-04）：
 
 | 文件 | entry / sprite | 脚本 | 装什么 |
 | --- | --- | --- | --- |

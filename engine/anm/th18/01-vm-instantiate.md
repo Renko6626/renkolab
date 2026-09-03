@@ -14,8 +14,8 @@
 
 ## 1. 发现
 
-`CardTenshi__c_press` `0x40ebf0` 发动时**内联**了一份 `0x405bf0` 的逻辑：`ABILITY_MANAGER->ability_anm(+0x10)` → `+0x134` 引用计数 +1 →
-`AnmManager__allocate_new_vm` → `AnmManager__sub_407420(anm, vm, 0x1c)`（把脚本表第 0x1c 项、步长 0x60c、共 0x151 dword 拷进 VM）→
+`CardTenshi__c_press` `0x40ebf0` 发动时**内联**了一份 `0x405bf0` 的逻辑：`ABILITY_MANAGER->ability_anm(**+0x0c**；`+0x10` 才是 `abcard_anm`，`+0x14` `abmenu_anm`) → `+0x134` 引用计数 +1 →
+`AnmManager__allocate_new_vm` → `AnmManager__sub_407420(anm, vm, 0x1c)`（把脚本表第 0x1c 项、步长 0x60c、共 0x151 dword 拷进 VM；**无边界检查**，脚本号越界就是垃圾 VM）→
 `vm+0x18 = 13`（层）→ 标志 `&= ~0x200000 | 0x101000` → `vm+0x5f0..0x5f8` = 卡记下的玩家坐标 → `AnmVm__run` → `insert_in_world_list_back` → id 存 `card+0x1c`。
 独立函数版把坐标固定成 (0,0,0)。HUD / 编成 / 图鉴则用 `abcard_anm(+0x0c)` 走 `instantiate_vm_to_ui_list_front` 再 `set_sprite(entry+0x2c)`
 （[`../../card/th18/11-sentinels-56-57.md`](../../card/th18/11-sentinels-56-57.md)）。
