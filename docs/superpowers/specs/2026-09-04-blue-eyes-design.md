@@ -16,14 +16,38 @@
 三块机制各有零售原型，本节全部来自本会话 headless 反编译（`tooling/ghidra/scripts/decompile_funcs.py`，新加），
 **一律 🟡，进 AUDIT 前不算成立**。
 
-| 机制 | 零售原型 | 一手事实 |
+| 机制 | 零售原型 | 详见 |
 | --- | --- | --- |
 | 献祭残机 | 神之宣告（66） | `CURRENT_LIVES` −1 + `ce_gui_update_lives()`，已实装 |
-| 跟随 | Tenshi 要石（43）`0x40e8c0` | 目标 = 玩家 `(x, y − 80)`，每帧 `pos += (target − pos) × 0.04`（`0x4b90b8`）；`AnmManager__get_vm_with_id(ANM_MANAGER_PTR, id)` `0x488b40` → 写 `vm+0x5f0/+0x5f4/+0x5f8`。召唤点 `(x, y − 100)` |
-| 挡弹 + 计数 | 同上 | `mgr.counter = 0; BulletManager__cancel_radius_as_bomb(pos*, 0, 99999, 0)`，**半径走 XMM2**（要石 18.0 `0x4b9290`）。函数 `0x429370` stdcall `ret 0x10`：命中条件 `state ∈ {1,2}` 且 `bullet+0x24 == 0`，`dist² ≤ (弹半径(+0x658)×0.5 + R)²`；每消一发 `mgr+0x7a41e8`（`__some_cancel_related_counter`）`++`（`Bullet__cancel(b, mode)` `0x428e90`），**消满 `max_count` 立即返回**。有命中那帧 Tenshi 把 VM `color_1` 染成 `(ff,80,00,ff)` |
-| 光束伤害 | Remilia 脉冲（46）`0x40f3a0` state 2 | `Player__create_damage_source_rect`（`FUN_0045dfa0`，本仓命名）`(center*, angle, 寿命帧, 每次伤害)` stdcall `ret 0x10`，**XMM2 = 宽、XMM3 = 高**；Remilia 每帧 `(玩家上方, 0.0, 2, 200)`、宽 32、高 ≤ 90。池 `player+0x20574` 起 1024 槽、stride 0x9c；矩形模式 flags `&~6\|1`，`+0xc` 角度、`+0x14/+0x18` 宽高、`+0x7c` 累计上限 9999999、`+0x80` 命中间隔 1 |
-| 伤害结算 | `enm_compute_damage_sources` `0x45f0f0` | 敌人侧每帧遍历池、矩形按 OBB 判；**本帧总伤害钳 `player+0x47984`**，`GameThread__on_tick` `0x443d3b` 每帧从 `sht+0x28`（max_dmg）复位它；Remilia 脉冲期间每帧写 300（`0x40f48e`）。结算后 `SCORE += (dmg/10+10)/10` |
+| 跟随 | Tenshi 要石（43）`0x40e8c0` | §1.1 |
+| 挡弹 + 计数 | 同上 | §1.2 |
+| 光束伤害 | Remilia 脉冲（46）`0x40f3a0` state 2 | §1.3 |
+| 伤害结算 | `enm_compute_damage_sources` `0x45f0f0` | §1.4 |
 | 收场 | Tenshi | `AnmManager__interrupt_tree(id, 1)` `0x488be0` 触发脚本里的中断分支（收场动画）；`0x488cf0` 直接标记删除 |
+
+### 1.1 跟随（Tenshi）
+
+目标 = 玩家 `(x, y − 80)`，每帧 `pos += (target − pos) × 0.04`（`0x4b90b8`）。
+`AnmManager__get_vm_with_id(ANM_MANAGER_PTR, id)` `0x488b40` 找到 VM 后写 `vm+0x5f0/+0x5f4/+0x5f8`。召唤点 `(x, y − 100)`。
+
+### 1.2 挡弹 + 计数（Tenshi）
+
+每帧 `mgr.counter = 0; BulletManager__cancel_radius_as_bomb(pos*, 0, 99999, 0)`，**半径走 XMM2**（要石 18.0 `0x4b9290`）。
+函数 `0x429370` stdcall `ret 0x10`：命中条件 `state ∈ {1,2}` 且 `bullet+0x24 == 0`，`dist² ≤ (弹半径(+0x658)×0.5 + R)²`；
+每消一发 `Bullet__cancel(b, mode)` `0x428e90` 并 `mgr+0x7a41e8`（`__some_cancel_related_counter`）`++`；**消满 `max_count` 立即返回**。
+有命中那帧 Tenshi 把 VM `color_1`（`vm+0x524`）写成 `0xff0080ff`，否则 `0xffffffff`。
+
+### 1.3 光束伤害（Remilia）
+
+`Player__create_damage_source_rect`（`FUN_0045dfa0`，本仓命名）`(center*, angle, 寿命帧, 每次伤害)` stdcall `ret 0x10`，
+**XMM2 = 宽、XMM3 = 高**；Remilia 每帧 `(玩家上方, 0.0, 2, 200)`、宽 32、高 ≤ 90。
+池 `player+0x20574` 起 1024 槽、stride 0x9c；矩形模式 flags `&~6|1`，`+0xc` 角度、`+0x14/+0x18` 宽高、`+0x7c` 累计上限 9999999、`+0x80` 命中间隔 1。
+
+### 1.4 伤害结算
+
+`enm_compute_damage_sources` `0x45f0f0`：敌人侧每帧遍历池、矩形按 OBB 判；**本帧总伤害钳 `player+0x47984`**，
+`GameThread__on_tick` `0x443d3b` 每帧从 `sht+0x28`（max_dmg）复位它；Remilia 脉冲期间每帧写 300（`0x40f48e`）——本卡**不写**。
+结算后 `SCORE += (dmg/10+10)/10`。
 
 同类但不用的：`LaserManager__cancel_in_radius` `0x449010`（激光不挡）、`BulletManager__cancel_bullets_in_rectangle_as_bomb`
 `0x4294b0`（光束不消弹）、`Player__create_damage_source_45de40`（圆形伤害源，Miko 用）。
@@ -50,12 +74,20 @@
 
 ### 2.3 事件
 
-| 事件 | 做什么 |
-| --- | --- |
-| `on_activate` | `CURRENT_LIVES < 1` → `CE_ACTIVATE_REFUSED`（无效音 0x10；**不允许献祭最后一条命**）。否则 `CURRENT_LIVES−−`、`ce_gui_update_lives()`；`pos = (玩家 x, 玩家 y − 100)`；起龙 ANM（`ability.anm` 追加脚本 `BLUE_EYES_DRAGON`，层 13 照要石）、写坐标；`hp = BE_HP`、`wave_timer = 0`；发动音 0x4d；返回 1 进持续态 |
-| `on_active_tick` | ① 跟随：目标 `(px, py + BE_FOLLOW_DY)`，lerp，写 `vm+0x5f0`（VM 没了 → 视为死亡，返回 0）。② 挡弹：`counter = 0; cancel_radius(pos, BE_RADIUS, max = hp, mode 0)`；`hp −= counter`；`counter > 0` 时染色一帧。③ 发波：`wave_timer++`；到 `BE_WAVE_PERIOD` 时 `wave_left = BE_WAVE_FRAMES`、起光束 ANM（`BLUE_EYES_BEAM`，随龙的 x、从龙口到区域顶边）、放音；`wave_left > 0` 时每帧 `damage_rect(center = (x, y/2), angle 0, life 2, dmg BE_WAVE_DMG_PER_FRAME, w BE_BEAM_WIDTH, h = y)` `wave_left−−`（**不写伤害上限**，引擎钳多少算多少）。④ `hp ≤ 0` → `interrupt_tree(anm_id, 1)`（死亡动画）、放音、返回 0 |
-| `on_stage_start`（+0x34） | 龙在 → 删 VM（`0x488cf0`）、状态清零（用户选「过关消失」；SDK 已把状态机置 0） |
-| `on_run_reset`（+0x4c） | 同上 |
+**`on_activate`**：`CURRENT_LIVES < 1` → `CE_ACTIVATE_REFUSED`（无效音 0x10；**不允许献祭最后一条命**）。
+否则 `CURRENT_LIVES−−`、`ce_gui_update_lives()`；`pos = (玩家 x, 玩家 y − 100)`；起龙 ANM（`ability.anm` 追加脚本
+`BLUE_EYES_DRAGON`，层 13 照要石）、写坐标；`hp = BE_HP`、`wave_timer = 0`；发动音 0x4d；返回 1 进持续态。
+
+**`on_active_tick`**，每帧四步：
+
+1. 跟随：目标 `(px, py + BE_FOLLOW_DY)`，lerp，写 `vm+0x5f0`。VM 没了 → 视为死亡，返回 0。
+2. 挡弹：`counter = 0; cancel_radius(pos, BE_RADIUS, max = hp, mode 0)`；`hp −= counter`；`counter > 0` 时染色一帧。
+3. 发波：`wave_timer++`；到 `BE_WAVE_PERIOD` 时 `wave_left = BE_WAVE_FRAMES`、起光束 ANM（`BLUE_EYES_BEAM`，随龙的 x、从龙口到区域顶边）、放音。
+   `wave_left > 0` 时每帧 `damage_rect(center = (x, y/2), angle 0, life 2, dmg BE_WAVE_DMG_PER_FRAME, w BE_BEAM_WIDTH, h = y)`，`wave_left−−`。
+   **不写伤害上限**，引擎钳多少算多少。
+4. `hp ≤ 0` → `interrupt_tree(anm_id, 1)`（死亡动画）、放音、返回 0。
+
+**`on_stage_start`（+0x34）/ `on_run_reset`（+0x4c）**：龙在 → 删 VM（`0x488cf0`）、状态清零（用户选「过关消失」；SDK 已把状态机置 0）。
 
 龙活着期间 SDK 状态机在持续态：C 键天然无效、充能不走，不需要「已有一条龙」的额外判断。
 死亡后进收尾 → 空闲，充能走完可再召（再花一条命）。
