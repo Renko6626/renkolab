@@ -989,6 +989,18 @@
       "cavesize": 6,
       "expected": "ff0530cd4c00",
       "title": "行为 SDK → BP_ce_item_money：collect_money_item：inc [MONEY_TOTAL]（下一条 inc [MONEY]）；沿卡链表调 on_item_money(&bonus)，两个全局一起 += bonus"
+    },
+    "ce_shop_bought": {
+      "addr": "0x4183ea",
+      "cavesize": 12,
+      "expected": "6a066a006a068d8f28020000",
+      "title": "商店走两遍 → BP_ce_shop_bought：AbilityShop__on_tick 成交分支（状态已置 5）：push 6 / push 0 / push 6 / lea ecx,[edi+0x228]，无相对寻址；只记「本次进店成交」"
+    },
+    "ce_shop_reopen": {
+      "addr": "0x443b05",
+      "cavesize": 5,
+      "expected": "a900000200",
+      "title": "商店走两遍 → BP_ce_shop_reopen：GameThread__on_tick：test eax,0x20000（eax = GameThread+0xb0，esi = this）；店刚关且成交过且有名额 → eax |= 0x20000 再开一家"
     }
   }
 }

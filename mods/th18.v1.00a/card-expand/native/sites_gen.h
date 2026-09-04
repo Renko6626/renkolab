@@ -148,6 +148,8 @@ static const ce_grow_t CE_GROW[] = {
 #define CE_BP_CARD_BIND_RVA   0x012cec
 #define CE_BP_ITEM_SCORE_RVA  0x046cf6
 #define CE_BP_ITEM_MONEY_RVA  0x046d28
+#define CE_BP_SHOP_BOUGHT_RVA 0x0183ea
+#define CE_BP_SHOP_REOPEN_RVA 0x043b05
 #define CE_TEST_DECK_SAVE_OFF 0x5f608   /* reset_cards：byte [eax+esi+0x5f608] 初始卡组一格 */
 #define CE_ORDER_RVA      0x0b3600
 #define CE_ORDER_COUNT    57

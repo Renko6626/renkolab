@@ -169,6 +169,8 @@ int ce_selfcheck(uint8_t *base)
     if (alloc && !ce_menu_setup(base))             { restore_alloc_bound(base); return 0; }
     /* 行为 SDK：基类虚表守卫、两断点、与 cards.js 对账 */
     if (alloc && !ce_sdk_setup(base, ce_dev_trace())) { restore_alloc_bound(base); return 0; }
+    /* 商店走两遍：两个断点已挂（AUDIT §P）*/
+    if (alloc && !ce_shop_setup(base))             { restore_alloc_bound(base); return 0; }
 
     unsigned ok = 0, bad = 0, first_bad = 0;
     for (unsigned i = 0; i < CE_NSITES; ++i) {

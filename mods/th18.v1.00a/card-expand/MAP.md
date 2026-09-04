@@ -65,6 +65,8 @@
 | `ce_card_bind` | `0x412cec` 分配公共尾段 | 6 | esi = 卡对象、ebx = id：有行为的换虚表 | `sdk.c` | §O1–O2 |
 | `ce_item_score` | `0x446cf6` `collect_money_item` | 6 | esi = 道具身价，沿卡链表调 `on_item_score` | `sdk.c` | §O10 |
 | `ce_item_money` | `0x446d28` `collect_money_item` 尾 | 6 | 金钱入账前，沿卡链表调 `on_item_money`，`MONEY`/`MONEY_TOTAL` 一起 += bonus | `sdk.c` | §O14 |
+| `ce_shop_bought` | `0x4183ea` `AbilityShop__on_tick` 成交分支 | 12 | 只记「本次进店成交了」（关卡 + 帧） | `shop.c` | §P1–P2 |
+| `ce_shop_reopen` | `0x443b05` `GameThread__on_tick` `test eax,0x20000` | 5 | 店刚关、成交过、还有名额 → `eax |= 0x20000`，零售建店代码再跑一遍（每关 2 次） | `shop.c` ← `shop_core.c` | §P3–P8 |
 
 ### codecave
 
@@ -103,4 +105,5 @@
 
 - **行为**：已做（第 9 段，[`SDK.md`](SDK.md)），待实跑。主动卡（C 键 / 充能 / HUD）的基类是第二批。
 - **卡图**：不是代码活。`assets/build_abcard.py` 重编；余量结论见 [`engine/card/th18/10-extensibility-limits.md`](../../../engine/card/th18/10-extensibility-limits.md) §5（运行时上限 🟡）。
-- ~~商店~~、~~数据~~：已做（第 7 / 10 段），待实跑。
+- ~~商店~~、~~数据~~：已做（第 7 / 10 段），实跑通过（2026-09-04）。
+- **商店走两遍**（每关进店 2 次，2026-09-04）：不碰店内状态机，两个放行断点让零售建店代码再跑一遍；AUDIT §P，待实跑。

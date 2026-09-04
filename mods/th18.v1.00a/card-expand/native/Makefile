@@ -66,9 +66,9 @@ LDFLAGS   := -shared -static-libgcc -s -lkernel32 -Wl,--no-insert-timestamp
 
 ## dll    —— 编 DLL（依赖 gen 出的 sites_gen.h）
 dll: $(DLL)
-SRCS      := dll_main.c selfcheck.c unlocked.c text.c cards_def.c cards.c menu.c bp_trace.c sdk_core.c sdk.c $(wildcard cards/*.c)
+SRCS      := dll_main.c selfcheck.c unlocked.c text.c cards_def.c cards.c menu.c bp_trace.c sdk_core.c sdk.c shop_core.c shop.c $(wildcard cards/*.c)
 OBJS      := $(SRCS:.c=.o)
-%.o: %.c card_expand.h sites_gen.h thcrap_bp.h cards_def.h sdk.h sdk_core.h engine.h
+%.o: %.c card_expand.h sites_gen.h thcrap_bp.h cards_def.h sdk.h sdk_core.h engine.h shop_core.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(DLL): $(OBJS) th18_card_expand.def
 	$(CC) $(CFLAGS) -o $@ $(OBJS) th18_card_expand.def $(LDFLAGS)
@@ -81,6 +81,8 @@ test-host:
 	./tests/build/test_cards_def
 	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_sdk_core tests/test_sdk_core.c sdk_core.c
 	./tests/build/test_sdk_core
+	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_shop_core tests/test_shop_core.c shop_core.c
+	./tests/build/test_shop_core
 
 ## x87 自检 —— 只看我们自己的目标文件
 dllx87: $(OBJS)

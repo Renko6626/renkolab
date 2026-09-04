@@ -29,6 +29,13 @@
 #define CE_ADDR_GUI_PTR            0x4cf2e0   /* zGui*（ExpHP）；+0x1b0 = msg（对话 VM，非 0 = 对话中）。C 键门控 0x45c069、Tenshi state0 0x40ea0d 读它 */
 #define CE_ADDR_ENEMY_MGR_PTR      0x4cf2d0   /* zEnemyManager*；+0x198 = enemy_count_real（ExpHP）。== 0 时 C 键与充能都停（0x45c07b / 0x40ea1f）*/
 #define CE_ADDR_INPUT_PRESSED      0x4ca434   /* 本帧上升沿；bit 0x400 = C 键（0x45c084）*/
+#define CE_ADDR_SHOP_PTR           0x4cf2a4   /* zAbilityShop*：GameThread__on_tick 0x443bed 写、析构 0x417857 清零；敌人 / 弹幕 / GUI 非 0 即冻结（SM §3.5）*/
+#define CE_ADDR_TIME_IN_STAGE      0x4ccce8   /* int：GameThread__on_tick 尾 0x443d16 inc（ExpHP TIME_IN_STAGE）*/
+#define CE_ADDR_CURRENT_STAGE      0x4cccdc   /* int：= GlobalsInner 首字段（ExpHP CURRENT_STAGE_globalsinner_base）*/
+#define CE_ADDR_PRACTICE_STAGE     0x4c5f8c   /* int：练习模式选的关（stage select 0x46769d 写），-1 = 非练习；商店 0x417cc7 读它决定 30 帧自动退 */
+#define CE_GT_FLAGS                0xb0       /* zGameThread+0xb0：位 0x20000 = 请求开商店（MSG opcode 36 置 0x440d83；GameThread 0x443b05 测、0x443c17 清）*/
+#define CE_GT_REPLAY_PLAYING       0xd0       /* zGameThread+0xd0：非 0 = replay 回放中（商店 0x417cd8、sub_417880 都看它）*/
+#define CE_GT_FLAG_OPEN_SHOP       0x20000
 
 #define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)
 #define CE_MONEY()        (*(int32_t *)CE_ADDR_MONEY)
@@ -38,6 +45,10 @@
 #define CE_CURRENT_BOMBS()  (*(int32_t *)CE_ADDR_CURRENT_BOMBS)
 #define CE_MAX_BOMBS()      (*(int32_t *)CE_ADDR_MAX_BOMBS)
 #define CE_GAME_THREAD()    (*(void **)CE_ADDR_GAME_THREAD_PTR)
+#define CE_SHOP_PTR()       (*(void **)CE_ADDR_SHOP_PTR)
+#define CE_TIME_IN_STAGE()  (*(int32_t *)CE_ADDR_TIME_IN_STAGE)
+#define CE_CURRENT_STAGE()  (*(int32_t *)CE_ADDR_CURRENT_STAGE)
+#define CE_PRACTICE_STAGE() (*(int32_t *)CE_ADDR_PRACTICE_STAGE)
 #define CE_OWNED_ARRAY()    ((const int32_t *)(CE_ABILITY_MGR() + CE_MGR_OWNED))
 #define ce_price_for_tier(t)  (((t) >= 0 && (t) < 15) ? ((const int32_t *)CE_ADDR_CARD_PRICE_BY_TIER)[(t)] : 0)
 #define CE_PLAYER()       (*(uint8_t **)CE_ADDR_PLAYER_PTR)

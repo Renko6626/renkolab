@@ -513,6 +513,37 @@ M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未�
 
 **未实跑。** 各卡的验收在 [`NEXT.md`](NEXT.md) §1。
 
+## P. 商店走两遍（每关进店 2 次）—— 两个放行断点
+
+引擎链一手见 [`engine/card/th18/05-shop-and-money.md`](../../../engine/card/th18/05-shop-and-money.md) §3.5。
+**没有手写机器码、不改控制流**：两个断点都返回 1 放行原指令；唯一的「改动」是给 `eax` 加一位，
+让零售自己的建店代码（`0x443b10..0x443c17`）再跑一遍。状态机在 `shop_core.c`（主机单测 `test_shop_core.c`）。
+
+| # | claim | 结论 |
+| --- | --- | --- |
+| P1 | `0x4183ea` 盖住的 12 字节是四条完整指令且无相对寻址 | **CONFIRMED** —— `6a 06` / `6a 00` / `6a 06` / `8d 8f 28 02 00 00`（push 6; push 0; push 6; lea ecx,[edi+0x228]）；`sites.py` 生成时与 exe 逐字节对账，门里再核 `e8` + 7 个 `90` |
+| P2 | `0x4183ea` 只在「玩家选是、真的成交」时经过 | **CONFIRMED** —— 它在 `case 6/7` 的 `param_1[3]==0` 分支里，前一条是 `0x4183e5 call FUN_00416c80(this,5)`；空白卡路线（state 3 → `0x418584` 置 4）、取消（`0x418551` 置 2）、买不起（state 8）都不经过 |
+| P3 | `0x443b05` 处 `eax` = `GameThread+0xb0`、`esi` = this；改 `eax` 后原 `test` 算出的 flags 正是零售语义 | **CONFIRMED** —— 见下「P3 证据」 |
+| P4 | 重开与关店在同一帧，敌人 / MSG 看不到指针为 0 | **CONFIRMED** —— 商店 on_tick 0xc（`0x4171de`）在自己 tick 里 `0x417857` 清指针；GameThread 0x10（`0x442a97`）本帧随后建店 `0x443bed`；EnemyManager 0x1b（`0x42dcd8`）、Gui 0x21（`0x43bac5`）在后 |
+| P5 | 第二家店与第一家共用零售代码，无新对象布局假设 | **CONFIRMED** —— 建店 / `AbilityShop__initialize` / on_tick / 析构全是零售路径；offer 重抽自动排除已拥有（`mgr+0xd70` owned，`pick` 与两个保证循环同一门控，SM §4） |
+| P6 | 练习 / replay 回放 / 空白卡 / 中途退出都不会多开店 | **CONFIRMED** —— 见下「P6 证据」 |
+| P7 | replay 一致性 | **CONFIRMED（推断）** —— 录制 / 回放在商店期间都停（`0x4629a2` / `0x462aa5` 看指针）；`sub_417880` 每次关店都覆写本关卡组快照与 GlobalsInner（含金钱），回放时第一家店 30 帧内复原最终快照后退出、不成交、不重开 → 与录制时两家店买完的结果一致。实跑核对 |
+| P8 | 暂停菜单期间不会出错 | **CONFIRMED** —— 见下「P8 证据」 |
+
+**P3 证据**：`0x443aff mov eax,[esi+0xb0]`；`0x443874 mov esi,ecx`（fastcall this）；`test eax,0x20000` 由 cave 里执行，
+`0x443b0a jz` 看它的 ZF；创建后 `0x443c17 and [esi+0xb0],~0x20000`、`0x443c21` 重读 —— 内存位我们不动，不会残留。
+
+**P6 证据**：练习（`0x4c5f8c >= 0`）与回放（`GT+0xd0`）在 `0x417cc7` 30 帧自动退、空白卡走 state 3/4，三者都不经 `0x4183ea`；
+`blocked` 再挡一道。中途退出：`ce_shop_on_gamethread` 要求同关且距成交 ≤ 300 帧（`TIME_IN_STAGE` `0x4ccce8` 由 GameThread 尾
+`0x443d16` 递增），否则作废；MSG 下一关置位时名额重算。
+
+**P8 证据**：成交后暂停：商店 state 5 在暂停下仍会退（`0x417d14..0x417d2d`），指针清零 → GameThread 若跑到 `0x443b05` 就重开，
+新店 state 0 在暂停下 `return 1` 等到恢复。从暂停退到标题：teardown `0x443711` 走 `sub_417880` → 析构，GameThread 不再 tick，
+成交记录靠 P6 的关卡 / 帧数校验作废。
+
+**实跑要看的**：日志 `shop: 2 visits per stage` → 过关 `shop: opened by msg (visit 1/2 …)` → 买 → `shop: bought (…)` →
+`shop: reopen (visit 2/2 …)` → 商品重抽且不含刚买的 → 买 → 正常进下一关；replay 回放同一局不出现 `reopen`。
+
 ## G. OPEN —— 还没解决的
 
 | # | 事项 | 说明 |

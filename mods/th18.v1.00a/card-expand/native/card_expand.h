@@ -9,6 +9,8 @@
  *   cards.c       战线 E 第 10 段：从 thcrap 栈的 th18/cards.js 装新卡，产出注册表
  *   menu.c        战线 E 第二块：顺序表重排 + 图鉴条目数 + zAbilityMenu 站点核对
  *   bp_trace.c    测试用断点：记录每次 allocate_new_card(id, mode)，新 id 顺手 mark_obtained（只在 patch-test 进栈时挂）
+ *   shop_core.c   商店走两遍的状态机（纯逻辑，主机单测）
+ *   shop.c        商店走两遍：成交断点 + GameThread 重开断点（AUDIT §P）
  *   （后续）       数据激活门、新卡注册 …
  */
 #pragma once
@@ -50,3 +52,5 @@ int      ce_dev_trace(void);
 int      ce_sdk_setup(uint8_t *module_base, int trace);
 /* 战线 E 第二块（menu.c）：顺序表重排、图鉴条目数、站点核对 */
 int ce_menu_setup(uint8_t *module_base);
+/* 商店走两遍（shop.c ← shop_core.c 主机单测）：门里核对两个断点；返回 1 = 通过 */
+int ce_shop_setup(uint8_t *module_base);

@@ -63,6 +63,50 @@ SCORE(0x4cccfc) += 到手值 / 10;                                       // 封�
 | `this+0xe34` | **卡组里有空白卡（id 0）** → 进 state 3 而不是 state 2 |
 | `this+0xe38` | 状态机（见 §5）|
 
+## 3.5 ★ 开店 / 冻结 / 关店的完整链（谁开的门，谁在等）
+
+> 2026-09-04 一手补全，起因是想让商店每关开两次（`mods/th18.v1.00a/card-expand`，AUDIT §P）。
+
+**开店不是 ECL 干的，是 MSG。** 关末对话脚本（`stNNd.msg`）的 opcode **36**（`'$'`）在
+`GuiMsgVm__run` `0x440D83` 只做一件事：`GAME_THREAD+0xb0 |= 0x20000`，然后 MSG 指针前进、**不等待**
+（`0x440D8D..0x440DA9`）。全二进制里给这个位置位的只有它（`search_text 0x20000` 穷举）。
+
+**建店在 `GameThread__on_tick` `0x443860`**（UpdateFunc 优先级 **0x10**，`0x4429FF` 处注册）：
+
+```c
+// 0x443AFF..0x443C21
+if (this->flags_b0 & 0x20000) {
+    shop = operator_new(0xe3c); memset …;             // 0x443B10..0x443BDB
+    ABILITY_SHOP_PTR(0x4cf2a4) = shop;  *shop |= 2;   // 0x443BED
+    if (PLAYER_PTR) FUN_00416cd0(player);             // 收起子机（中断 3）、player+0x4779c |= 2
+    if (AbilityShop__initialize(shop, {448.0, 32.0, 0})) FUN_004176e0(shop);   // 失败即析构
+    this->flags_b0 &= ~0x20000;                       // 0x443C17
+}
+```
+
+**冻结靠一个指针。** 没有任何「等商店」的事件；下面这些 on_tick 都是 `ABILITY_SHOP_PTR != 0` 就跳过本帧
+（`get_xrefs_to 0x4cf2a4` 穷举）：`EnemyManager__on_tick` `0x42DF8B`、`BulletManager__on_tick` `0x424E8B`、
+`LaserManager__on_tick` `0x4488C4`、`Player__on_tick` `0x45CAA0` / `__body` `0x45C0C1`、`ItemManager__on_tick` `0x446EE3`、
+`AbilityManager__on_tick__stub` `0x408A90`、`Gui__on_tick` `0x43C889`（**MSG 也在这里停**）、replay 录制 / 回放
+`0x4629A2` / `0x462AA5`（商店期间不录不放）。**不看**它的：`Stage`（背景照常滚）、`Spellcard`（符卡计时照常走）——
+所以关卡中间开店在技术上可行，但只该在对话里开（对话时这两样本来也不在活动）。
+
+**关店由商店自己完成**（on_tick 优先级 **0xc**）：state 5（成交后 30 帧）/ 4（空白卡确认后）/ 9 → `FUN_004132b0`（清文案）
+→ `AbilityShop__sub_417880`（replay 存/复原卡组）→ `FUN_004176e0`（注销两个 UpdateFunc、杀全部 VM、
+**`0x417857` 把 `0x4cf2a4` 清零**、`delete`）。还有两条不经成交的退出：`0x417CC7` 起，`timer == 0x1e` 且
+（replay 回放 `GAME_THREAD+0xd0 != 0` ‖ `DAT_004cccc8 & 0x30` ‖ **练习模式 `0x4c5f8c >= 0`**）→ 30 帧自动退；
+暂停菜单开着（`0x4cf40c+0x1ec != 0`）时只有 state 4/5/9 能继续退。
+
+**帧内顺序决定「再开一家」没有空档**（th18 一手 `register__on_tick` 的优先级参数）：商店 **0xc**（`0x4171DE`）→
+GameThread **0x10**（`0x442A97`）→ EnemyManager **0x1b**（`0x42DCD8`）→ Gui **0x21**（`0x43BAC5`）。商店在自己的 tick
+里析构、指针归零；同一帧稍后 GameThread 若再看到 `0x20000` 就立刻重建；敌人与 MSG 这一帧看到的指针仍非零。
+卡牌扩展 mod 正是在 `0x443B05`（`test eax,0x20000`）上把位加回去实现「每关进店两次」的。
+（th16 的表在 [`../../_shared/frame-loop.md`](../../_shared/frame-loop.md)：Enemy 0x1a / Gui 0x20，th18 各 +1，别混用。）
+
+- **结论**：开店 = MSG opcode 36 置位 + GameThread 建对象；冻结 = 各子系统看 `0x4cf2a4`；关店 = 商店自析构清指针 ✅（TH18 v1.00a）。
+- **证据**：`0x440D83`、`0x443AFF..0x443C21`、`0x417857`、`0x417CC7..0x417D2D`、`get_xrefs_to 0x4cf2a4`（17 处）、
+  上面四个 `register__on_tick` 调用点的立即数。
+
 ## 4. offer 是怎么凑出来的（`0x4171B0`，一手逐段）
 
 **第一段：三档随机抽（+ 招财猫加抽）**
@@ -150,10 +194,10 @@ Ghidra 把它标成 `bool`、反编译显示 `return true` —— **是假象**�
 
 | state | 做什么 |
 | --- | --- |
-| 0 / 1 | 入场动画（60 帧）→ 建卡格图标；**未买过的卡挂一个额外「NEW」VM**；**买不起的卡置灰**（`FUN_00488c60(vm, 2)`）；然后进 state `2 + (this+0xe34 != 0)` |
+| 0 / 1 | 入场动画（60 帧）→ 建卡格图标；**未买过的卡挂一个额外「NEW」VM**；**买不起的卡置灰**（`FUN_00488c60(vm, 3)` = 给图标 VM 及其子树挂中断 3；`0x417FBE push 3`，早先误记成 2）；然后进 state `2 + (this+0xe34 != 0)` |
 | 2 | 浏览。上下键移动游标；确认键 `MENU_INPUT & 0x80001` → 询价（见下）|
 | 3 | **空白卡分支**（§7）|
-| 4 / 5 / 9 | 退出商店（回 `AbilityShop__sub_417880` 存/复原）|
+| 4 / 5 / 9 | 退出商店（回 `AbilityShop__sub_417880` 存/复原，再 `FUN_004176e0` 析构）。4 = 空白卡确认后等确认键；**5 = 成交后 30 帧**（`0x418614 cmp ecx,0x1e`）；9 = 10 帧。三个状态的设置点全在本函数内 |
 | 6 / 7 | 确认对话框（6 = 正常付款，7 = 用火力补差价）|
 | 8 | 「买不起」提示，回 state 2 |
 
@@ -272,6 +316,9 @@ Player__repopulate_options_and_notify_cards(...);
 
 ## 11. Follow-up
 
-- ⏳ 商店 UI 的 anm 脚本编号与 state 0/1 入场细节（非机制，未展开）。
+- ⏳ 商店 UI 的 anm 脚本编号与 state 0/1 入场细节（非机制，未展开）。背景 VM 的中断：6 = 成交收店、7 = 空白卡、`0x1b` = 取消回浏览、
+  `7+i` / `0x11+i` = 确认框游标、`0x25` = 买不起；图标 VM：3 = 置灰、`0xb..0x15` = 游标移动。
+- ⏳ `FUN_00416cd0` `0x416cd0`（开店前对 player 做的事：16 个子机 VM 中断 3、`player+0x4779c |= 2`、`+0x477e8 = 0`）未命名。
+- ⏳ MSG opcode 36 之后关末脚本还写了什么（是否紧跟结束）；`stNNd.msg` 未 dump。
 - 🟡 `0x4ccd28`/`0x4ccd2c`（金钱道具身价上下限）与难度系数常量未 dump（§2）。
 - 🟡 `DAT_004ccd00`（难度）与 `DAT_004cccf4`/`DAT_004cccf8`（角色/子机）编码未逐值核对。

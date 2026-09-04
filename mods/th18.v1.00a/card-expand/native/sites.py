@@ -710,6 +710,25 @@ def emit_sdk_breakpoints(text, text_va):
     return out
 
 
+# ---- 商店走两遍（AUDIT §P、engine/card/th18/05-shop-and-money.md §3.5）：两个断点，都放行原指令 ----
+SHOP_SITES = [
+    ("ce_shop_bought", 0x4183ea, 12, "6a066a006a068d8f28020000",
+     "AbilityShop__on_tick 成交分支（状态已置 5）：push 6 / push 0 / push 6 / lea ecx,[edi+0x228]，无相对寻址；只记「本次进店成交」"),
+    ("ce_shop_reopen", 0x443b05, 5, "a900000200",
+     "GameThread__on_tick：test eax,0x20000（eax = GameThread+0xb0，esi = this）；店刚关且成交过且有名额 → eax |= 0x20000 再开一家"),
+]
+
+
+def emit_shop_breakpoints(text, text_va):
+    out = {}
+    for name, va, n, exp, title in SHOP_SITES:
+        raw = text[va - text_va:va - text_va + n]
+        if raw.hex() != exp:
+            raise ShapeError("%s @ 0x%06x：exe 里是 %s，表里写的是 %s" % (name, va, raw.hex(), exp))
+        out[name] = {"addr": "0x%06x" % va, "cavesize": n, "expected": exp, "title": "商店走两遍 → BP_%s：%s" % (name, title)}
+    return out
+
+
 def emit_test_patch():
     """patch-test：只在验证战线 B 时进栈。两个钩子：
 
@@ -924,6 +943,8 @@ def emit_header(sites, unlock_reads, order_sites, menu_binhacks):
               "#define CE_BP_CARD_BIND_RVA   0x%06x" % (SDK_SITES[0][1] - 0x400000),
               "#define CE_BP_ITEM_SCORE_RVA  0x%06x" % (SDK_SITES[1][1] - 0x400000),
               "#define CE_BP_ITEM_MONEY_RVA  0x%06x" % (SDK_SITES[2][1] - 0x400000),
+              "#define CE_BP_SHOP_BOUGHT_RVA 0x%06x" % (SHOP_SITES[0][1] - 0x400000),
+              "#define CE_BP_SHOP_REOPEN_RVA 0x%06x" % (SHOP_SITES[1][1] - 0x400000),
               "#define CE_TEST_DECK_SAVE_OFF 0x5f608   /* reset_cards：byte [eax+esi+0x5f608] 初始卡组一格 */",
               "#define CE_ORDER_RVA      0x%06x" % ORDER_RVA,
               "#define CE_ORDER_COUNT    %d" % ORDER_COUNT,
@@ -1089,6 +1110,7 @@ def main():
         doc["breakpoints"].update(emit_unlock_breakpoints(text, text_va))
         doc["breakpoints"].update(emit_text_breakpoints(text, text_va))
         doc["breakpoints"].update(emit_sdk_breakpoints(text, text_va))
+        doc["breakpoints"].update(emit_shop_breakpoints(text, text_va))
     txt = json.dumps(doc, indent=2, ensure_ascii=False)
     if a.out:
         out = a.out if os.path.isabs(a.out) else os.path.join(HERE, a.out)
