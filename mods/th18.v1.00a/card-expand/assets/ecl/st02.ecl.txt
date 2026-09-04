@@ -1,9 +1,9 @@
-anim { "enemy.anm"; "st01enm.anm"; }
-ecli { "default.ecl"; "st01bs.ecl"; "st01mbs.ecl"; }
+anim { "enemy.anm"; "st02enm.anm"; }
+ecli { "default.ecl"; "st02bs.ecl"; "st02mbs.ecl"; }
 
 void MainBossSpell();
 
-// 开发辅助：st01 空壳 —— 只留 logo、对话、boss（血量缩百倍、死时多掉钱的 st01bs.ecl 由 make_dev_ecl.py 现场生成）。
+// 开发辅助：st02 空壳 —— 只留 logo、对话、boss（血量缩百倍、死时多掉钱的 st02bs.ecl 由 make_dev_ecl.py 现场生成）。
 // 道中全部删除；结构照零售 main，零售的敌机子程序不保留。由 make_dev_ecl.py --regen-shells 生成，thecl -c 18 -m th18.eclm 编译。
 
 void main()
@@ -11,15 +11,14 @@ void main()
     flagSet(32);
     wait(1);
     setChapter(0);
-    enmCreateA("MapleEnemy", 0.0f, 0.0f, 40, 1000, 1);
-    unless ($SPELL_ID >= 0) goto main_352 @ 0;
+    unless ($SPELL_ID >= 0) goto main_300 @ 0;
     @MainBossSpell();
-    goto main_308 @ 0;
-main_288:
+    goto main_256 @ 0;
+main_236:
     wait(1000);
-main_308:
-    if (1) goto main_288 @ 0;
-main_352:
+main_256:
+    if (1) goto main_236 @ 0;
+main_300:
     @LogoEnemy() async;
 +60: //60
     nop();
@@ -27,17 +26,17 @@ main_352:
     setChapter(41);
     dialogRead(0);
     @MainBoss();
-    goto main_1616 @ 60;
-main_1596:
+    goto main_1528 @ 60;
+main_1508:
     wait(1000);
-main_1616:
-    if (1) goto main_1596 @ 60;
+main_1528:
+    if (1) goto main_1508 @ 60;
     delete();
 }
 
 void LogoEnemy()
 {
-    wait(584);
+    wait(430);
     stageLogo();
     return;
 }

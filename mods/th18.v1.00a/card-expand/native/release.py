@@ -28,6 +28,16 @@ MAP = {                                   # dist 里的 → modkit 里的
     "patch-test/th18/cards_dev.js": "thcrap/repos/Renko_1055/th18_card_expand_test/th18/cards_dev.js",
     "patch-test/th18/st01.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st01.ecl",
     "patch-test/th18/st01bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st01bs.ecl",
+    "patch-test/th18/st02.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st02.ecl",
+    "patch-test/th18/st02bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st02bs.ecl",
+    "patch-test/th18/st03.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st03.ecl",
+    "patch-test/th18/st03bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st03bs.ecl",
+    "patch-test/th18/st04.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st04.ecl",
+    "patch-test/th18/st04bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st04bs.ecl",
+    "patch-test/th18/st05.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st05.ecl",
+    "patch-test/th18/st05bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st05bs.ecl",
+    "patch-test/th18/st06.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st06.ecl",
+    "patch-test/th18/st06bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st06bs.ecl",
     "bin/th18_card_expand.dll":   "mods/th18_card_expand.dll",
 }
 PATCH_DIRS = ("th18_card_expand", "th18_card_expand_255", "th18_card_expand_test")

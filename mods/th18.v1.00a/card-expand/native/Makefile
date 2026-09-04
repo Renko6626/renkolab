@@ -23,7 +23,7 @@ anm:
 	python3 ../assets/build_abcard.py
 	python3 ../assets/build_ability.py
 
-## ecl    —— 开发辅助：st01 近乎空壳（道中删除、boss 一发一阶段）→ build/ecl/，只进 _test
+## ecl    —— 开发辅助：st01–st06 空壳（道中删除、boss 血量 ÷100、死时多掉钱）→ build/ecl/，只进 _test
 ecl:
 	python3 ../assets/ecl/make_dev_ecl.py
 
@@ -104,7 +104,7 @@ dist: anm ecl
 	$(MAKE) -s ROWS=255 gen files >/dev/null
 	cp -r ../patch/. $(DIST)/patch-step3/
 	cp build/abcard.anm build/ability.anm $(DIST)/patch-step3/th18/ && python3 mkfiles.py $(DIST)/patch-step3 >/dev/null
-	cp build/ecl/st01.ecl build/ecl/st01bs.ecl $(DIST)/patch-test/th18/ && python3 mkfiles.py $(DIST)/patch-test >/dev/null
+	cp build/ecl/st0[1-6].ecl build/ecl/st0[1-6]bs.ecl $(DIST)/patch-test/th18/ && python3 mkfiles.py $(DIST)/patch-test >/dev/null
 	cp ../DIST-README.txt $(DIST)/README.txt
 	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test README.txt
 	@echo "dist/ 就绪："; ls $(DIST)
