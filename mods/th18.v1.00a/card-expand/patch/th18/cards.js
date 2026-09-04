@@ -33,7 +33,7 @@
     "name": "强欲之壶",
     "desc": ["购买时立刻获得两张随机卡牌。", "壶本身不会进入卡组。", "致敬・游戏王。"],
     "internal_name": "POT_OF_GREED",
-    "initial_unlocked": 1, "deck_visible": 0, "repeatable": 1, "hud_show": 0, "price_tier": 10, "weight": 2, "sprite_large": 116, "sprite_small": 117
+    "initial_unlocked": 1, "deck_visible": 0, "repeatable": 1, "hud_show": 0, "price_tier": 10, "weight": 2, "sprite_large": 132, "sprite_small": 133
   },
   "64": {
     "name": "反转牌",
@@ -51,6 +51,6 @@
     "name": "神之宣告",
     "desc": ["主动（C 键）：消耗一半残机，", "让 boss 的符卡按超时结束。", "没有残机时不能发动。充能 60 秒。", "致敬・游戏王。"],
     "internal_name": "JUDGMENT",
-    "initial_unlocked": 1, "category": 0, "price_tier": 14, "weight": 2, "sprite_large": 116, "sprite_small": 117
+    "initial_unlocked": 1, "category": 0, "price_tier": 14, "weight": 2, "sprite_large": 134, "sprite_small": 135
   }
 }
