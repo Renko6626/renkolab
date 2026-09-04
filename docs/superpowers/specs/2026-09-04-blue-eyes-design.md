@@ -1,7 +1,7 @@
 # 青眼白龙（card-expand id 67）—— 设计
 
 > **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
-> 日期：2026-09-04。状态：待用户审阅。归属：`mods/th18.v1.00a/card-expand/`（行为 SDK 第二批）。
+> 日期：2026-09-04。状态：用户已审阅（2026-09-04，追加「不抬伤害上限」）。归属：`mods/th18.v1.00a/card-expand/`（行为 SDK 第二批）。
 
 ## 0. 一句话
 
@@ -40,7 +40,7 @@
 | `BE_FOLLOW_LERP` | 0.04 | 跟随插值系数（要石同款） |
 | `BE_WAVE_PERIOD` | 300 | 发波周期（帧）= 5 s；第一波在召唤后 `BE_WAVE_PERIOD` 帧 |
 | `BE_WAVE_FRAMES` | 30 | 一波持续帧数 |
-| `BE_WAVE_DMG_PER_FRAME` | 100 | 每帧伤害；30 × 100 = **3000** |
+| `BE_WAVE_DMG_PER_FRAME` | 100 | 每帧请求伤害；30 × 100 = **3000** 是名义值。**不改 `player+0x47984`**（用户 2026-09-04 定）：实际每帧按引擎上限结算，一波 ≤ 3000 |
 | `BE_BEAM_WIDTH` | 32.0 | 光束宽（Remilia 同款） |
 | `BE_RECHARGE` | 600 | 充能帧数（10 s）；真正的成本是残机 |
 
@@ -53,7 +53,7 @@
 | 事件 | 做什么 |
 | --- | --- |
 | `on_activate` | `CURRENT_LIVES < 1` → `CE_ACTIVATE_REFUSED`（无效音 0x10；**不允许献祭最后一条命**）。否则 `CURRENT_LIVES−−`、`ce_gui_update_lives()`；`pos = (玩家 x, 玩家 y − 100)`；起龙 ANM（`ability.anm` 追加脚本 `BLUE_EYES_DRAGON`，层 13 照要石）、写坐标；`hp = BE_HP`、`wave_timer = 0`；发动音 0x4d；返回 1 进持续态 |
-| `on_active_tick` | ① 跟随：目标 `(px, py + BE_FOLLOW_DY)`，lerp，写 `vm+0x5f0`（VM 没了 → 视为死亡，返回 0）。② 挡弹：`counter = 0; cancel_radius(pos, BE_RADIUS, max = hp, mode 0)`；`hp −= counter`；`counter > 0` 时染色一帧。③ 发波：`wave_timer++`；到 `BE_WAVE_PERIOD` 时 `wave_left = BE_WAVE_FRAMES`、起光束 ANM（`BLUE_EYES_BEAM`，随龙的 x、从龙口到区域顶边）、放音；`wave_left > 0` 时每帧 `damage_rect(center = (x, y/2), angle 0, life 2, dmg BE_WAVE_DMG_PER_FRAME, w BE_BEAM_WIDTH, h = y)` 并 `player+0x47984 = max(现值, BE_WAVE_DMG_PER_FRAME)`，`wave_left−−`。④ `hp ≤ 0` → `interrupt_tree(anm_id, 1)`（死亡动画）、放音、返回 0 |
+| `on_active_tick` | ① 跟随：目标 `(px, py + BE_FOLLOW_DY)`，lerp，写 `vm+0x5f0`（VM 没了 → 视为死亡，返回 0）。② 挡弹：`counter = 0; cancel_radius(pos, BE_RADIUS, max = hp, mode 0)`；`hp −= counter`；`counter > 0` 时染色一帧。③ 发波：`wave_timer++`；到 `BE_WAVE_PERIOD` 时 `wave_left = BE_WAVE_FRAMES`、起光束 ANM（`BLUE_EYES_BEAM`，随龙的 x、从龙口到区域顶边）、放音；`wave_left > 0` 时每帧 `damage_rect(center = (x, y/2), angle 0, life 2, dmg BE_WAVE_DMG_PER_FRAME, w BE_BEAM_WIDTH, h = y)` `wave_left−−`（**不写伤害上限**，引擎钳多少算多少）。④ `hp ≤ 0` → `interrupt_tree(anm_id, 1)`（死亡动画）、放音、返回 0 |
 | `on_stage_start`（+0x34） | 龙在 → 删 VM（`0x488cf0`）、状态清零（用户选「过关消失」；SDK 已把状态机置 0） |
 | `on_run_reset`（+0x4c） | 同上 |
 
@@ -81,7 +81,7 @@ ANM 实体坐标 `vm+0x5f0` 也是它（三张零售卡都直接拷）。区域�
 | `ce_anm_set_pos(id, x, y, z)` | `0x488b40`（调用约定待定：Tenshi `push [esi+0x1c]` 前 ecx = `ANM_MANAGER_PTR`，看着是 thiscall(mgr; id)）→ `vm+0x5f0` | 新条目：cc 与 `ret N` |
 | `ce_anm_interrupt(id, n)` | `0x488be0` | 新条目 |
 | `ce_anm_set_color(id, rgba)` | `vm+0x524`（`color_1`，Tenshi `0x40eb4c` 无命中写 `0xffffffff`、有命中 `0x40eb60` 写 `0xff0080ff`） | 同上 |
-| `engine.h` | `CE_ADDR_ANM_MANAGER_PTR 0x51f65c`、`CE_PLAYER_DAMAGE_CAP 0x47984`、`CE_BM_CANCEL_COUNTER 0x7a41e8`（ExpHP `__some_cancel_related_counter`；Tenshi `0x40eb56` 读）、伤害源池 `0x20574 / 0x9c / 0x400` | — |
+| `engine.h` | `CE_ADDR_ANM_MANAGER_PTR 0x51f65c`、`CE_PLAYER_DAMAGE_CAP 0x47984`（只读，日志用）、`CE_BM_CANCEL_COUNTER 0x7a41e8`（ExpHP `__some_cancel_related_counter`；Tenshi `0x40eb56` 读）、伤害源池 `0x20574 / 0x9c / 0x400` | — |
 | **私有状态与主动卡状态机同槽** | `ce_active_t` 与卡的 `ce_state(c, T)` 用同一把键拿同一块 256 字节 → 互相踩。改：块头固定放 `ce_active_t`，`ce_state` 从 `sizeof(ce_active_t)` 起给卡（一把键、一次 free）；现有卡（10♠ 非主动、反转/神之宣告无状态）不受影响 | SDK §4 补一句 |
 | 一手文档 | `engine/player/th18/02-damage-sources.md`：th18 伤害源管线（对齐 `engine/sht/th16/08`），含池布局、两个 create、结算与每帧上限 | `check-docs.py` |
 
@@ -103,7 +103,7 @@ ANM 实体坐标 `vm+0x5f0` 也是它（三张零售卡都直接拷）。区域�
 
 ## 6. 开放问题
 
-1. `player+0x47984` 抬到 100 会不会让本帧自机弹也被放大（它是「总伤害上限」，抬高只是不再截断；Remilia 先例抬到 300）——实跑看 boss 掉血是否 ≈ 3000/波。
+1. ~~伤害上限~~ 已定：不抬。实跑记一下 `sht+0x28`（每机体的 max_dmg）与每波实际掉血，决定 3000 名义值要不要改。
 2. 光束高度 = 龙 y 的坐标假设（§2.3）。
 3. `bullet+0x24` 的语义（推测：不可消弹标记）——查 `Bullet__cancel` 与 ECL 置位处，进 AUDIT。
 4. 平衡：3000 / 5 s 约等于每波一张符卡；数值全在 §2.1。
