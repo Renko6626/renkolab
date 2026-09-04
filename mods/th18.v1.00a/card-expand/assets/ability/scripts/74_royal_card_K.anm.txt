@@ -1,0 +1,21 @@
+script script74 {
+-1:
+    sprite(@SPADE_K_FX);
+    layer(20);
+    resolutionMode(1);
+    type(1);
+    zWriteDisable(1);
+    anchor(0, 0);
+    scale(0.6f, 0.6f);
+    alpha(0);
+    pos(75.0f, -60.0f, 0.0f);
+30:
+    alphaTime(6, 0, 255);
+    scaleTime(10, 5, 0.28f, 0.28f);
+    posTime(10, 5, 75.0f, -90.0f, 0.0f);
+170:
+    alphaTime(24, 0, 0);
+    posTime(24, 4, 75.0f, -130.0f, 0.0f);
++24: // 194
+    delete();
+}

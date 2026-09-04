@@ -7,7 +7,7 @@
 
 static int on_tick_2(ce_card_t *c)
 {
-    (void)c;
+    ce_royal_tick(c);
     if (!CE_PLAYER()) return 0;
     ce_timer_t *t = CE_PLAYER_INVULN();
     if (t->cur == CE_RESPAWN_INVULN_FRAMES && t->prev == CE_RESPAWN_INVULN_FRAMES - 1) {

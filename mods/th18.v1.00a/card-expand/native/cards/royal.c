@@ -10,6 +10,10 @@
 #include "royal.h"
 
 static const uint32_t SPADES[5] = { 58, 59, 60, 61, 62 };
+#define ROYAL_GOLD          888
+#define ROYAL_TROPHY_FRAME  60      /* 演出时间线：五张牌 0/10/20/30/40 帧逐张弹出，60 帧横幅 + trophy 音效，74 帧「+888 GOLD」，170–194 帧一起淡出 */
+static uint32_t s_fx_card;            /* 触发那张卡的 id：只由它的 on_tick_2 走倒计时（五张都挂了 tick，避免一帧减五次）*/
+static int      s_fx_countdown;       /* > 0 时每帧 -1，到 0 放 trophy 音效 */
 
 int ce_royal_flush_ctor(ce_card_t *c)
 {
@@ -18,8 +22,8 @@ int ce_royal_flush_ctor(ce_card_t *c)
     if (!ce_royal_flush_ready(CE_OWNED_ARRAY(), self, SPADES, 5)) return 0;
     if (!CE_GAME_THREAD()) { ce_log("royal: complete but not in game thread, skip"); return 0; }
     int32_t m = CE_MONEY();
-    CE_MONEY() = m + 800;
-    CE_MONEY_TOTAL() += 800;
+    CE_MONEY() = m + ROYAL_GOLD;
+    CE_MONEY_TOTAL() += ROYAL_GOLD;
     for (int i = 0; i < 2; ++i) {
         if (CE_LIVES_MAX() < 7) CE_LIVES_MAX() += 1;     /* CardLife__destructor 0x409b80 的写法 */
         ce_add_life();
@@ -28,13 +32,22 @@ int ce_royal_flush_ctor(ce_card_t *c)
         if (CE_MAX_BOMBS() < 7) CE_MAX_BOMBS() += 1;     /* CardBomb__destructor 0x409c20 的写法 */
         ce_add_bomb();
     }
-    /* 亮字：ability.anm 追加的 script69（assets/ability/scripts/69_royal_flush.anm.txt，横幅 ROYAL_FLUSH.png），层 20，弹出→停留→上浮淡出；
-     * 音效 0x4d（Tenshi 发动音）当号角，加命 / 加 bomb 各自的音效引擎已放。*/
-    uint32_t fx = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_ROYAL_FLUSH, 20);
-    uint8_t *p = CE_PLAYER();
-    ce_play_sound(0x4d, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);
-    ce_log("royal: banner anm id %08x", fx);
+    /* 演出：ability.anm script70（assets/ability/scripts/70_royal_show.anm.txt）是父脚本，起五张牌 / 横幅 / 金币文字七个子脚本，层 20；
+     * trophy 音效要在横幅弹出那一帧（60）放，C 里做不了延时，交给 ce_royal_tick 倒计时。加命 / 加 bomb 的音效引擎自己放。*/
+    uint32_t fx = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_ROYAL_SHOW, 20);
+    s_fx_card = self; s_fx_countdown = ROYAL_TROPHY_FRAME;
+    ce_log("royal: show anm id %08x", fx);
     ce_log("royal: ROYAL FLUSH by card %u — money %d -> %d, lives %d (max %d), bombs %d (max %d)",
            self, m, CE_MONEY(), CE_CURRENT_LIVES(), CE_LIVES_MAX(), CE_CURRENT_BOMBS(), CE_MAX_BOMBS());
     return 0;
+}
+
+void ce_royal_tick(ce_card_t *c)
+{
+    if (s_fx_countdown <= 0 || ce_card_id(c) != s_fx_card) return;
+    if (--s_fx_countdown == 0) {
+        uint8_t *p = CE_PLAYER();
+        ce_play_sound(CE_SE_TROPHY, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);
+        ce_log("royal: trophy sound");
+    }
 }

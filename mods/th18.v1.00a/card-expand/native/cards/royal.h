@@ -2,3 +2,4 @@
 #pragma once
 #include "sdk.h"
 int ce_royal_flush_ctor(ce_card_t *c);
+void ce_royal_tick(ce_card_t *c);      /* 每帧（on_tick_2）：演出里延时放的音效 */

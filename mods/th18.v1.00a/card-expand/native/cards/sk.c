@@ -12,4 +12,5 @@ static int on_bullet_created(ce_card_t *c, void *bullet)
     return 0;
 }
 
-CE_CARD(61, .ctor = ce_royal_flush_ctor, .on_bullet_created = on_bullet_created);
+static int royal_tick(ce_card_t *c) { ce_royal_tick(c); return 0; }
+CE_CARD(61, .ctor = ce_royal_flush_ctor, .on_tick_2 = royal_tick, .on_bullet_created = on_bullet_created);

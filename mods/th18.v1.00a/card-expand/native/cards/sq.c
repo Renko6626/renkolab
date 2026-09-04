@@ -17,4 +17,5 @@ static int on_load(ce_card_t *c)
     return 0;
 }
 
-CE_CARD(60, .ctor = ce_royal_flush_ctor, .on_load = on_load);
+static int royal_tick(ce_card_t *c) { ce_royal_tick(c); return 0; }
+CE_CARD(60, .ctor = ce_royal_flush_ctor, .on_tick_2 = royal_tick, .on_load = on_load);

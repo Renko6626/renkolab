@@ -7,7 +7,7 @@
 
 static int on_tick_2(ce_card_t *c)
 {
-    (void)c;
+    ce_royal_tick(c);
     uint8_t *p = CE_PLAYER();
     if (p) *(float *)(p + CE_PLAYER_SPEED_MULT) *= 1.1f;
     return 0;

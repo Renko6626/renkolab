@@ -9,19 +9,19 @@ script script69 {
     scale(1.6f, 1.6f);
     alpha(0);
     rotate(0.0f, 0.0f, -0.12f);
-0:
-    pos(0.0f, 200.0f, 0.0f);
+    pos(0.0f, 100.0f, 0.0f);
+60:
     alphaTime(8, 0, 255);
-    scaleTime(14, 5, 0.72f, 0.72f);
+    scaleTime(14, 5, 0.7f, 0.7f);
     rotateTime(14, 5, 0.0f, 0.0f, 0.0f);
-+14: // 14
-    scaleTime(6, 0, 0.78f, 0.78f);
-+6: // 20
-    scaleTime(6, 0, 0.72f, 0.72f);
-+70: // 90
++14: // 74
+    scaleTime(6, 0, 0.76f, 0.76f);
++6: // 80
+    scaleTime(6, 0, 0.7f, 0.7f);
+170:
     alphaTime(24, 0, 0);
-    posTime(24, 4, 0.0f, 140.0f, 0.0f);
-    scaleTime(24, 0, 0.9f, 0.9f);
-+24: // 114
+    posTime(24, 4, 0.0f, 40.0f, 0.0f);
+    scaleTime(24, 0, 0.85f, 0.85f);
++24: // 194
     delete();
 }

@@ -14,4 +14,5 @@ static void on_item_money(ce_card_t *c, int32_t *bonus)
     if (++st->n >= 10) { st->n = 0; *bonus += 1; }
 }
 
-CE_CARD(58, .ctor = ce_royal_flush_ctor, .on_item_money = on_item_money);
+static int royal_tick(ce_card_t *c) { ce_royal_tick(c); return 0; }
+CE_CARD(58, .ctor = ce_royal_flush_ctor, .on_tick_2 = royal_tick, .on_item_money = on_item_money);

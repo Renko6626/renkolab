@@ -2,3 +2,9 @@
 # 第 k 行 → entry (零售 entry 数 + k)、sprite (零售最大 sprite 号 + 1 + k)；脚本里写 @NAME 引用。
 REVERSE  cards/REVERSE_max.png
 ROYAL_FLUSH  ability/banner/ROYAL_FLUSH.png  512x128
+SPADE_10_FX  cards/SPADE_10_max.png
+SPADE_J_FX  cards/SPADE_J_max.png
+SPADE_Q_FX  cards/SPADE_Q_max.png
+SPADE_K_FX  cards/SPADE_K_max.png
+SPADE_A_FX  cards/SPADE_A_max.png
+GOLD_888  ability/banner/GOLD_888.png  512x128

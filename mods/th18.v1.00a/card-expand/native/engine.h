@@ -113,6 +113,12 @@ typedef struct { int32_t prev; int32_t cur; float cur_f; } ce_timer_t;   /* zTim
 #define CE_FN_SHOP_PICK_RANDOM     0x416f50   /* fastcall(out*, tier_lo; tier_hi, exclude[], n)：商店随机池抽一张（未拥有、本关可用、按权重、游戏 RNG）；返回非 0 = 抽到，*out = 表行 */
 #define CE_FN_TIMER_DECREMENT      0x409750   /* thiscall(zTimer*; 一个未用栈参) ret 4：prev = cur, cur_f -= 游戏速度, cur = (int)cur_f */
 #define CE_FN_TIMER_INCREMENT      0x405990   /* thiscall(zTimer*; 一个未用栈参) ret 4：同上方向相反。★ 调用方必须压那 4 字节 */
+#define CE_SE_EXTEND     0x11   /* 音效 id（engine/_shared/th18-sound-table.md 一手）*/
+#define CE_SE_BOMB       0x2c
+#define CE_SE_CARDGET    0x2e
+#define CE_SE_RELEASE    0x4d   /* Tenshi 发动 */
+#define CE_SE_CHANGEITEM 0x4e   /* 切主动卡 */
+#define CE_SE_TROPHY     0x4f
 #define CE_FN_PLAY_SOUND           0x476c70   /* stdcall(id) + xmm2 = 世界 x（声像）；ret 4 */
 #define CE_FN_ADD_LIFE             0x4575f0   /* thiscall(GlobalsInner*)，无栈参，裸 ret：CURRENT_LIVES+1 钳 LIVES_MAX、清碎片、音效 0x11、起特效、extend 计数 +1。CardLife/Mokou dtor 调它。AUDIT O26 */
 #define CE_FN_ADD_BOMB             0x457690   /* thiscall(GlobalsInner*; 一个未读栈参) ★ret 4：CURRENT_BOMBS+1 钳 MAX_BOMBS、清碎片、音效 0x2e、刷 HUD。CardBomb dtor 调它。AUDIT O26 */
