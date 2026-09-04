@@ -78,9 +78,12 @@ static int on_activate(ce_card_t *c)
     *(int32_t *)(em + CE_EM_CAN_CAPTURE) = 0;
 
     uint8_t *p = CE_PLAYER();
-    ce_play_sound(CE_SE_RELEASE, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);
-    ce_log("judgment: lives %d -> %d (cost %d), %u boss attack(s) expired, spell flags %08x",
-           lives, lives - cost, cost, expired, *(uint32_t *)(spell + CE_SPELL_FLAGS));
+    ce_play_sound(CE_SE_RELEASE, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);      /* 反转牌同款发动音 */
+    /* 演出：ability.anm script77（assets/ability/scripts/77_judgment_flash.anm.txt）——卡图副本在场地中央半透明浮现
+     * （alpha 150）、75 帧内缓缓放大 0.55 → 0.7 并上浮 24 px，45 帧后 30 帧淡出。type(1) 二维、层 20，pos y 从区域顶部起算（236 ≈ 正中偏下）。*/
+    uint32_t fx = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_JUDGMENT_FLASH, 20);
+    ce_log("judgment: lives %d -> %d (cost %d), %u boss attack(s) expired, spell flags %08x, flash anm id %08x",
+           lives, lives - cost, cost, expired, *(uint32_t *)(spell + CE_SPELL_FLAGS), fx);
     return 0;
 }
 

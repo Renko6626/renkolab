@@ -8,3 +8,4 @@ SPADE_Q_FX  cards/SPADE_Q_max.png
 SPADE_K_FX  cards/SPADE_K_max.png
 SPADE_A_FX  cards/SPADE_A_max.png
 GOLD_888  ability/banner/GOLD_888.png  512x128
+JUDGMENT_FX  cards/JUDGMENT_max.png

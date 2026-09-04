@@ -1,0 +1,20 @@
+script script77 {
+-1:
+    sprite(@JUDGMENT_FX);
+    layer(20);
+    resolutionMode(1);
+    type(1);
+    zWriteDisable(1);
+    anchor(0, 0);
+    scale(0.55f, 0.55f);
+    alpha(0);
+    pos(0.0f, 236.0f, 0.0f);
+0:
+    alphaTime(15, 0, 150);
+    scaleTime(75, 0, 0.7f, 0.7f);
+    posTime(75, 0, 0.0f, 212.0f, 0.0f);
++45: // 45
+    alphaTime(30, 0, 0);
++30: // 75
+    delete();
+}
