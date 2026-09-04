@@ -1,0 +1,20 @@
+script script78 {
+    layer(13);
+    blendMode(0);
+    type(1);
+    alpha(255);
+    zWriteDisable(1);
+    sprite(@BLUE_EYES_DRAGON);
+    scale(0.0f, 0.0f);
+    scaleTime(20, 4, 1.0f, 1.0f);
+idle:
+    posTime(30, 4, 0.0f, 0.0f, 0.0f);
++30: // 30
+    jmp(idle, 0);
+    stop();
+    interruptLabel(1);
+    scaleTime(8, 4, 2.0f, 2.0f);
+    alphaTime(8, 0, 0);
++8: // 38
+    delete();
+}

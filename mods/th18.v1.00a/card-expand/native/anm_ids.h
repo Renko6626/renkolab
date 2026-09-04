@@ -10,6 +10,8 @@
 #define CE_ANM_ABILITY_SPRITE_SPADE_A_FX            115   /* entry13 */
 #define CE_ANM_ABILITY_SPRITE_GOLD_888              116   /* entry14 */
 #define CE_ANM_ABILITY_SPRITE_JUDGMENT_FX           117   /* entry15 */
+#define CE_ANM_ABILITY_SPRITE_BLUE_EYES_DRAGON      118   /* entry16 */
+#define CE_ANM_ABILITY_SPRITE_BLUE_EYES_BEAM        119   /* entry17 */
 #define CE_ANM_ABILITY_SCRIPT_REVERSE_FLASH          68
 #define CE_ANM_ABILITY_SCRIPT_ROYAL_FLUSH            69
 #define CE_ANM_ABILITY_SCRIPT_ROYAL_SHOW             70
@@ -20,3 +22,5 @@
 #define CE_ANM_ABILITY_SCRIPT_ROYAL_CARD_A           75
 #define CE_ANM_ABILITY_SCRIPT_ROYAL_GOLD             76
 #define CE_ANM_ABILITY_SCRIPT_JUDGMENT_FLASH         77
+#define CE_ANM_ABILITY_SCRIPT_BLUE_EYES_DRAGON       78
+#define CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BEAM         79

@@ -52,5 +52,11 @@
     "desc": ["主动（C 键）：消耗一半残机，", "让 boss 的符卡按超时结束。", "没有残机时不能发动。充能 60 秒。", "致敬・游戏王。"],
     "internal_name": "JUDGMENT",
     "initial_unlocked": 1, "category": 0, "price_tier": 14, "weight": 2, "sprite_large": 134, "sprite_small": 135
+  },
+  "67": {
+    "name": "青眼白龙",
+    "desc": ["主动（C 键）：献祭 1 残机召唤青眼白龙。", "龙跟随自机，替你挡下 2500 发子弹，", "每 5 秒向上喷射白光攻击敌人。", "致敬・游戏王。"],
+    "internal_name": "BLUE_EYES",
+    "initial_unlocked": 1, "category": 0, "price_tier": 14, "weight": 2, "sprite_large": 136, "sprite_small": 137
   }
 }

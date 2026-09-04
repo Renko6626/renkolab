@@ -1,0 +1,15 @@
+script script79 {
+    layer(13);
+    blendMode(1);
+    type(1);
+    zWriteDisable(1);
+    sprite(@BLUE_EYES_BEAM);
+    alpha(0);
+    scale(0.3f, 1.0f);
+    alphaTime(5, 0, 230);
+    scaleTime(5, 0, 1.0f, 1.0f);
++20: // 20
+    alphaTime(10, 0, 0);
++10: // 30
+    delete();
+}
