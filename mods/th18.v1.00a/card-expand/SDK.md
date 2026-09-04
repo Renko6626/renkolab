@@ -138,6 +138,10 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 | `ce_play_sound(id, x)` | 音效，x = 世界 x（声像）| `0x476c70` stdcall(id) + xmm2 `ret 4` |
 | （SDK 内部）`Timer__decrement / increment` | 充能 / 经过帧 | `0x409750` / `0x405990` thiscall(zTimer*, 未用栈参) **`ret 4`** |
 | `CE_BULLET_MGR()` + `CE_BM_*` / `CE_BULLET_*` | 子弹池：2000 张，起点 `+0xec`，stride `0xfa0`，状态 `+0xf68`，`velocity/speed/angle` `+0x644/+0x650/+0x654` | `cancel_all` `0x4297a0` 的扫法 + ExpHP 结构 |
+| `ce_cancel_radius(pos, r, max, mode)` | 半径消弹（弹 → 点道具），返回消掉的弹数；max 消满即停 | `0x429370` stdcall(pos, mode, max, tag) + XMM2 半径 `ret 0x10`；计数器 `mgr+0x7a41e8`（AUDIT O29a）|
+| `ce_damage_rect(center, angle, life, dmg, w, h)` | 自机侧矩形伤害源：敌人自己判重叠扣血，每帧总量钳 `player+0x47984` | `0x45dfa0` stdcall + XMM2 宽 / XMM3 高 `ret 0x10`（O29b）|
+| `ce_anm_get_vm / set_pos / set_color` | 按 id 找 VM、写 `vm+0x5f0` 坐标 / `vm+0x524` 颜色 | `0x488b40` thiscall(mgr; id) `ret 4`（O29c）|
+| `ce_anm_interrupt(id, n)` / `ce_anm_delete(id)` | 触发脚本 `interruptLabel(n)`（Tenshi 用 1 收场）/ 标记删除 | `0x488be0` stdcall `ret 8` / `0x488cf0` stdcall `ret 4` |
 
 ## 6. SDK 事件（虚表之外）
 

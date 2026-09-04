@@ -125,6 +125,71 @@ static inline void ce_cancel_all_bullets(void)
     if (bm) ((ce_fn_bullet_cancel_all_t)CE_FN_BULLET_CANCEL_ALL)(bm, 0);
     ((ce_fn_laser_cancel_all_t)CE_FN_LASER_CANCEL_ALL)(1, 0);
 }
+/* 半径消弹（照 Tenshi 要石 0x40eb0c..0x40eb6a）：stdcall 四个栈参 + 半径走 XMM2（AUDIT O29a）。
+ * 调前清 BULLET_MANAGER 的计数器、调后读回 = 本次消掉的弹数；max_count 消满即停（拿剩余 HP 当它）。
+ * 栈参从右往左压：tag(0)、max_count、mode、pos；被调方 ret 0x10 清栈。*/
+static inline int ce_cancel_radius(const float *pos, float r, int max_count, int mode)
+{
+    uint8_t *bm = CE_BULLET_MGR();
+    if (!bm || max_count <= 0) return 0;
+    *(int32_t *)(bm + CE_BM_CANCEL_COUNTER) = 0;
+    __asm__ volatile ("movss %[r], %%xmm2\n\t"
+                      "pushl $0\n\t"
+                      "pushl %[max]\n\t"
+                      "pushl %[mode]\n\t"
+                      "pushl %[pos]\n\t"
+                      "call *%[fn]"
+                      : : [r] "m"(r), [max] "r"(max_count), [mode] "r"(mode), [pos] "r"(pos),
+                          [fn] "r"((uintptr_t)CE_FN_BULLET_CANCEL_RADIUS_AS_BOMB)
+                      : "eax", "ecx", "edx", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "cc");
+    return *(int32_t *)(bm + CE_BM_CANCEL_COUNTER);
+}
+
+/* 矩形伤害源（照 Remilia 0x40f478..0x40f4a6）：stdcall(center*, angle, life, dmg) + 宽 XMM2、高 XMM3，ret 0x10（AUDIT O29b）。
+ * 敌人侧 0x45f0f0 每帧按 OBB 判重叠、每 +0x80 帧结算一次 dmg、本帧总量钳 player+0x47984（本 mod 不写它）。返回 1-based 槽号。*/
+static inline int ce_damage_rect(const float *center, float angle, int life, int dmg, float w, float h)
+{
+    int idx;
+    __asm__ volatile ("movss %[w], %%xmm2\n\t"
+                      "movss %[h], %%xmm3\n\t"
+                      "pushl %[dmg]\n\t"
+                      "pushl %[life]\n\t"
+                      "pushl %[ang]\n\t"
+                      "pushl %[c]\n\t"
+                      "call *%[fn]"
+                      : "=a"(idx)
+                      : [w] "m"(w), [h] "m"(h), [dmg] "r"(dmg), [life] "r"(life), [ang] "m"(angle), [c] "r"(center),
+                        [fn] "r"((uintptr_t)CE_FN_PLAYER_DMGSRC_RECT)
+                      : "ecx", "edx", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "cc");
+    return idx;
+}
+
+/* ANM VM：按 id 找（thiscall(ANM_MANAGER; id) ret 4）、写实体坐标 / 颜色、发中断（stdcall(id, n) ret 8）、删除（stdcall(id) ret 4）。AUDIT O29c。*/
+typedef uint8_t *(__attribute__((thiscall)) *ce_fn_anm_get_vm_t)(void *mgr, uint32_t id);
+typedef void (__attribute__((stdcall)) *ce_fn_anm_interrupt_t)(uint32_t id, int n);
+typedef void (__attribute__((stdcall)) *ce_fn_anm_delete_t)(uint32_t id);
+static inline uint8_t *ce_anm_get_vm(uint32_t id)
+{
+    void *mgr = CE_ANM_MANAGER();
+    return (id && mgr) ? ((ce_fn_anm_get_vm_t)CE_FN_ANM_GET_VM_WITH_ID)(mgr, id) : 0;
+}
+static inline int ce_anm_set_pos(uint32_t id, float x, float y, float z)
+{
+    uint8_t *vm = ce_anm_get_vm(id);
+    if (!vm) return 0;
+    float *p = (float *)(vm + CE_ANM_VM_POS);
+    p[0] = x; p[1] = y; p[2] = z;
+    return 1;
+}
+static inline int ce_anm_set_color(uint32_t id, uint32_t rgba)
+{
+    uint8_t *vm = ce_anm_get_vm(id);
+    if (!vm) return 0;
+    *(uint32_t *)(vm + CE_ANM_VM_COLOR1) = rgba;
+    return 1;
+}
+static inline void ce_anm_interrupt(uint32_t id, int n) { if (id) ((ce_fn_anm_interrupt_t)CE_FN_ANM_INTERRUPT_TREE)(id, n); }
+static inline void ce_anm_delete(uint32_t id)           { if (id) ((ce_fn_anm_delete_t)CE_FN_ANM_DELETE_BY_ID)(id); }
 static inline int  ce_owned(uint32_t id) { return id < 255 && CE_OWNED_ARRAY()[id] != 0; }
 /* ctor 不只在获得时调：每关开始引擎会对卡组里每张卡再调一次 +0x00（实跑 2026-09-04：初始携带的卡 on_stage_start 后紧跟 ctor）。
  * 真正的获得路径（道具 mode 0 / 购买 mode 2）里 owned[自己] 要到 ctor 之后才置 1（0x412d42），关卡开始那次早就是 1 了——

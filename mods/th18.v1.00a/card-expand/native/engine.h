@@ -57,6 +57,18 @@
 #define CE_FN_GUI_UPDATE_LIVES     0x441f10   /* thiscall(gui; lives, fragments, max) ret 0xc：刷 HUD 残机行（死亡 0x45c2xx、商店复原 0x4179xx 都调；一手反汇编 AUDIT O28）*/
 #define CE_SE_INVALID              0x10       /* 无效操作（商店买不起同款）*/
 #define CE_FN_BULLET_CANCEL_ALL    0x4297a0   /* thiscall(BULLET_MANAGER; 一个从不读取的栈参) ★ret 4（0x429a0e）：全屏消弹（弹 → 点道具 + 音效 0x47）。函数体自己读全局 0x4cf2bc；零售 ECL 消弹 case 0x434d48 `mov ecx,[0x4cf2bc]; push 0; call`（AUDIT O28h′）*/
+#define CE_FN_BULLET_CANCEL_RADIUS_AS_BOMB 0x429370 /* stdcall(pos*, mode, max_count, tag) + ★XMM2 = 半径；四个出口都 ret 0x10。命中：state∈{1,2} 且 bullet+0x24==0 且 dist² ≤ (弹半径(+0x658)×0.5 + R)²；每消一发 Bullet__cancel(b, mode) 0x428e90 + counter++；消满 max_count 立即返回（Tenshi 0x40eb13..0x40eb2f，AUDIT O29a）*/
+#define CE_BM_CANCEL_COUNTER       0x7a41e8   /* int：cancel_radius_as_bomb 每消一发 ++；Tenshi 每帧调前清零、调后读（0x40eb56）。ExpHP __some_cancel_related_counter */
+#define CE_FN_PLAYER_DMGSRC_RECT   0x45dfa0   /* stdcall(center*, angle, 寿命帧, 每次伤害) + ★XMM2 = 宽、XMM3 = 高；ret 0x10；返回 1-based 槽号。矩形伤害源（flags &~6|1）：+0xc 角度、+0x14/+0x18 宽高、+0x7c 累计上限 9999999、+0x80 命中间隔 1。Remilia 0x40f4a6 调 (玩家上方, 0.0, 2, 200) 宽 32（AUDIT O29b）*/
+#define CE_PLAYER_DMGSRC_POOL      0x20574    /* zPlayerDamageSource[0x400]，stride 0x9c；flags bit0 active、bit1 圆形（create_45de40）/ 清 = 矩形（engine/player/th18/02-damage-sources.md）*/
+#define CE_PLAYER_DMGSRC_STRIDE    0x9c
+#define CE_PLAYER_DMGSRC_SLOTS     0x400
+#define CE_PLAYER_DAMAGE_CAP       0x47984    /* int：敌人侧 enm_compute_damage_sources 0x45f0f0 把本帧总伤害钳到它（0x45f28b）；GameThread 0x443d3b 每帧从 sht+0x28 复位；Remilia 0x40f48e 抬到 300。本 mod 只读不写 */
+#define CE_ADDR_ANM_MANAGER_PTR    0x51f65c   /* zAnmManager*（ExpHP ANM_MANAGER_PTR；interrupt_tree 0x488be3 读）*/
+#define CE_FN_ANM_GET_VM_WITH_ID   0x488b40   /* thiscall(ANM_MANAGER; id) ret 4 → zAnmVm* / 0（fast 数组 0x624 步长或 world/ui 链表；AUDIT O29c）*/
+#define CE_FN_ANM_INTERRUPT_TREE   0x488be0   /* stdcall(id, n) ret 8：自取 ANM_MANAGER_PTR，找到 VM 写 +0x494 = n 并递归子树（Tenshi 到时长调 (id, 1)）*/
+#define CE_ANM_VM_POS              0x5f0      /* float3 实体坐标（Tenshi/Miko/Remilia 每帧写；engine/anm/th18/01-vm-instantiate.md）*/
+#define CE_ANM_VM_COLOR1           0x524      /* uint32 RGBA：Tenshi 0x40eb4c 无命中写 0xffffffff、0x40eb60 有命中写 0xff0080ff */
 #define CE_FN_LASER_CANCEL_ALL     0x449090   /* (mode, unused) 两个栈参 ret 8，ecx 不用（函数自己读 LASER_MANAGER 0x4cf3f4）；ECL 消弹 case 紧跟 cancel_all 调 (1,0) / (0,0)，玩家死亡 0x45c3cc 调 (1, 垃圾)；对每条激光调 vtable+0x28(mode, 0)（AUDIT O28h）*/
 
 #define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)
@@ -80,6 +92,7 @@
 #define CE_BULLET_MGR()   (*(uint8_t **)CE_ADDR_BULLET_MGR_PTR)
 #define CE_GUI()          (*(uint8_t **)CE_ADDR_GUI_PTR)
 #define CE_ENEMY_MGR()    (*(uint8_t **)CE_ADDR_ENEMY_MGR_PTR)
+#define CE_ANM_MANAGER()  (*(uint8_t **)CE_ADDR_ANM_MANAGER_PTR)
 #define CE_GUI_MSG            0x1b0       /* zGui.msg：对话中 */
 #define CE_EM_ENEMY_COUNT     0x198       /* zEnemyManager.enemy_count_real */
 
