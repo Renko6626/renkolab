@@ -56,7 +56,7 @@
 #define CE_ED_INTERRUPT_SLOTS      8
 #define CE_FN_GUI_UPDATE_LIVES     0x441f10   /* thiscall(gui; lives, fragments, max) ret 0xc：刷 HUD 残机行（死亡 0x45c2xx、商店复原 0x4179xx 都调；一手反汇编 AUDIT O28）*/
 #define CE_SE_INVALID              0x10       /* 无效操作（商店买不起同款）*/
-#define CE_FN_BULLET_CANCEL_ALL    0x4297a0   /* void()：全屏消弹（弹 → 点道具 + 音效 0x47），读全局 BULLET_MANAGER，无参无 this；ECL 消弹 case 0x434d4e / 0x434e07、MSG 构造 0x43e2ea 裸调（AUDIT O28h）*/
+#define CE_FN_BULLET_CANCEL_ALL    0x4297a0   /* thiscall(BULLET_MANAGER; 一个从不读取的栈参) ★ret 4（0x429a0e）：全屏消弹（弹 → 点道具 + 音效 0x47）。函数体自己读全局 0x4cf2bc；零售 ECL 消弹 case 0x434d48 `mov ecx,[0x4cf2bc]; push 0; call`（AUDIT O28h′）*/
 #define CE_FN_LASER_CANCEL_ALL     0x449090   /* (mode, unused) 两个栈参 ret 8，ecx 不用（函数自己读 LASER_MANAGER 0x4cf3f4）；ECL 消弹 case 紧跟 cancel_all 调 (1,0) / (0,0)，玩家死亡 0x45c3cc 调 (1, 垃圾)；对每条激光调 vtable+0x28(mode, 0)（AUDIT O28h）*/
 
 #define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)

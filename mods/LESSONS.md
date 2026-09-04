@@ -27,6 +27,7 @@
 | 现象 | 根因 | 以后 |
 | --- | --- | --- |
 | **主动卡上场即崩**，`C0000005 … could not be executed at 堆地址`，返回地址在 UpdateFunc 分派器 | `Timer__decrement/increment` 尾是 `ret 4`：thiscall + 一个从不读的栈参（零售调它前 `push ecx`）。按无参调 → 每次多弹 4 字节 → 调用方栈上移 → 下一个 UpdateFunc 的函数指针取成堆地址 | **调引擎函数前看它全部 `ret N` 出口**，再看零售怎么调它（调用点前的 `push`、后面有没有 `add esp`）。O16 的四个看了，O23 这两个只看了头 |
+| **按 C 发动即崩**，`could not be executed at 堆地址`，PC = 卡对象地址、`[ESP+8]` = 返回 `ce_sdk_c_press` | `BulletManager__cancel_all` `0x4297a0` 尾是 `ret 4`（thiscall + 一个从不读的栈参，零售 `mov ecx,[mgr]; push 0; call`）；Ghidra 反编译显示 `void(void)`。按无参调 → `on_activate` 的 `ret` 弹到卡对象指针 | **同 O23 第二次栽**：反编译签名不算数，`disassemble_function` 看全部 `ret N`，再看零售调用点前的 `push`。AUDIT O28h′ |
 | `pick_weighted_random_offer` 的参数 | fastcall：ecx=out、edx=lo，栈上 hi / exclude / n，`ret 0xc` | 反编译器的原型不可信，看寄存器的首次使用 + `ret N` |
 | `play_sound(id)` 有个隐藏参数 | 声像 x 走 xmm2，不在栈上 | 调用点前的 `movss xmm2, …` 就是参数；C 里只能内联汇编（SDK 唯一一处，O22）|
 | 战线 D 改 9 处 `[base+idx+K]` 为 `[idx+SHADOW]`，3/9 寄存器留错 | SIB 里「哪个寄存器是存档指针」由编译器随手排，`base` 和 `index` 会互换 | **凡是「编译器把什么放在哪一格」都从上下文重取**，生成器从 `mov r32,[SCOREFILE_PTR]` 反推。K′ |

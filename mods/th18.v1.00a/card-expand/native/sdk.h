@@ -115,11 +115,14 @@ static inline void ce_gui_update_lives(void)
     if (gui) ((ce_fn_gui_lives_t)CE_FN_GUI_UPDATE_LIVES)(gui, CE_CURRENT_LIVES(), CE_LIFE_FRAGMENTS(), CE_LIVES_MAX());
 }
 /* 全屏消弹：弹幕（→ 点道具）+ 激光，照 ECL 消弹指令的写法（AUDIT O28h）。*/
-typedef void (*ce_fn_bullet_cancel_all_t)(void);
+/* ★ BulletManager__cancel_all 是 thiscall(BULLET_MANAGER; 一个从不读取的栈参) ret 4——Ghidra 反编译显示 void(void)，尾部却是 `ret 4`
+ * （0x429a0e）；零售 ECL 调用现场 0x434d48 `mov ecx,[0x4cf2bc]; push 0; call`。第一版按无参调，多弹 4 字节，on_activate 的 ret 跳飞（O23 同款教训，O28h′）。*/
+typedef void (__attribute__((thiscall)) *ce_fn_bullet_cancel_all_t)(void *mgr, int unused);
 typedef int  (__attribute__((stdcall)) *ce_fn_laser_cancel_all_t)(int mode, int unused);
 static inline void ce_cancel_all_bullets(void)
 {
-    if (CE_BULLET_MGR()) ((ce_fn_bullet_cancel_all_t)CE_FN_BULLET_CANCEL_ALL)();
+    void *bm = CE_BULLET_MGR();
+    if (bm) ((ce_fn_bullet_cancel_all_t)CE_FN_BULLET_CANCEL_ALL)(bm, 0);
     ((ce_fn_laser_cancel_all_t)CE_FN_LASER_CANCEL_ALL)(1, 0);
 }
 static inline int  ce_owned(uint32_t id) { return id < 255 && CE_OWNED_ARRAY()[id] != 0; }
