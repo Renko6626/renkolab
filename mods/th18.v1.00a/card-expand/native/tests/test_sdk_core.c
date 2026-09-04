@@ -92,8 +92,20 @@ static void test_royal(void)
     CHECK(ce_royal_flush_ready(owned, 62, set, 5));                /* 自己已 owned 也不影响（重复购买不可能，但判定不依赖它）*/
 }
 
+static void test_judgment(void)
+{
+    CHECK(ce_judgment_cost(0) == 0);
+    CHECK(ce_judgment_cost(-1) == 0);
+    CHECK(ce_judgment_cost(1) == 1);
+    CHECK(ce_judgment_cost(2) == 1);
+    CHECK(ce_judgment_cost(3) == 2);
+    CHECK(ce_judgment_cost(4) == 2);
+    CHECK(ce_judgment_cost(7) == 4);
+}
+
 int main(void)
 {
+    test_judgment();
     test_royal();
     test_registry();
     test_bind_check();

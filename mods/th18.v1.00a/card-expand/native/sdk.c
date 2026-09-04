@@ -86,6 +86,11 @@ int ce_sdk_c_press(void *self, const ce_hooks_t *h)
     rc->cur = (int32_t)dur; rc->cur_f = dur; rc->prev = rc->cur - 1;
     *(uint32_t *)(card + CE_CARD_FLAGS) |= CE_FLAG_FIRING;
     int sustain = h->on_activate ? h->on_activate((ce_card_t *)card) : 0;
+    if (sustain == CE_ACTIVATE_REFUSED) {                  /* 条件不满足：把刚装填的充能退回（仍是「已充满」）、不进释放态 */
+        rc->prev = -1; rc->cur = 0; rc->cur_f = 0.0f;
+        *(uint32_t *)(card + CE_CARD_FLAGS) &= ~(uint32_t)CE_FLAG_FIRING;
+        return 0;
+    }
     a->state = sustain ? 1 : 2;
     return 0;
 }

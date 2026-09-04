@@ -21,6 +21,8 @@ opcode 分两层：**系统 opcode**（0–0x5d，控制流/变量/栈，VM 自�
 | 开火接缝 = 发射器结构体充当 fire 描述符（双向自洽） | ✅ | 🟡 | [th16/05 §3](th16/05-fire-interface.md) |
 | `ecl_enm_create` `th16:0x423050` 承载 op 300/301/304/305/309/311/312/321 | ✅ | 🟡 | [th16/05 §4](th16/05-fire-interface.md) |
 | 可用「范围闸」patch 加自定义指令，不必动跳转表 | 🟡 | — | [th16/06](th16/06-adding-custom-instructions.md)（从 ECLplus 的 TH17 做法映射，未实跑） |
+| boss 攻击段 = 敌人的中断槽 `{hp_value, time, sub_life, sub_timeout}`；超时 / 击破都只是「血量钉到阈值 + 跑子程序」，符卡对象不判胜负 | — | ✅ | [th18/01 §2](th18/01-boss-interrupts-and-spellcard.md)（`th18:0x42ed40`） |
+| 把 `time_in_ecl` 写成槽的 `time` = 自然超时（mod「跳过符卡」的接缝） | — | ✅ | [th18/01 §4](th18/01-boss-interrupts-and-spellcard.md) |
 
 > **图例**：✅ 该版本一手验过（证据列给地址/出处） · 🟡 待验（从别的版本借来的假设，或单源） · ❌ 已知不同/不存在 · ❓ 存疑 · — 未看
 >

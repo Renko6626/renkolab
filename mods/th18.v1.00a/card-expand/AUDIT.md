@@ -513,6 +513,19 @@ M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未�
 
 **未实跑。** 各卡的验收在 [`NEXT.md`](NEXT.md) §1。
 
+**O28（2026-09-04）神之宣告 `cards/judgment.c`**（主动卡：符卡中按 C，残机减半向上取整，符卡按超时收场）。
+引擎链一手见 [`engine/ecl/th18/01-boss-interrupts-and-spellcard.md`](../../../engine/ecl/th18/01-boss-interrupts-and-spellcard.md)。
+**不开新断点**，四件事全走零售路径：
+
+| # | claim | 结论 |
+| --- | --- | --- |
+| O28a | 把 `data.time_in_ecl` 写成活动中断槽的 `time` 等价于自然超时 | **CONFIRMED** —— `0x42ED40` 每帧取第一个 `hp_value > -1 && time > 0` 的槽，`slot.time <= cur` 即走超时段（血量钉到阈值、`sub_timeout`、Spellcard 置 0x80 / 清奖励）；比较是 `<=`，写成等值下一帧必触发；`prev` 一并写，`cur_f` 同步（zTimer 三件套，O23 教训）|
+| O28b | 耐久符卡也按失败 | **CONFIRMED** —— 超时段对 `flags & 8` 的槽走 `(flags & 9) == 9` = 收下；我们在写计时的同一帧清 bit1、`bonus = 0`、`can_still_capture_spell = 0`，结束 `0x42A780` 看 bit1 走失败演出，ECL 523 的 Sannyo 碎片也看 bit1 |
+| O28c | `0x441f10` 刷 HUD 残机的约定 | **CONFIRMED** —— 一手反汇编：`mov edx,ecx`（this = gui），读 `[ebp+8]` 命数、`[ebp+0xc]` 碎片、`[ebp+0x10]` 上限，`ret 0xc`；零售在商店复原 `0x4179xx` 以 `(GUI, CURRENT_LIVES, LIFE_FRAGMENTS, LIVES_STOCK)` 调它 |
+| O28d | boss 找法与多 boss | **CONFIRMED** —— 照 `0x4237F0`：`boss_ids[4]` → `+0x18c` 链表比 `+0x6830`；对每个 boss 各推一次，4096 步护栏 |
+| O28e | 拒绝发动不丢充能 | **CONFIRMED** —— SDK 在 `on_activate` 返回 `CE_ACTIVATE_REFUSED` 时把刚装填的充能计时退回 `{-1, 0, 0.0}`（= 充满态）、清释放位、state 留 0；与 Tenshi 的门控 `state == 0 && +0x38 <= 0` 一致 |
+| O28f | 残机减半的边界 | **CONFIRMED** —— `ce_judgment_cost`：`lives <= 0 → 0`（拒绝），否则 `(lives+1)/2`（单测 7 项）；只动 `CURRENT_LIVES`，碎片不动 |
+
 ## P. 商店走两遍（每关进店 2 次）—— 两个放行断点
 
 引擎链一手见 [`engine/card/th18/05-shop-and-money.md`](../../../engine/card/th18/05-shop-and-money.md) §3.5。

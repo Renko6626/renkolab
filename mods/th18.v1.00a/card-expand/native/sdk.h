@@ -16,6 +16,7 @@
 #include "sdk_core.h"
 
 typedef struct ce_card ce_card_t;          /* = zCardBaseClass*，只通过下面的取值函数看 */
+#define CE_ACTIVATE_REFUSED (-1)           /* on_activate 的返回值：拒绝发动（SDK 退回充能，卡自己放 0x10 无效音）*/
 
 #define ce_card_id(c)     (*(uint32_t *)((uint8_t *)(c) + CE_CARD_ID))
 #define ce_card_entry(c)  (*(uint8_t **)((uint8_t *)(c) + CE_CARD_TABLE_ENTRY))
@@ -44,7 +45,7 @@ typedef struct {
     void (*on_item_money)(ce_card_t *, int32_t *bonus);          /* 金钱道具入账（MONEY += 1）之前：*bonus 是额外要加的钱，MONEY 与 MONEY_TOTAL 一起加 */
     /* 主动卡（SDK §9）：active_recharge != 0 就是主动卡（C 键 / 充能 / HUD 由 SDK 与引擎处理）*/
     uint32_t active_recharge;                                    /* 充能帧数（×mgr+0xc58 倍率后装填）*/
-    int  (*on_activate)(ce_card_t *);                            /* C 键发动：返回 0 = 瞬发（直接收尾），1 = 进入持续态 */
+    int  (*on_activate)(ce_card_t *);                            /* C 键发动：返回 0 = 瞬发（直接收尾），1 = 进入持续态，CE_ACTIVATE_REFUSED = 条件不满足（充能退回、不算发动）*/
     int  (*on_active_tick)(ce_card_t *, uint32_t elapsed);       /* 持续态每帧（elapsed = 经过帧）；返回 0 = 结束 */
 } ce_hooks_t;
 
@@ -106,6 +107,13 @@ typedef void (__attribute__((thiscall)) *ce_fn_add_life_t)(void *globals);
 typedef void (__attribute__((thiscall)) *ce_fn_add_bomb_t)(void *globals, int unused);
 static inline void ce_add_life(void) { ((ce_fn_add_life_t)CE_FN_ADD_LIFE)((void *)CE_ADDR_GLOBALS_INNER); }
 static inline void ce_add_bomb(void) { ((ce_fn_add_bomb_t)CE_FN_ADD_BOMB)((void *)CE_ADDR_GLOBALS_INNER, 0); }
+/* HUD 残机行刷新（Gui 0x441f10：thiscall(gui; lives, fragments, max) ret 0xc，一手反汇编，AUDIT O28）。改 CURRENT_LIVES 后必须调，零售在死亡 / 商店复原处都这么做。*/
+typedef void (__attribute__((thiscall)) *ce_fn_gui_lives_t)(void *gui, int lives, int fragments, int max);
+static inline void ce_gui_update_lives(void)
+{
+    void *gui = CE_GUI();
+    if (gui) ((ce_fn_gui_lives_t)CE_FN_GUI_UPDATE_LIVES)(gui, CE_CURRENT_LIVES(), CE_LIFE_FRAGMENTS(), CE_LIVES_MAX());
+}
 static inline int  ce_owned(uint32_t id) { return id < 255 && CE_OWNED_ARRAY()[id] != 0; }
 /* ctor 不只在获得时调：每关开始引擎会对卡组里每张卡再调一次 +0x00（实跑 2026-09-04：初始携带的卡 on_stage_start 后紧跟 ctor）。
  * 真正的获得路径（道具 mode 0 / 购买 mode 2）里 owned[自己] 要到 ctor 之后才置 1（0x412d42），关卡开始那次早就是 1 了——

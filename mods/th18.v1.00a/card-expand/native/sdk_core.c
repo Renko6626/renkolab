@@ -89,3 +89,8 @@ int ce_royal_flush_ready(const int32_t *owned, uint32_t self_id, const uint32_t 
     }
     return self_in;
 }
+
+int ce_judgment_cost(int lives)
+{
+    return lives <= 0 ? 0 : (lives + 1) / 2;
+}

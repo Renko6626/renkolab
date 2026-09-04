@@ -46,5 +46,11 @@
     "desc": ["购买后金钱翻倍（先扣购买价，再翻倍）。", "本身不会进入卡组。", "德州扑克・方片。"],
     "internal_name": "DIAMOND_2",
     "initial_unlocked": 1, "deck_visible": 0, "repeatable": 1, "hud_show": 0, "price_tier": 12, "weight": 2, "sprite_large": 130, "sprite_small": 131
+  },
+  "66": {
+    "name": "神之宣告",
+    "desc": ["主动（C 键）：消耗一半残机，", "让 boss 的符卡按超时结束。", "没有残机时不能发动。充能 60 秒。", "致敬・游戏王。"],
+    "internal_name": "JUDGMENT",
+    "initial_unlocked": 1, "category": 0, "price_tier": 14, "weight": 2, "sprite_large": 116, "sprite_small": 117
   }
 }

@@ -36,6 +36,26 @@
 #define CE_GT_FLAGS                0xb0       /* zGameThread+0xb0：位 0x20000 = 请求开商店（MSG opcode 36 置 0x440d83；GameThread 0x443b05 测、0x443c17 清）*/
 #define CE_GT_REPLAY_PLAYING       0xd0       /* zGameThread+0xd0：非 0 = replay 回放中（商店 0x417cd8、sub_417880 都看它）*/
 #define CE_GT_FLAG_OPEN_SHOP       0x20000
+#define CE_ADDR_LIFE_FRAGMENTS     0x4ccd4c   /* = GlobalsInner+0x70（ExpHP LIFE_FRAGMENTS）*/
+#define CE_ADDR_SPELLCARD_PTR      0x4cf2c0   /* zSpellcard*（ExpHP SPELLCARD_PTR）；GameThread__thread_start 0x44308c 写 */
+#define CE_SPELL_FLAGS             0x78       /* bit0 符卡进行中（0x409b10）、bit1 奖励存活（0x42d640，收符卡拿奖励 / Sannyo 碎片看它）、bit3 耐久符卡（ECL 542 → 0x42d650；超时按收符卡算）、bit7 已超时（步进 0x42eff4 置）*/
+#define CE_SPELL_FLAG_ACTIVE       0x1
+#define CE_SPELL_FLAG_BONUS        0x2
+#define CE_SPELL_FLAG_SURVIVAL     0x8
+#define CE_SPELL_BONUS             0x7c       /* int：符卡奖励（0x42a320 写，超时 0x42f00c 清零，收符卡 0x42a780 计分）*/
+#define CE_EM_CAN_CAPTURE          0x44       /* zEnemyManager.can_still_capture_spell（ExpHP；超时路径清 0）*/
+#define CE_EM_BOSS_IDS             0x48       /* int[4] boss enemy_id（get_boss_enemy_full 0x4237f0 按它走链表）*/
+#define CE_EM_BOSS_SLOTS           4
+#define CE_EM_ENEMY_LIST_HEAD      0x18c      /* zEnemyList* {entry, next, prev}（ExpHP active_enemy_list_head）*/
+#define CE_ENEMY_ID                0x6830     /* zEnemy.enemy_id */
+#define CE_ENEMY_DATA              0x122c     /* zEnemyData 在 zEnemy 里的偏移：enemy+0x6374 = data.interrupts(+0x5148)、enemy+0x14ec = data.time_in_ecl.cur(+0x2c0)、enemy+0x6220 = data.life(+0x4ff4)（步进 0x42ed40 三处交叉核对）*/
+#define CE_ED_TIME_IN_ECL          0x2bc      /* zTimer{prev,cur,cur_f,…}：中断槽的超时阈值拿它比（0x42edf5 起：slot.time <= cur → 超时子程序）*/
+#define CE_ED_INTERRUPTS           0x5148     /* zEnemyInterrupt[8]：{+0 hp_value, +4 time, +8 sub_life[0x40], +0x48 sub_timeout[0x40]}，stride 0x88；活动槽 = 第一个 hp_value > -1 && time > 0 */
+#define CE_ED_INTERRUPT_STRIDE     0x88
+#define CE_ED_INTERRUPT_SLOTS      8
+#define CE_FN_GUI_UPDATE_LIVES     0x441f10   /* thiscall(gui; lives, fragments, max) ret 0xc：刷 HUD 残机行（死亡 0x45c2xx、商店复原 0x4179xx 都调；一手反汇编 AUDIT O28）*/
+#define CE_SE_INVALID              0x10       /* 无效操作（商店买不起同款）*/
+#define CE_SE_RELEASE_ALT          0x4d
 
 #define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)
 #define CE_MONEY()        (*(int32_t *)CE_ADDR_MONEY)
@@ -49,6 +69,8 @@
 #define CE_TIME_IN_STAGE()  (*(int32_t *)CE_ADDR_TIME_IN_STAGE)
 #define CE_CURRENT_STAGE()  (*(int32_t *)CE_ADDR_CURRENT_STAGE)
 #define CE_PRACTICE_STAGE() (*(int32_t *)CE_ADDR_PRACTICE_STAGE)
+#define CE_LIFE_FRAGMENTS() (*(int32_t *)CE_ADDR_LIFE_FRAGMENTS)
+#define CE_SPELLCARD()      (*(uint8_t **)CE_ADDR_SPELLCARD_PTR)
 #define CE_OWNED_ARRAY()    ((const int32_t *)(CE_ABILITY_MGR() + CE_MGR_OWNED))
 #define ce_price_for_tier(t)  (((t) >= 0 && (t) < 15) ? ((const int32_t *)CE_ADDR_CARD_PRICE_BY_TIER)[(t)] : 0)
 #define CE_PLAYER()       (*(uint8_t **)CE_ADDR_PLAYER_PTR)

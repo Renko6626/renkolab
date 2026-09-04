@@ -1,0 +1,83 @@
+/* 神之宣告 —— 主动卡：boss 符卡进行中按 C，消耗一半残机（向上取整），符卡按「超时」立刻结束、不给奖励。
+ * 没有残机 / 不在符卡里 / 找不到带超时槽的 boss → 拒绝发动（0x10 无效音，充能退回）。充能 3600 帧（60 s）。
+ *
+ * 引擎侧（engine/ecl/th18/01-boss-interrupts-and-spellcard.md，AUDIT O28）：
+ *   符卡进行中 = SPELLCARD+0x78 bit0；奖励存活 = bit1（收符卡时按它计分、Sannyo 碎片也看它）。
+ *   boss 的每段攻击是 zEnemyData.interrupts[i]{hp_value, time, sub_life, sub_timeout}；
+ *   步进 0x42ed40 每帧取第一个 hp_value > -1 && time > 0 的槽，slot.time <= time_in_ecl.cur 就走超时子程序、
+ *   Spellcard 置「已超时」并清奖励。这里把 time_in_ecl 直接写成 slot.time，下一帧引擎自己按超时收场——
+ *   跟真的耗完时间走的是同一条零售路径。耐久符卡（bit3）超时本来算收符卡，所以我们额外清 bit1 + 奖励 = 0：一律算失败。
+ *   boss 从 ENEMY_MANAGER.boss_ids[4] 走敌人链表按 enemy_id 找（照 get_boss_enemy_full 0x4237f0）；多 boss 一起超时。 */
+#include "sdk.h"
+
+static uint8_t *find_enemy(uint8_t *em, int32_t id)
+{
+    unsigned guard = 0;
+    for (uint8_t *node = *(uint8_t **)(em + CE_EM_ENEMY_LIST_HEAD); node && guard < 4096;
+         node = *(uint8_t **)(node + 4), ++guard) {
+        uint8_t *e = *(uint8_t **)node;
+        if (e && *(int32_t *)(e + CE_ENEMY_ID) == id) return e;
+    }
+    return 0;
+}
+
+/* 把 boss 当前攻击段的计时推到超时阈值；返回 1 = 推了 */
+static int expire_current_attack(uint8_t *enemy)
+{
+    uint8_t *data = enemy + CE_ENEMY_DATA;
+    for (unsigned i = 0; i < CE_ED_INTERRUPT_SLOTS; ++i) {
+        uint8_t *slot = data + CE_ED_INTERRUPTS + i * CE_ED_INTERRUPT_STRIDE;
+        int32_t hp = *(int32_t *)(slot + 0), t = *(int32_t *)(slot + 4);
+        if (hp > -1 && t > 0) {
+            ce_ztimer_t *tm = (ce_ztimer_t *)(data + CE_ED_TIME_IN_ECL);
+            tm->prev = tm->cur;
+            tm->cur = t;
+            tm->cur_f = (float)t;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int refuse(const char *why)
+{
+    uint8_t *p = CE_PLAYER();
+    ce_play_sound(CE_SE_INVALID, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);
+    ce_log("judgment: refused (%s)", why);
+    return CE_ACTIVATE_REFUSED;
+}
+
+static int on_activate(ce_card_t *c)
+{
+    (void)c;
+    uint8_t *spell = CE_SPELLCARD();
+    uint8_t *em = CE_ENEMY_MGR();
+    if (!spell || !em) return refuse("no spellcard/enemy manager");
+    if (!(*(uint32_t *)(spell + CE_SPELL_FLAGS) & CE_SPELL_FLAG_ACTIVE)) return refuse("no spell card in progress");
+    int lives = CE_CURRENT_LIVES();
+    int cost = ce_judgment_cost(lives);
+    if (!cost) return refuse("no lives");
+
+    unsigned expired = 0;
+    for (unsigned i = 0; i < CE_EM_BOSS_SLOTS; ++i) {
+        int32_t id = *(int32_t *)(em + CE_EM_BOSS_IDS + i * 4);
+        if (!id) continue;
+        uint8_t *e = find_enemy(em, id);
+        if (e && expire_current_attack(e)) ++expired;
+    }
+    if (!expired) return refuse("no boss with a timed attack");
+
+    CE_CURRENT_LIVES() = lives - cost;
+    ce_gui_update_lives();
+    *(uint32_t *)(spell + CE_SPELL_FLAGS) &= ~(uint32_t)CE_SPELL_FLAG_BONUS;   /* 耐久符卡超时本算收符卡：一律按失败 */
+    *(int32_t *)(spell + CE_SPELL_BONUS) = 0;
+    *(int32_t *)(em + CE_EM_CAN_CAPTURE) = 0;
+
+    uint8_t *p = CE_PLAYER();
+    ce_play_sound(CE_SE_RELEASE, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);
+    ce_log("judgment: lives %d -> %d (cost %d), %u boss attack(s) expired, spell flags %08x",
+           lives, lives - cost, cost, expired, *(uint32_t *)(spell + CE_SPELL_FLAGS));
+    return 0;
+}
+
+CE_CARD(66, .active_recharge = 3600, .on_activate = on_activate);
