@@ -1,15 +1,18 @@
 script script79 {
     layer(13);
-    blendMode(1);
-    type(1);
-    zWriteDisable(1);
-    sprite(@BLUE_EYES_BEAM);
     alpha(0);
-    scale(0.3f, 1.0f);
-    alphaTime(5, 0, 230);
-    scaleTime(5, 0, 1.0f, 1.0f);
-+20: // 20
-    alphaTime(10, 0, 0);
-+10: // 30
+    scriptNew(script80);
+    scriptNew(script81);
+    scriptNew(script82);
+    scriptNew(script83);
+    scriptNew(script84);
+    scriptNew(script85);
++8: // 8
+    scriptNew(script85);
++8: // 16
+    scriptNew(script85);
++8: // 24
+    scriptNew(script85);
++21: // 45
     delete();
 }

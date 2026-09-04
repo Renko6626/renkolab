@@ -84,7 +84,7 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 ## 1d. 青眼白龙（id 67，2026-09-04，待实跑）
 
 主动卡：关卡里按 C → 残机 −1 → 自机上方出现龙（用户原创俯视图，头朝上），跟着自机；弹碰到龙变点道具、龙闪一下橙色；
-第 300 帧起每 5 s 龙口向上一道白光 30 帧（占位光柱），boss 血条掉一截（devstage ÷100 一波就死）。2500 发后龙放大淡出。
+第 300 帧起每 5 s 龙头向上一道 Master Spark 式白蓝光束 30 帧（魔理沙贴图，宽约 126、判定 96），boss 血条掉一截（devstage ÷100 一波就死）。2500 发后龙放大淡出。
 残机 0 按 C → 无效音、充能不动。过关龙消失。设计 `docs/superpowers/specs/2026-09-04-blue-eyes-design.md`，审计 AUDIT O29，
 引擎一手 `engine/player/th18/02-damage-sources.md`。`cards_dev.js` 起手卡组已带 67。
 
@@ -92,7 +92,7 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 `blue_eyes: hp N (blocked …)`（有挡弹的整秒）→ `blue_eyes: wave 1 start at frame 300 (hp …, cap C)`（**记下 cap**，它就是 sht 的 max_dmg，
 决定一波实际伤害 ≈ 30 × min(100, cap)）→ `blue_eyes: died after …` 或过关 `blue_eyes: dismissed (stage start) …`；
 残机 0 → `blue_eyes: refused (no lives)`。崩溃优先怀疑：O29a/b 的栈参顺序与 XMM、O29c 的 thiscall、`interruptLabel(1)` 是否被 `stop()` 后的 VM 接住
-（不接就改成 `ce_anm_delete`）。视觉怀疑：光束位置（龙头 `y − 52` 再上 256）与高度是否对齐龙头——坐标假设见 spec §2.3。
+（不接就改成 `ce_anm_delete`）。视觉怀疑：光束是否朝上（子脚本各自 `rotate −90°`，若子 VM 还叠加父旋转也仍是 0 + −90°）、是否从龙头起（父 VM 钉在龙头，子 anchor 左端）；blendMode 9 白核是照魔理沙抄的——坐标假设见 spec §2.3。
 
 ## 2. 第二批（按优先级）
 

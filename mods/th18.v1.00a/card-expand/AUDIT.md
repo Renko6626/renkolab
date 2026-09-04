@@ -557,6 +557,8 @@ M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未�
 
 **O29i**（教训，静态发现）内联汇编里**先 push 再引用 `"m"` 操作数会错位**：第一版 `ce_damage_rect` 的 `pushl %[ang]` 用了 `"m"(angle)`，编译成 `pushl 0x8(%esp)`——前面已经压了两个值，esp 相对偏移指向别的槽，压进去的是垃圾。objdump 核对调用现场时抓到；改成先 `memcpy` 成整数位、`"r"` 约束再压。**规则：内联汇编里压栈的参数一律走寄存器；`"m"` 只用在任何 push 之前的 `movss`。** `ce_cancel_radius` 与 `ce_play_sound` 本来就符合。
 
+**O29j**（🟡 视觉，实跑看）光束 = 父 VM（C 每帧钉在龙头）+ `scriptNew` 子 VM：子的原点是父位置（thpages `ignoreParent` 说明反推子默认继承父的位置 / 旋转 / 缩放）。为不押注旋转继承，父脚本不转、每个子脚本自己 `rotate(0,0,−π/2)`、彩光沿 −y 飞（不用 `attached`/ins 314）：继承与否结果都朝上。贴图是零售 `pl01b`/`pl01b2`（ORDER 里 `local/` 源，构建时取，仓库不含字节）。
+
 **O29h** 龙 VM 被引擎删掉（关卡切换 / 消弹演出）时卡不悬空：`on_active_tick` 每帧先 `ce_anm_get_vm`，为 0 就结束持续态；`on_stage_start`/`on_run_reset` 主动删。🟡 实跑。
 
 ## P. 商店走两遍（每关进店 2 次）—— 两个放行断点

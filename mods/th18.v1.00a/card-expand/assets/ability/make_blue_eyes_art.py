@@ -5,7 +5,7 @@
 
   blue_eyes/DRAGON.png  256×256 RGBA：从 _src/BLUE_EYES_TOPDOWN.png（用户原创，黑底俯视图，头朝上）抠掉黑底，
                         等比缩到 256 高、居中（脚本里再 scale 到场上尺寸）
-  blue_eyes/BEAM.png    32×512  RGBA：竖向白→淡蓝光柱，两侧渐透明（程序生成，占位）
+  光束不在这里：用零售魔理沙的 Master Spark 贴图（pl01b / pl01b2，ORDER.txt 里 `local/` 源），脚本 79–85。
 
 抠图：黑底纯黑（噪声 ≤ 8）。从四角泛洪（阈值 24）得到背景掩码 → 掩码外扩 2 px 的环里按亮度做 alpha 斜坡（8..56），
 龙体内部的暗部（不与背景连通）保持不透明。
@@ -61,25 +61,11 @@ def dragon() -> Image.Image:
     return canvas
 
 
-def beam() -> Image.Image:
-    w, h = 32, 512
-    im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    px = im.load()
-    for x in range(w):
-        t = abs(x - (w - 1) / 2) / ((w - 1) / 2)          # 0 中心 → 1 边缘
-        a = int(255 * (1.0 - t) ** 1.5)
-        for y in range(h):
-            fade = 1.0 if y > 48 else y / 48.0             # 顶端 48 px 渐隐（远端）
-            px[x, y] = (220, 240, 255, int(a * fade))
-    return im
-
-
 def main():
     OUT.mkdir(exist_ok=True)
     d = dragon()
     d.save(OUT / "DRAGON.png")
-    beam().save(OUT / "BEAM.png")
-    print(f"wrote {OUT / 'DRAGON.png'} {d.size} (bbox {d.getbbox()}), {OUT / 'BEAM.png'} (32x512)")
+    print(f"wrote {OUT / 'DRAGON.png'} {d.size} (bbox {d.getbbox()})")
 
 
 if __name__ == "__main__":

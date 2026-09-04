@@ -31,12 +31,17 @@ TEMPLATE = ("abcard", "ability/BLANK_max.png")
 _FILE = re.compile(r"^(\d+)_([A-Za-z_][A-Za-z0-9_]*)\.anm\.txt$")
 
 
+def src_path(rel: str):
+    """ORDER 里的源图路径：默认相对 assets/；`local/` 开头的相对仓库根（零售贴图搬用——版权字节只在 local/，构建时取，不入库）。"""
+    return (L.REPO / rel) if rel.startswith("local/") else (HERE / rel)
+
+
 def plan(retail_text: str):
     """→ (entries=[(name, src, entry_idx, sprite_idx)], scripts=[(name, path, script_idx)])。"""
     n_entry = len(L.parse_entries(retail_text))
     n_script = len(L.parse_scripts(retail_text))
     sprite0 = L.max_sprite_id(retail_text) + 1
-    entries = [(r[0], HERE / r[1], n_entry + k, sprite0 + k, (r[2] if len(r) > 2 else None)) for k, r in enumerate(L.read_order(ENTRIES))]
+    entries = [(r[0], src_path(r[1]), n_entry + k, sprite0 + k, (r[2] if len(r) > 2 else None)) for k, r in enumerate(L.read_order(ENTRIES))]
     scripts = []
     for k, p in enumerate(sorted(SCRIPTS.glob("*.anm.txt"))):
         m = _FILE.match(p.name)
@@ -93,10 +98,14 @@ def main():
             t = tpl_of[name]
             want = (int(t["fields"]["THTXWidth"]), int(t["fields"]["THTXHeight"]))
             if not src.is_file():
-                raise SystemExit(f"缺 {src}")
+                raise SystemExit(f"缺 {src}" + ("（零售贴图：先 python3 tooling/thtk/unpack.py th18.v1.00a 解包到 local/）" if "local/" in str(src) else ""))
             im = Image.open(src).convert("RGBA")
             if im.size != want:
-                raise SystemExit(f"{src.name} 是 {im.size}，要 {want}")
+                if im.width > want[0] or im.height > want[1]:
+                    raise SystemExit(f"{src.name} 是 {im.size}，要 ≤ {want}")
+                pad = Image.new("RGBA", want, (0, 0, 0, 0))            # 小图居中补到声明的 2 的幂尺寸（零售 pl01b2 是 96×256）
+                pad.paste(im, ((want[0] - im.width) // 2, (want[1] - im.height) // 2))
+                im = pad
             im.save(TEX / "ability" / f"{name}.png")
             blocks.append(L.make_entry(t, eidx, f"ability/{name}.png", sprite_idx=sidx))
         text = L.insert_entries(retail_text, blocks) if blocks else retail_text

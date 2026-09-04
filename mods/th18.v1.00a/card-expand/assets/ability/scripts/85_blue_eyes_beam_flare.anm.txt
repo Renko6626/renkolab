@@ -1,0 +1,17 @@
+script script85 {
+    layer(13);
+    sprite(@BLUE_EYES_FLARE);
+    blendMode(1);
+    type(1);
+    zWriteDisable(1);
+    rotate(0.0f, 0.0f, -1.5707964f);
+    scale(0.0f, 0.0f);
+    color(128, 200, 255);
+    alpha(255);
+    scaleTime(30, 5, 0.6f, 0.6f);
+    pos(0.0f, 40.0f, 0.0f);
++2: // 2
+    posTime(30, 0, 0.0f, -448.0f, 0.0f);
++30: // 32
+    delete();
+}

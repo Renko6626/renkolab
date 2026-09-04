@@ -1,0 +1,22 @@
+script script84 {
+    layer(13);
+    sprite(@BLUE_EYES_BEAM);
+    anchor(1, 0);
+    blendMode(1);
+    type(1);
+    zWriteDisable(1);
+    rotate(0.0f, 0.0f, -1.5707964f);
+    scale(2.0f, 0.1f);
+    scaleTime(8, 4, 2.0f, 1.0f);
+    alpha(0);
+    alphaTime(8, 0, 160);
+    color(255, 255, 255);
+    rotateTime(15, 9, 0.0f, 0.0f, -1.6198837f);
++15: // 15
+    rotateTime(15, 9, 0.0f, 0.0f, -1.5217091f);
++15: // 30
+    scaleTime(10, 4, 1.6f, 0.0f);
+    alphaTime(10, 0, 0);
++10: // 40
+    delete();
+}
