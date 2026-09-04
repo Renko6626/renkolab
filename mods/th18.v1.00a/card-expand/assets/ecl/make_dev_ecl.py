@@ -5,8 +5,8 @@
 
   st01.ecl   源文本就在仓库里：assets/ecl/st01.ecl.txt（真·空壳：只剩头部、main、LogoEnemy、MainBoss，零售敌机子程序一律不留），
              直接 thecl -c 编译。
-  st01bs.ecl 满是 ZUN 的符卡脚本，不入库：现场反编译 local/th18.v1.00a/dat/st01bs.ecl，所有 lifeSet(N) → lifeSet(1)
-             （boss 每个阶段一发就过），再编回。thecl 往返在它上面字节一致，没改的部分不会走样。
+  st01bs.ecl 满是 ZUN 的符卡脚本，不入库：现场反编译 local/th18.v1.00a/dat/st01bs.ecl，血量常数（lifeSet /
+             setInterrupt 阈值 / lifeMarker）等比 ÷100（14100 → 141，阶段切换阈值 2100 → 21），再编回。thecl 往返在它上面字节一致，没改的部分不会走样。
 """
 import re
 import subprocess
@@ -57,11 +57,32 @@ def compile_(t, name, text):
 
 
 
+LIFE_DIV = 100
+
+
+def _scale(n: int) -> int:
+    return max(1, n // LIFE_DIV) if n > 0 else n
+
+
 def patch_boss(text):
-    text2, n = re.subn(r"lifeSet\(\d+\)", "lifeSet(1)", text)
+    """血量常数等比 ÷LIFE_DIV，阈值顺序不变：lifeSet(N)、setInterrupt(槽, 血量, 超时, 子程序) 的血量、lifeMarker(槽, 血量, 色) 的血量。
+    超时帧不动。只改 lifeSet 而不改阈值会让血条刻度 / 阶段切换乱掉（2026-09-04 实跑「符卡血量诡异」）。"""
+    n = 0
+    def f_life(m):
+        nonlocal n; n += 1
+        return f"lifeSet({_scale(int(m.group(1)))})"
+    def f_int(m):
+        nonlocal n; n += 1
+        return f"setInterrupt({m.group(1)}, {_scale(int(m.group(2)))}, {m.group(3)}"
+    def f_mark(m):
+        nonlocal n; n += 1
+        return f"lifeMarker({m.group(1)}, {_scale(int(float(m.group(2))))}.0f"
+    text = re.sub(r"lifeSet\((\d+)\)", f_life, text)
+    text = re.sub(r"setInterrupt\((-?\d+), (\d+), (-?\d+)", f_int, text)
+    text = re.sub(r"lifeMarker\((-?\d+), ([0-9.]+)f", f_mark, text)
     if n == 0:
-        raise SystemExit("st01bs.ecl 里没有 lifeSet(N)")
-    return text2, n
+        raise SystemExit("st01bs.ecl 里没有血量相关指令")
+    return text, n
 
 
 def main():
@@ -71,7 +92,7 @@ def main():
     run([t, "-c", VERSION, "-m", ECLMAP, src, OUT / "st01.ecl"])
     bs, n = patch_boss(decompile(t, "st01bs"))
     compile_(t, "st01bs", bs)
-    print(f"ecl: st01.ecl（空壳，源 {src.relative_to(MOD)}）、st01bs.ecl（{n} 处 lifeSet → 1）→ {OUT.relative_to(MOD)}")
+    print(f"ecl: st01.ecl（空壳，源 {src.relative_to(MOD)}）、st01bs.ecl（{n} 处血量常数 ÷{LIFE_DIV}）→ {OUT.relative_to(MOD)}")
     return 0
 
 

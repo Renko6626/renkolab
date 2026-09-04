@@ -105,12 +105,13 @@ DLL 装载时按合并后的表**现算**这三条，超了写 `FAIL:` 并把分
 | 键 | 作用 |
 | --- | --- |
 | `start_deck` | 起手把空槽换成这些 id |
+| `start_money` | 开局金钱（0–9999），在初始卡组断点第 0 槽时写入 `MONEY`；缺省不动 |
 | `trace` | 桩被调时记日志 |
 | `retail_weight` | 零售行 1–55 里 weight ∉ {0,6} 的全改成这个值；**6 = 退出随机池**（保底资源卡 weight 0 不动）。随机池总份数 ≤ 560，零售 56 张哪怕压到 1 也会爆表，所以「压低」只能做成退出 |
 | `new_weight` | 所有新卡的 weight 改成这个值（如 20 → 每张 25 份 + 未拥有 5 份）|
 
 覆盖在容量检查之前应用，日志 `cards_dev: … retail_weight=6 new_weight=20 (N rows changed)`。
-`_test` 还带 `st01.ecl`（源 `assets/ecl/st01.ecl.txt`，空壳）/ `st01bs.ecl`（`make_dev_ecl.py` 现场把零售 boss 的 `lifeSet` 改 1）：一关近乎空壳，logo → 对话 → 一发一阶段的 boss → 关底商店。
+`_test` 还带 `st01.ecl`（源 `assets/ecl/st01.ecl.txt`，空壳）/ `st01bs.ecl`（`make_dev_ecl.py` 现场把零售 boss 的血量常数等比 ÷100：`lifeSet` / `setInterrupt` 阈值 / `lifeMarker`）：一关近乎空壳，logo → 对话 → 一发一阶段的 boss → 关底商店。
 
 ## 6. 卡图（放两张 PNG，其余交给 `assets/`）
 

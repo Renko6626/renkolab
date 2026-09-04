@@ -12,6 +12,7 @@
  *
  * 跑在游戏线程上下文里：不碰 x87（-mfpmath=sse），不调 thcrap API。
  */
+#include "engine.h"
 #include "card_expand.h"
 #include "thcrap_bp.h"
 
@@ -47,7 +48,11 @@ int __cdecl BP_ce_test_deck(x86_reg_t *regs, void *bp_info)
 {
     (void)bp_info;
     static unsigned cursor;
-    if (regs->esi == 0) cursor = 0;
+    if (regs->esi == 0) {
+        cursor = 0;
+        int m = ce_dev_start_money();                       /* 开局 reset_cards 重建卡组的时点，顺手给起始金钱（dev）*/
+        if (m >= 0) { ce_log("test: start money %d -> %d", CE_MONEY(), m); CE_MONEY() = m; }
+    }
     uint32_t id = *(const uint8_t *)(uintptr_t)(regs->eax + regs->esi + CE_TEST_DECK_SAVE_OFF);
     if (id == CE_NULL_ROW && cursor < ce_dev_deck_count()) {
         uint32_t nid = ce_dev_deck_id(cursor++);
