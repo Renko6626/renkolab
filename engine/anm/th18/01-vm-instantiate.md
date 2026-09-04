@@ -31,6 +31,7 @@
 
 ## 3. 坐标与层（与 ANM 脚本的配合）
 
+- `vm+0x54/+0x58` = scale x/y（ExpHP；HUD 充能条 `0x408a53` 写 +0x58 当 fill 比例，同时 `+0x70` uv_scale.y、`+0x80` uv 滚动）；`vm+0x524` color_1 是 D3DCOLOR `0xAARRGGBB`。
 - 实体坐标 `vm+0x5f0` 是 ECL 坐标；`originMode(1)` 下 (0,0) 是**弹幕区上边框中点**（x 居中、y 从顶部起算；2026-09-04 实跑 ✅：
   2D 配方脚本 pos(0,0,0) 出现在上边框中点）。场地正中 = **(0, 224)**（384×448 的区域）。thpages 说的「ECL (0,0)」就是这个点，不是几何中心。
 - `layer` 参数写 `vm+0x18`；脚本里的 `layer(n)` 会再覆盖。零售「场地中央展示卡」的 `abcard.anm script14` 用 `layer(16)`（子弹之上）；Tenshi 要石用 13。

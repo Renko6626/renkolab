@@ -116,7 +116,7 @@ state 1 每帧把要石位置向玩家插值（系数 `0x4b90b8`），对 `card+
 把 `BULLET_MANAGER->__some_cancel_related_counter` 累加进 `card+0x70`；
 `card+0x70 > 0xf9`（**250 发**）或经过帧 `> 0x708`（**1800 帧 = 30 秒**）→ 进 state 2 并放音 `0x29`。
 一手地址（2026-09-04）：`cancel_radius_as_bomb` `0x429370` stdcall(pos, mode, max, tag) + XMM2 半径 = 18.0（`0x4b9290`），
-计数器 `BULLET_MANAGER+0x7a41e8`（`0x40eb56`），有命中那帧 `vm+0x524` 写 `0xff0080ff`（`0x40eb60`）；跟随目标 `(x, y − 80)`、系数 0.04（`0x4b90b8`）。
+计数器 `BULLET_MANAGER+0x7a41e8`（`0x40eb56`），有命中那帧 `vm+0x524`（D3DCOLOR ARGB）写 `0xff0080ff` = 蓝 (0,128,255)（`0x40eb60`）；跟随目标 `(x, y − 80)`、系数 0.04（`0x4b90b8`）。
 
 ## 5. 重置与存取：另外三个槽
 

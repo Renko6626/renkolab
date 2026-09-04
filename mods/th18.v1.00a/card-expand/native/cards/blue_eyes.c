@@ -13,6 +13,30 @@
 #define BE_SE_SUMMON  CE_SE_RELEASE         /* 0x4d 发动音 */
 #define BE_SE_BEAM    CE_SE_BOMB            /* 0x2c */
 #define BE_SE_DEATH   0x29                  /* Tenshi 要石收场音 */
+#define BE_BAR_BG     0xa0181820u           /* D3DCOLOR 0xAARRGGBB：底槽深灰半透明 */
+#define BE_BAR_HIGH   0xff40a0ffu           /* > 50％ 蓝 */
+#define BE_BAR_MID    0xffffd040u           /* > 20％ 黄 */
+#define BE_BAR_LOW    0xffff4040u           /* 红 */
+
+/* 血条：两个根 VM（不做龙的子 VM——子会继承父的 0.45 缩放和死亡缩放）。填充条 drawRect(1,1) 由 C 写 scale = (宽, 高)，
+ * 中心随宽度左对齐（不依赖 drawRect 对 anchor 的支持）。零售 HUD 充能条同款做法（0x408a53 写 vm+0x58，AUDIT O29k）。*/
+static void bar_update(be_state_t *s)
+{
+    float ratio = s->hp > 0 ? (float)s->hp / (float)BE_HP : 0.0f;
+    float w = BE_BAR_W * ratio, y = s->y + BE_BAR_DY;
+    ce_anm_set_pos(s->bar_bg_id, s->x, y, s->z);
+    ce_anm_set_scale(s->bar_bg_id, BE_BAR_W + 4.0f, BE_BAR_H + 4.0f);
+    ce_anm_set_pos(s->bar_id, s->x - (BE_BAR_W - w) * 0.5f, y, s->z);
+    ce_anm_set_scale(s->bar_id, w > 0.0f ? w : 0.0f, BE_BAR_H);
+    ce_anm_set_color(s->bar_id, ratio > 0.5f ? BE_BAR_HIGH : ratio > 0.2f ? BE_BAR_MID : BE_BAR_LOW);
+}
+
+static void bar_destroy(be_state_t *s, int fade)
+{
+    if (fade) { ce_anm_interrupt(s->bar_bg_id, 1); ce_anm_interrupt(s->bar_id, 1); }
+    else      { ce_anm_delete(s->bar_bg_id);       ce_anm_delete(s->bar_id); }
+    s->bar_bg_id = 0; s->bar_id = 0;
+}
 
 static float player_x(void) { uint8_t *p = CE_PLAYER(); return p ? *(float *)(p + CE_PLAYER_X) : 0.0f; }
 
@@ -27,9 +51,10 @@ static void dismiss(ce_card_t *c, const char *why)
 {
     be_state_t *s = ce_state(c, be_state_t);
     if (!s) return;
-    if (s->anm_id || s->beam_id) {
+    if (s->anm_id || s->beam_id || s->bar_id) {
         ce_anm_delete(s->anm_id);
         ce_anm_delete(s->beam_id);
+        bar_destroy(s, 0);
         ce_log("blue_eyes: dismissed (%s) hp %d after %u frames, %u waves, %u blocked", why, s->hp, s->frames, s->waves, s->blocked);
     }
     s->anm_id = 0; s->beam_id = 0; s->hp = 0;
@@ -49,6 +74,9 @@ static int on_activate(ce_card_t *c)
     s->anm_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_DRAGON, 13);
     if (!s->anm_id) return refuse("dragon anm failed");
     ce_anm_set_pos(s->anm_id, s->x, s->y, s->z);
+    s->bar_bg_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR_BG, 13);
+    s->bar_id    = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR, 13);
+    bar_update(s);
 
     CE_CURRENT_LIVES() = lives - 1;
     ce_gui_update_lives();
@@ -65,6 +93,7 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
     if (!ce_anm_get_vm(s->anm_id)) {                       /* 引擎把 VM 收掉了（O29h）：龙没了就结束 */
         ce_log("blue_eyes: dragon vm gone at frame %u", s->frames);
         s->anm_id = 0; s->beam_id = 0;
+        bar_destroy(s, 0);
         return 0;
     }
     const float *pp = (const float *)(p + CE_PLAYER_X);
@@ -76,6 +105,7 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
     ce_anm_set_color(s->anm_id, blocked ? BE_COLOR_HIT : BE_COLOR_IDLE);
 
     be_step_t st = be_step(s, blocked);
+    bar_update(s);
     if (st.wave_start) {
         s->beam_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BEAM, 13);
         ce_play_sound(BE_SE_BEAM, s->x);
@@ -91,6 +121,7 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
     if (st.died) {
         ce_anm_interrupt(s->anm_id, 1);                    /* 脚本 interruptLabel(1)：放大淡出后 delete */
         ce_anm_delete(s->beam_id);
+        bar_destroy(s, 1);
         ce_play_sound(BE_SE_DEATH, s->x);
         ce_log("blue_eyes: died after %u frames, %u waves, %u blocked", s->frames, s->waves, s->blocked);
         s->anm_id = 0; s->beam_id = 0;

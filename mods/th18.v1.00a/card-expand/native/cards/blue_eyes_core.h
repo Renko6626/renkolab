@@ -14,6 +14,9 @@
 #define BE_FOLLOW_LERP    0.04f
 #define BE_BEAM_WIDTH     96.0f    /* 判定宽（用户 2026-09-04：大幅增宽；画面上的 Master Spark 贴图约 126 px 宽）*/
 #define BE_MOUTH_DY       (-52.0f) /* 龙头（贴图顶端）相对龙中心的 y：256 × 0.45 / 2 ≈ 58，头尖略进一点 */
+#define BE_BAR_DY         66.0f    /* 血条中心相对龙中心的 y（龙尾尖约 +58）*/
+#define BE_BAR_W          56.0f    /* 血条填充满宽（底槽各多 2 px）*/
+#define BE_BAR_H          4.0f
 
 typedef struct {
     int32_t  hp;
@@ -24,6 +27,8 @@ typedef struct {
     float    x, y, z;     /* 龙坐标（玩家坐标系）*/
     uint32_t anm_id;      /* 龙 VM；0 = 没有 */
     uint32_t beam_id;     /* 当前光束 VM；0 = 没有 */
+    uint32_t bar_bg_id;   /* 血条底槽 VM */
+    uint32_t bar_id;      /* 血条填充 VM（C 每帧写 scale.x = 满宽 × hp/BE_HP）*/
 } be_state_t;
 
 typedef struct { int wave_start; int beam_dmg; int died; } be_step_t;

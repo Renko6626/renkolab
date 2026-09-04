@@ -1,0 +1,15 @@
+script script87 {
+    sprite(-1);
+    layer(13);
+    zWriteDisable(1);
+    blendMode(0);
+    drawRect(1.0f, 1.0f);
+    color(64, 160, 255);
+    alpha(255);
+    scale(56.0f, 4.0f);
+    stop();
+    interruptLabel(1);
+    alphaTime(8, 0, 0);
++8: // 8
+    delete();
+}

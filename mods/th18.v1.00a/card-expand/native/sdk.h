@@ -190,6 +190,14 @@ static inline int ce_anm_set_color(uint32_t id, uint32_t rgba)
     *(uint32_t *)(vm + CE_ANM_VM_COLOR1) = rgba;
     return 1;
 }
+static inline int ce_anm_set_scale(uint32_t id, float sx, float sy)      /* 脚本里没有在跑的 scaleTime 时写入才不被插值器覆盖 */
+{
+    uint8_t *vm = ce_anm_get_vm(id);
+    if (!vm) return 0;
+    float *s = (float *)(vm + CE_ANM_VM_SCALE);
+    s[0] = sx; s[1] = sy;
+    return 1;
+}
 static inline void ce_anm_interrupt(uint32_t id, int n) { if (id) ((ce_fn_anm_interrupt_t)CE_FN_ANM_INTERRUPT_TREE)(id, n); }
 static inline void ce_anm_delete(uint32_t id)           { if (id) ((ce_fn_anm_delete_t)CE_FN_ANM_DELETE_BY_ID)(id); }
 static inline int  ce_owned(uint32_t id) { return id < 255 && CE_OWNED_ARRAY()[id] != 0; }
