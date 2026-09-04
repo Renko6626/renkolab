@@ -3,10 +3,10 @@
 #pragma once
 #include <stdint.h>
 
-#define BE_HP             2500
+#define BE_HP             1500     /* 2026-09-04 平衡：2500 → 1500 */
 #define BE_WAVE_PERIOD    300      /* 帧：每 5 s 一波；第一波在召唤后第 300 帧 */
-#define BE_WAVE_FRAMES    30
-#define BE_WAVE_DMG       100      /* 每帧请求伤害；30 × 100 = 3000 名义值，实际受引擎每帧上限钳（不写 player+0x47984）*/
+#define BE_WAVE_FRAMES    45       /* 2026-09-04 平衡：30 → 45（×1.5）；脚本 79–85 的保持段同步 */
+#define BE_WAVE_DMG       100      /* 每帧请求伤害；45 × 100 = 4500 名义值，实际受引擎每帧上限钳（不写 player+0x47984）*/
 #define BE_RECHARGE       600
 #define BE_RADIUS         48.0f
 #define BE_FOLLOW_DY      (-80.0f)
