@@ -58,6 +58,7 @@ def compile_(t, name, text):
 
 
 LIFE_DIV = 100
+BOSS_MONEY_DROP = 300   # boss 死时额外掉的金钱道具数（每个 +1 金）；道具池若不够就少掉，无害
 
 
 def _scale(n: int) -> int:
@@ -82,6 +83,12 @@ def patch_boss(text):
     text = re.sub(r"lifeMarker\((-?\d+), ([0-9.]+)f", f_mark, text)
     if n == 0:
         raise SystemExit("st01bs.ecl 里没有血量相关指令")
+    # boss 死时多掉金钱道具：BossDead 里零售 @BossItem(16, 10, 10)（16 = 卡道具，10 火力，10 金钱）之后再撒一批。
+    # type 2 = 金钱道具，吃一个 MONEY += 1（05-shop-and-money §1）。dropArea 撒开一点免得叠在一处。
+    anchor = "    @BossItem(16, 10, 10);\n"
+    if anchor not in text:
+        raise SystemExit("st01bs.ecl 的 BossDead 里找不到 @BossItem(16, 10, 10)")
+    text = text.replace(anchor, anchor + f"    dropClear();\n    dropExtra(2, {BOSS_MONEY_DROP});\n    dropArea(320.0f, 160.0f);\n    dropItems();\n", 1)
     return text, n
 
 
@@ -92,7 +99,7 @@ def main():
     run([t, "-c", VERSION, "-m", ECLMAP, src, OUT / "st01.ecl"])
     bs, n = patch_boss(decompile(t, "st01bs"))
     compile_(t, "st01bs", bs)
-    print(f"ecl: st01.ecl（空壳，源 {src.relative_to(MOD)}）、st01bs.ecl（{n} 处血量常数 ÷{LIFE_DIV}）→ {OUT.relative_to(MOD)}")
+    print(f"ecl: st01.ecl（空壳，源 {src.relative_to(MOD)}）、st01bs.ecl（{n} 处血量常数 ÷{LIFE_DIV}，boss 死时 +{BOSS_MONEY_DROP} 金钱道具）→ {OUT.relative_to(MOD)}")
     return 0
 
 
