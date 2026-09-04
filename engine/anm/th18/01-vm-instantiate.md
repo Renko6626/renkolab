@@ -9,6 +9,8 @@
 | --- | --- | --- | --- | --- |
 | `AnmLoaded__instantiate_vm_to_world_list_back` | `0x405bf0` | thiscall(`AnmLoaded*`; `int* out_id`, `int script`, `int layer`, `void** out_vm`) **ret 0x10** | 从该 anm 的脚本表克隆一个 VM、实体坐标置 (0,0,0)、`layer ∈ [0,0x18)` 时写 `vm+0x18` 并置标志、跑一帧、挂 world 列表尾、把 id 写回 `*out_id` | ✅ |
 | `AnmLoaded__set_sprite` | `0x477b00` | thiscall(`AnmLoaded*`; `vm`, `sprite_idx`) **ret 8** | 按 sprite 表（`anm+0x11c`，每项 0x44）给 VM 写 UV / 尺寸；`anm+0x108 == 0`（未装载）返回 −1 | ✅ |
+| `AnmManager__get_vm_with_id` | `0x488b40` | thiscall(`AnmManager*`; `id`) **ret 4** | fast 数组（`id & 0x7fff` 下标，步长 0x624，校验 `is_alive` 与 id）或 world / ui 链表；返回 VM 或 0。Tenshi/Miko/Remilia 每帧用它写 `vm+0x5f0` | ✅ |
+| `AnmManager__interrupt_tree` | `0x488be0` | stdcall(`id`, `n`) **ret 8** | 自取 `ANM_MANAGER_PTR`，找到 VM 写 `+0x494 = n`（pending interrupt）并递归子树；脚本侧 `interruptLabel(n)` 接 | ✅ |
 | `AnmManager__sub_488cf0` | `0x488cf0` | stdcall(`anm_id`) **ret 4** | `get_vm_with_id` 找到就标记删除（`vm+0x538 |= 0x80`）并递归子树 | ✅ |
 | `AnmManager__interrupt_tree` | — | (`anm_id`, `n`) | 让脚本跳到 `interruptLabel(n)`（Tenshi 收尾用 1 = 淡出） | 🟡 只看了调用点 |
 

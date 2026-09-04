@@ -81,6 +81,19 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 → 同帧符卡计时 00.00、boss 血条落到阈值、「失败」演出、进下一段；非符 / 无命 / 刚超时那几帧按 C → `judgment: refused (…)` 且充能条仍满。
 崩溃优先怀疑：`0x441f10` 的参数顺序（O28c）、`CE_ENEMY_DATA` 0x122c 的推导（O28a 三处交叉）。
 
+## 1d. 青眼白龙（id 67，2026-09-04，待实跑）
+
+主动卡：关卡里按 C → 残机 −1 → 自机上方出现龙（占位：淡蓝剪影），跟着自机；弹碰到龙变点道具、龙闪一下橙色；
+第 300 帧起每 5 s 龙口向上一道白光 30 帧（占位光柱），boss 血条掉一截（devstage ÷100 一波就死）。2500 发后龙放大淡出。
+残机 0 按 C → 无效音、充能不动。过关龙消失。设计 `docs/superpowers/specs/2026-09-04-blue-eyes-design.md`，审计 AUDIT O29，
+引擎一手 `engine/player/th18/02-damage-sources.md`。`cards_dev.js` 起手卡组已带 67。
+
+日志应有：`sdk: 67 bound (.active_recharge = 600, …)` → `blue_eyes: summoned, lives 3 -> 2, hp 2500, anm id …` →
+`blue_eyes: hp N (blocked …)`（有挡弹的整秒）→ `blue_eyes: wave 1 start at frame 300 (hp …, cap C)`（**记下 cap**，它就是 sht 的 max_dmg，
+决定一波实际伤害 ≈ 30 × min(100, cap)）→ `blue_eyes: died after …` 或过关 `blue_eyes: dismissed (stage start) …`；
+残机 0 → `blue_eyes: refused (no lives)`。崩溃优先怀疑：O29a/b 的栈参顺序与 XMM、O29c 的 thiscall、`interruptLabel(1)` 是否被 `stop()` 后的 VM 接住
+（不接就改成 `ce_anm_delete`）。视觉怀疑：光束位置（`y − 256`）与高度是否对齐龙口——坐标假设见 spec §2.3。
+
 ## 2. 第二批（按优先级）
 
 | 块 | 内容 | 接缝 / 依据 |

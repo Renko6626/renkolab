@@ -75,6 +75,7 @@
 
 - **纯逻辑拆成主机可测的 C**（`cards_def.c`、`sdk_core.c`），Linux 上 `make test-host`；平台侧只能 Windows 实跑。
 - **桩与调用约定用 objdump 核**：`this` 在 ecx、`ret 4/8`、fastcall 的 ecx/edx、被调方清栈时调用后没有 `add esp`。
+- **内联汇编里压栈的参数一律走寄存器**：`push` 之后再引用 `"m"` 操作数，esp 相对偏移已经错位（青眼 `ce_damage_rect` 第一版的 angle 就压成了垃圾，objdump 抓到；AUDIT O29i）。`"m"` 只用于任何 push 之前的 `movss`。
 - **开发配置进 `_test`**：起手卡组直接拿到要测的卡、`trace: true`。别让「测一张卡」依赖商店运气。
 - **Makefile 的收尾状态**：`make dist` 曾以 ROWS=58 收尾，把工作区打回 step1——生成物入库的仓库里，构建脚本的最终状态就是提交状态。
 - **文档三件套每改必补**：`MAP.md`（这一改动碰了游戏的哪一段）、`AUDIT.md`（claim → CONFIRMED/REFUTED + 证据）、`CARDS.md`（加了哪张卡）。`NEXT.md` 写给没有上下文的下一个会话。
