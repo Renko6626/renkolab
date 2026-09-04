@@ -13,7 +13,7 @@
   },
   "60": {
     "name": "黑桃 Q",
-    "desc": ["道具自动回收范围大幅增加。", "德州扑克・皇家同花顺之一。"],
+    "desc": ["道具自动回收范围略微增加。", "德州扑克・皇家同花顺之一。"],
     "internal_name": "SPADE_Q",
     "initial_unlocked": 1, "price_tier": 7, "weight": 2, "sprite_large": 122, "sprite_small": 123
   },
