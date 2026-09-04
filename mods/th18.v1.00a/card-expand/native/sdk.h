@@ -21,7 +21,7 @@ typedef struct ce_card ce_card_t;          /* = zCardBaseClass*，只通过下�
 #define ce_card_id(c)     (*(uint32_t *)((uint8_t *)(c) + CE_CARD_ID))
 #define ce_card_entry(c)  (*(uint8_t **)((uint8_t *)(c) + CE_CARD_TABLE_ENTRY))
 #define ce_card_flags(c)  (*(uint32_t *)((uint8_t *)(c) + CE_CARD_FLAGS))
-#define ce_state(c, T)    ((T *)ce_state_alloc((c), sizeof(T)))     /* 私有状态（SDK §4）*/
+#define ce_state(c, T)    ((T *)ce_state_user((c), sizeof(T)))      /* 私有状态（SDK §4）：块头 16 字节是 SDK 的（主动卡状态机），卡从其后起 */
 
 typedef struct {
     int  (*ctor)(ce_card_t *);                                   /* +0x00 非 0 = 当场删卡 */

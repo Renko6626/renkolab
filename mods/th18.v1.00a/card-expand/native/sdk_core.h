@@ -31,11 +31,15 @@ void ce_sdk_reset_for_test(void);      /* 只给单测用 */
  *   返回 1；*unbound = 「JSON 有、C 无行为」的张数（允许，开发期正常）。 */
 int ce_sdk_bind_check(const uint32_t *json_ids, unsigned n, uint32_t *bad_id, unsigned *unbound);
 
+#define CE_STATE_RESERVED    16        /* 块头留给 SDK（主动卡状态机 ce_active_t）；卡的私有状态从这之后起 */
+
 /* 私有状态槽：键 = 卡对象指针。alloc 幂等（同键返回同块，首次清零）；size > CE_STATE_BYTES 或槽满返回 NULL。 */
 void *ce_state_alloc(const void *key, unsigned size);
 void *ce_state_get(const void *key);   /* 没分配过返回 NULL */
 void  ce_state_free(const void *key);  /* 没分配过是空操作 */
 unsigned ce_state_in_use(void);
+/* 卡侧私有状态：同一把键、同一块，返回块头 CE_STATE_RESERVED 字节之后的地址；size 超出剩余空间返回 NULL。 */
+void *ce_state_user(const void *key, unsigned size);
 
 /* 集卡判定（纯函数）：self 在 set 里，且 set 里其余每张 owned[id] != 0 → 1。owned 是 int[255]。*/
 int ce_royal_flush_ready(const int32_t *owned, uint32_t self_id, const uint32_t *set, unsigned n);

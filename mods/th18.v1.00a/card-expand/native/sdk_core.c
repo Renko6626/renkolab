@@ -78,6 +78,13 @@ void ce_state_free(const void *key)
 
 unsigned ce_state_in_use(void) { return s_used; }
 
+void *ce_state_user(const void *key, unsigned size)
+{
+    if (size > CE_STATE_BYTES - CE_STATE_RESERVED) return (void *)0;
+    unsigned char *p = ce_state_alloc(key, CE_STATE_RESERVED + size);
+    return p ? p + CE_STATE_RESERVED : (void *)0;
+}
+
 
 /* ── 集卡判定 ──────────────────────────────────────────────────────── */
 int ce_royal_flush_ready(const int32_t *owned, uint32_t self_id, const uint32_t *set, unsigned n)

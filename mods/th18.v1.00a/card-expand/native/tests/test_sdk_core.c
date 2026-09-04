@@ -70,6 +70,19 @@ static void test_state(void)
     CHECK(p && p[3] == 0);                           /* 释放后再分配：重新清零 */
     ce_state_free(&k1);
 
+    /* 块头预留：SDK 的主动卡状态机住块头，卡的私有状态从 CE_STATE_RESERVED 起；同键同块、一次 free */
+    int k3 = 0;
+    unsigned char *head = ce_state_alloc(&k3, 4);
+    unsigned char *user = ce_state_user(&k3, 8);
+    CHECK(user == head + CE_STATE_RESERVED);
+    CHECK(ce_state_user(&k3, 8) == user);                          /* 幂等 */
+    head[0] = 0xaa; user[0] = 0x55;
+    CHECK(head[0] == 0xaa && head[CE_STATE_RESERVED] == 0x55);     /* 互不覆盖 */
+    CHECK(ce_state_user(&k3, CE_STATE_BYTES - CE_STATE_RESERVED + 1) == NULL);
+    CHECK(ce_state_in_use() == 1);
+    ce_state_free(&k3);
+    CHECK(ce_state_get(&k3) == NULL);
+
     /* 满 */
     static int keys[CE_STATE_SLOTS + 1];
     for (unsigned i = 0; i < CE_STATE_SLOTS; ++i) CHECK(ce_state_alloc(&keys[i], 8) != NULL);

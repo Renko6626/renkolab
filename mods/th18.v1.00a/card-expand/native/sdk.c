@@ -41,6 +41,7 @@ void ce_sdk_register_or_log(const ce_behavior_t *b)
 /* ---- 主动卡机器（SDK §9；零售模板 = CardTenshi，04-active-cards.md §3–§5；AUDIT O19–O21）----
  * 对象只有 0x54 字节，零售放 +0x54 的 state 放进私有状态。引擎只看 flags bit3/bit5、+0x34 那组充能计时器、+0x48。*/
 typedef struct { uint32_t state; } ce_active_t;             /* 0 空闲 / 1 持续 / 2 收尾 */
+_Static_assert(sizeof(ce_active_t) <= CE_STATE_RESERVED, "ce_active_t must fit in the reserved head");
 
 static void timer_init(uint8_t *card, unsigned off)          /* 照 Tenshi case：prev = -1，其余 0，control |= 1 */
 {
