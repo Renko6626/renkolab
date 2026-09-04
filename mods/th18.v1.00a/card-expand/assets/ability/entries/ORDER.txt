@@ -1,3 +1,4 @@
 # 追加进 ability.anm 的贴图：一行 `NAME  源图(相对 assets/)`，源图 256×320。只追加不重排。
 # 第 k 行 → entry (零售 entry 数 + k)、sprite (零售最大 sprite 号 + 1 + k)；脚本里写 @NAME 引用。
 REVERSE  cards/REVERSE_max.png
+ROYAL_FLUSH  ability/banner/ROYAL_FLUSH.png  512x128

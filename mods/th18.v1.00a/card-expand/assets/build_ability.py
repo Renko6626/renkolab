@@ -5,8 +5,9 @@
     python3 build_ability.py --verify-only  # 只自检已有的 build/ability.anm
 
 输入：
-    ability/entries/ORDER.txt     一行 `NAME  源图路径(相对 assets/)`；只追加不重排。
+    ability/entries/ORDER.txt     一行 `NAME  源图路径(相对 assets/)  [WxH]`；只追加不重排。
                                   第 k 行 → entry (7+k)、sprite (109+k)（数字由零售文件算出，不写死）
+                                  不写尺寸 = 卡图（256×320，字段抄 abcard BLANK_max）；写 WxH（2 的幂）= 整张贴图一个 sprite
     ability/scripts/NN_name.anm.txt  一个文件一个脚本，NN 从 68 起连续；正文可用 @NAME 引用 ORDER 里的 sprite 号
 输出：
     native/build/ability.anm、native/anm_ids.h（CE_ANM_ABILITY_SPRITE_<NAME> / CE_ANM_ABILITY_SCRIPT_<name>）
@@ -35,7 +36,7 @@ def plan(retail_text: str):
     n_entry = len(L.parse_entries(retail_text))
     n_script = len(L.parse_scripts(retail_text))
     sprite0 = L.max_sprite_id(retail_text) + 1
-    entries = [(r[0], HERE / r[1], n_entry + k, sprite0 + k) for k, r in enumerate(L.read_order(ENTRIES))]
+    entries = [(r[0], HERE / r[1], n_entry + k, sprite0 + k, (r[2] if len(r) > 2 else None)) for k, r in enumerate(L.read_order(ENTRIES))]
     scripts = []
     for k, p in enumerate(sorted(SCRIPTS.glob("*.anm.txt"))):
         m = _FILE.match(p.name)
@@ -48,10 +49,21 @@ def plan(retail_text: str):
     return entries, scripts
 
 
+def template_for(size: str, base: dict):
+    """`WxH` → 一个整张贴图一个 sprite 的 entry 模板（字段顺序 / 常量抄 base = abcard BLANK_max）。"""
+    w, h = (int(x) for x in size.lower().split("x"))
+    if w & (w - 1) or h & (h - 1):
+        raise SystemExit(f"贴图尺寸要是 2 的幂：{size}")
+    fields = dict(base["fields"])
+    fields.update({"width": str(w), "height": str(h), "THTXSize": str(w * h * 4), "THTXWidth": str(w), "THTXHeight": str(h)})
+    return {"idx": -1, "name": None, "keys": base["keys"], "fields": fields,
+            "sprite": {"x": "0", "y": "0", "w": str(w), "h": str(h)}}
+
+
 def write_ids_h(entries, scripts):
     lines = ["/* 由 assets/build_ability.py 生成 —— ability.anm 里追加的 sprite / 脚本号。别手改。 */",
              "#pragma once", ""]
-    for name, _, eidx, sidx in entries:
+    for name, _, eidx, sidx, _sz in entries:
         lines.append(f"#define CE_ANM_ABILITY_SPRITE_{name.upper():<20} {sidx:>4}   /* entry{eidx} */")
     for name, _, idx in scripts:
         lines.append(f"#define CE_ANM_ABILITY_SCRIPT_{name.upper():<20} {idx:>4}")
@@ -68,23 +80,25 @@ def main():
     retail_entries = L.parse_entries(retail_text)
     tpl = {e["name"]: e for e in L.parse_entries(L.retail(TEMPLATE[0])[1])}[TEMPLATE[1]]
     entries, scripts = plan(retail_text)
-    mapping = {name: f"sprite{sidx}" for name, _, _, sidx in entries}
+    mapping = {name: f"sprite{sidx}" for name, _, _, sidx, _sz in entries}
+    tpl_of = {name: (template_for(sz, tpl) if sz else tpl) for name, _, _, _, sz in entries}
 
     if not a.verify_only:
         from PIL import Image
-        want = (int(tpl["fields"]["THTXWidth"]), int(tpl["fields"]["THTXHeight"]))
         L.fresh_dir(TEX)
         L.link_retail_textures(TEX, retail_dir, retail_entries)
         (TEX / "ability").mkdir(exist_ok=True)
         blocks = []
-        for name, src, eidx, sidx in entries:
+        for name, src, eidx, sidx, _sz in entries:
+            t = tpl_of[name]
+            want = (int(t["fields"]["THTXWidth"]), int(t["fields"]["THTXHeight"]))
             if not src.is_file():
                 raise SystemExit(f"缺 {src}")
             im = Image.open(src).convert("RGBA")
             if im.size != want:
                 raise SystemExit(f"{src.name} 是 {im.size}，要 {want}")
             im.save(TEX / "ability" / f"{name}.png")
-            blocks.append(L.make_entry(tpl, eidx, f"ability/{name}.png", sprite_idx=sidx))
+            blocks.append(L.make_entry(t, eidx, f"ability/{name}.png", sprite_idx=sidx))
         text = L.insert_entries(retail_text, blocks) if blocks else retail_text
         sblocks = []
         for name, p, idx in scripts:
@@ -101,15 +115,15 @@ def main():
     _, n_e, n_s = L.verify_rebuilt(OUT_ANM, retail_text, retail_dir, tools, anmmap)
     if len(n_e) != len(retail_entries) + len(entries) or len(n_s) != len(L.parse_scripts(retail_text)) + len(scripts):
         raise SystemExit(f"entry {len(n_e)} / script {len(n_s)}，与计划不符")
-    for name, _, eidx, sidx in entries:
-        e = n_e[eidx]
-        if e["name"] != f"ability/{name}.png" or e["fields"] != tpl["fields"] or e["sprite"] != tpl["sprite"] \
+    for name, _, eidx, sidx, _sz in entries:
+        e, t = n_e[eidx], tpl_of[name]
+        if e["name"] != f"ability/{name}.png" or e["fields"] != t["fields"] or e["sprite"] != t["sprite"] \
                 or f"sprite{sidx}:" not in e["block"]:
             raise SystemExit(f"新 entry{eidx}（{name}）字段与模板不一致")
     write_ids_h(entries, scripts)
     print(f"verify: entry {len(n_e)}、script {len(n_s)}；零售 spec/贴图逐项一致；写 {IDS_H.relative_to(MOD)}\n")
-    for name, _, eidx, sidx in entries:
-        print(f"  entry{eidx:<4} sprite{sidx:<5} {name}")
+    for name, _, eidx, sidx, sz in entries:
+        print(f"  entry{eidx:<4} sprite{sidx:<5} {name}{'  ' + sz if sz else ''}")
     for name, _, idx in scripts:
         print(f"  script{idx:<12} {name}")
     return 0

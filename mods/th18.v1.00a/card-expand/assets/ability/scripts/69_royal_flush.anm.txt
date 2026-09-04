@@ -1,0 +1,27 @@
+script script69 {
+-1:
+    sprite(@ROYAL_FLUSH);
+    layer(20);
+    resolutionMode(1);
+    type(1);
+    zWriteDisable(1);
+    anchor(0, 0);
+    scale(1.6f, 1.6f);
+    alpha(0);
+    rotate(0.0f, 0.0f, -0.12f);
+0:
+    pos(0.0f, 200.0f, 0.0f);
+    alphaTime(8, 0, 255);
+    scaleTime(14, 5, 0.72f, 0.72f);
+    rotateTime(14, 5, 0.0f, 0.0f, 0.0f);
++14: // 14
+    scaleTime(6, 0, 0.78f, 0.78f);
++6: // 20
+    scaleTime(6, 0, 0.72f, 0.72f);
++70: // 90
+    alphaTime(24, 0, 0);
+    posTime(24, 4, 0.0f, 140.0f, 0.0f);
+    scaleTime(24, 0, 0.9f, 0.9f);
++24: // 114
+    delete();
+}

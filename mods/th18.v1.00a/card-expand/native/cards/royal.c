@@ -28,6 +28,12 @@ int ce_royal_flush_ctor(ce_card_t *c)
         if (CE_MAX_BOMBS() < 7) CE_MAX_BOMBS() += 1;     /* CardBomb__destructor 0x409c20 的写法 */
         ce_add_bomb();
     }
+    /* 亮字：ability.anm 追加的 script69（assets/ability/scripts/69_royal_flush.anm.txt，横幅 ROYAL_FLUSH.png），层 20，弹出→停留→上浮淡出；
+     * 音效 0x4d（Tenshi 发动音）当号角，加命 / 加 bomb 各自的音效引擎已放。*/
+    uint32_t fx = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_ROYAL_FLUSH, 20);
+    uint8_t *p = CE_PLAYER();
+    ce_play_sound(0x4d, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);
+    ce_log("royal: banner anm id %08x", fx);
     ce_log("royal: ROYAL FLUSH by card %u — money %d -> %d, lives %d (max %d), bombs %d (max %d)",
            self, m, CE_MONEY(), CE_CURRENT_LIVES(), CE_LIVES_MAX(), CE_CURRENT_BOMBS(), CE_MAX_BOMBS());
     return 0;

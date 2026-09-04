@@ -2,4 +2,6 @@
 #pragma once
 
 #define CE_ANM_ABILITY_SPRITE_REVERSE               109   /* entry7 */
+#define CE_ANM_ABILITY_SPRITE_ROYAL_FLUSH           110   /* entry8 */
 #define CE_ANM_ABILITY_SCRIPT_REVERSE_FLASH          68
+#define CE_ANM_ABILITY_SCRIPT_ROYAL_FLUSH            69
