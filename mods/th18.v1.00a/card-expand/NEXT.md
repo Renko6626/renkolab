@@ -64,7 +64,7 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 状态机 `shop_core.c`（主机单测）。引擎链：[`engine/card/th18/05-shop-and-money.md`](../../../engine/card/th18/05-shop-and-money.md) §3.5；审计 AUDIT §P。
 
 日志应有：`shop: 2 visits per stage` → 过关 `shop: opened by msg (visit 1/2 …)` → `shop: bought (…)` → **同一帧** `shop: reopen (visit 2/2 …)`
-→ 第二家店（进场动画再来一次，商品不含刚买的）→ `shop: bought` → 正常进下一关。练习模式 / replay 回放里不该出现 `reopen`。
+→ 第二家店（进场动画再来一次，商品不含刚买的）→ `shop: bought` → 正常进下一关。`reopen` 行必须是 `bought + 31`，出现 `(late, gap!)` 就是 P4′ 的空档帧真的发生了。练习模式 / replay 回放里不该出现 `reopen`。
 空白卡、买不起、暂停后退到标题都不该多开店（AUDIT P6 / P8）。崩溃优先怀疑：`0x443b05` 处 esi 不是 GameThread（P3）。
 
 通过后：MAP §5 与 AUDIT §P 顶部记「实跑通过」。想改次数就改常量（以后可挂 `cards.js`）；
@@ -78,7 +78,7 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 卡图暂用占位 116/117（下次攒够图再重建 anm）。`cards_dev.js` 起手卡组已带 66。
 
 日志应有：`sdk: 66 bound (.active_recharge = 3600, .on_activate = on_activate)`；符卡里按 C → `judgment: lives 3 -> 1 (cost 2), 1 boss attack(s) expired, spell flags …`
-→ 下一帧符卡计时 00.00、boss 血条落到阈值、「失败」演出、进下一段；非符 / 无命按 C → `judgment: refused (…)` 且充能条仍满。
+→ 同帧符卡计时 00.00、boss 血条落到阈值、「失败」演出、进下一段；非符 / 无命 / 刚超时那几帧按 C → `judgment: refused (…)` 且充能条仍满。
 崩溃优先怀疑：`0x441f10` 的参数顺序（O28c）、`CE_ENEMY_DATA` 0x122c 的推导（O28a 三处交叉）。
 
 ## 2. 第二批（按优先级）

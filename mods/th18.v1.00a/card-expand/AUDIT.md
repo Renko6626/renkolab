@@ -519,12 +519,22 @@ M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未�
 
 | # | claim | 结论 |
 | --- | --- | --- |
-| O28a | 把 `data.time_in_ecl` 写成活动中断槽的 `time` 等价于自然超时 | **CONFIRMED** —— `0x42ED40` 每帧取第一个 `hp_value > -1 && time > 0` 的槽，`slot.time <= cur` 即走超时段（血量钉到阈值、`sub_timeout`、Spellcard 置 0x80 / 清奖励）；比较是 `<=`，写成等值下一帧必触发；`prev` 一并写，`cur_f` 同步（zTimer 三件套，O23 教训）|
-| O28b | 耐久符卡也按失败 | **CONFIRMED** —— 超时段对 `flags & 8` 的槽走 `(flags & 9) == 9` = 收下；我们在写计时的同一帧清 bit1、`bonus = 0`、`can_still_capture_spell = 0`，结束 `0x42A780` 看 bit1 走失败演出，ECL 523 的 Sannyo 碎片也看 bit1 |
-| O28c | `0x441f10` 刷 HUD 残机的约定 | **CONFIRMED** —— 一手反汇编：`mov edx,ecx`（this = gui），读 `[ebp+8]` 命数、`[ebp+0xc]` 碎片、`[ebp+0x10]` 上限，`ret 0xc`；零售在商店复原 `0x4179xx` 以 `(GUI, CURRENT_LIVES, LIFE_FRAGMENTS, LIVES_STOCK)` 调它 |
+| O28a | 把 `data.time_in_ecl` 写成活动中断槽的 `time` 等价于自然超时 | **CONFIRMED** —— 见下「O28a 证据」 |
+| O28b | 耐久符卡也按失败 | **CONFIRMED** —— 见下「O28b 证据」 |
+| O28c | `0x441f10` 刷 HUD 残机的约定 | **CONFIRMED** —— 见下「O28c 证据」 |
 | O28d | boss 找法与多 boss | **CONFIRMED** —— 照 `0x4237F0`：`boss_ids[4]` → `+0x18c` 链表比 `+0x6830`；对每个 boss 各推一次，4096 步护栏 |
 | O28e | 拒绝发动不丢充能 | **CONFIRMED** —— SDK 在 `on_activate` 返回 `CE_ACTIVATE_REFUSED` 时把刚装填的充能计时退回 `{-1, 0, 0.0}`（= 充满态）、清释放位、state 留 0；与 Tenshi 的门控 `state == 0 && +0x38 <= 0` 一致 |
+| O28g | 自然超时到 ECL 523 清 bit0 之间按 C | **PARTIAL（审阅补）** —— 见下「O28g 证据」 |
 | O28f | 残机减半的边界 | **CONFIRMED** —— `ce_judgment_cost`：`lives <= 0 → 0`（拒绝），否则 `(lives+1)/2`（单测 7 项）；只动 `CURRENT_LIVES`，碎片不动 |
+
+**O28a 证据**：C 键在 Player tick（0x17）、判定在 EnemyManager tick（0x1b，Enemy tick 体 `0x42ff80` 里比较先于 `Timer__increment`）：**同一帧**收场；ECL VM `0x430d30` 只在宣言 case `0x434fc2` 碰 `+0x2bc`，`wait` 用别的计时器，改它不会提前唤醒脚本； `0x42ED40` 每帧取第一个 `hp_value > -1 && time > 0` 的槽，`slot.time <= cur` 即走超时段（血量钉到阈值、`sub_timeout`、Spellcard 置 0x80 / 清奖励）；比较是 `<=`，写成等值下一帧必触发；`prev` 一并写，`cur_f` 同步（zTimer 三件套，O23 教训）
+
+**O28b 证据**：超时段对 `flags & 8` 的槽走 `(flags & 9) == 9` = 收下；我们在写计时的同一帧清 bit1、`bonus = 0`、`can_still_capture_spell = 0`，结束 `0x42A780` 看 bit1 走失败演出，ECL 523 的 Sannyo 碎片也看 bit1。**限制**：耐久符卡的 `sub_timeout` 脚本本身是「守住」分支，脚本里写的掉落照旧；`0x42ed40` 耐久路径累加的 `0x4ccd6c` 无人读
+
+**O28c 证据**：一手反汇编：`mov edx,ecx`（this = gui），读 `[ebp+8]` 命数、`[ebp+0xc]` 碎片、`[ebp+0x10]` 上限，`ret 0xc`；零售在 `0x417a10..0x417a28`（`AbilityShop__sub_417880`）与 `0x45d1aa..0x45d1bd`（`Player__commit_death_and_enter_state2`）都以 `push [0x4ccd54]; push [0x4ccd4c]; push lives` 调它
+
+**O28g 证据**：非耐久符卡：超时段置 bit7（`0x42a320` 每张新符卡清），卡里 `flags & 0x80` → 拒绝。耐久符卡自然超时不置 bit7、`enemy+0x635c` 的超时位也被清，只靠「活动槽已清（hp_value = -1）→ 找不到槽 → 拒绝」兜底；ECL 预装多个带超时的槽时会误伤下一段。实跑清单：符卡刚超时那几帧连按 C 看是否 refuse
+
 
 ## P. 商店走两遍（每关进店 2 次）—— 两个放行断点
 
@@ -538,19 +548,27 @@ M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未�
 | P2 | `0x4183ea` 只在「玩家选是、真的成交」时经过 | **CONFIRMED** —— 它在 `case 6/7` 的 `param_1[3]==0` 分支里，前一条是 `0x4183e5 call FUN_00416c80(this,5)`；空白卡路线（state 3 → `0x418584` 置 4）、取消（`0x418551` 置 2）、买不起（state 8）都不经过 |
 | P3 | `0x443b05` 处 `eax` = `GameThread+0xb0`、`esi` = this；改 `eax` 后原 `test` 算出的 flags 正是零售语义 | **CONFIRMED** —— 见下「P3 证据」 |
 | P4 | 重开与关店在同一帧，敌人 / MSG 看不到指针为 0 | **CONFIRMED** —— 商店 on_tick 0xc（`0x4171de`）在自己 tick 里 `0x417857` 清指针；GameThread 0x10（`0x442a97`）本帧随后建店 `0x443bed`；EnemyManager 0x1b（`0x42dcd8`）、Gui 0x21（`0x43bac5`）在后 |
+| P4′ | GameThread 在 `0x443b05` 之前的提前返回不会造成空档 | **PARTIAL** —— 见下「P4′」：两条提前返回若恰在关店那一帧命中，晚一帧重开（敌人 / MSG 跑一帧）；日志标 `late` 实跑核对 |
 | P5 | 第二家店与第一家共用零售代码，无新对象布局假设 | **CONFIRMED** —— 建店 / `AbilityShop__initialize` / on_tick / 析构全是零售路径；offer 重抽自动排除已拥有（`mgr+0xd70` owned，`pick` 与两个保证循环同一门控，SM §4） |
 | P6 | 练习 / replay 回放 / 空白卡 / 中途退出都不会多开店 | **CONFIRMED** —— 见下「P6 证据」 |
-| P7 | replay 一致性 | **CONFIRMED（推断）** —— 录制 / 回放在商店期间都停（`0x4629a2` / `0x462aa5` 看指针）；`sub_417880` 每次关店都覆写本关卡组快照与 GlobalsInner（含金钱），回放时第一家店 30 帧内复原最终快照后退出、不成交、不重开 → 与录制时两家店买完的结果一致。实跑核对 |
+| P7 | replay 一致性 | **CONFIRMED** —— 见下「P7 证据」 |
 | P8 | 暂停菜单期间不会出错 | **CONFIRMED** —— 见下「P8 证据」 |
 
-**P3 证据**：`0x443aff mov eax,[esi+0xb0]`；`0x443874 mov esi,ecx`（fastcall this）；`test eax,0x20000` 由 cave 里执行，
+**P7 证据**：商店抽卡 `0x41717b mov ecx,0x4cf280`（REPLAY_UNSAFE_RNG：AnmVm / ItemManager / StageInner 用；同步 RNG 在 `0x4cf288`，Bullet / ECL / ReplayManager 用），第二家店多抽一次不碰同步 RNG；此外 录制 / 回放在商店期间都停（`0x4629a2` / `0x462aa5` 看指针）；`sub_417880` 每次关店都覆写本关卡组快照与 GlobalsInner（含金钱），回放时第一家店 30 帧内复原最终快照后退出、不成交、不重开 → 与录制时两家店买完的结果一致。实跑核对
+
+
+**P3 证据**：`0x443aff mov eax,[esi+0xb0]`；`0x443874 mov esi,ecx`（fastcall this）；esi 在 `0x443a8e mov esi,1` 被借用后于 `0x443a96` 从 `[esp+8]`（`0x443877` 存的 this）重载，`0x443a75` 的跳过支路不碰它——两条路到 `0x443b05` 都是 this；`test eax,0x20000` 由 cave 里执行，
 `0x443b0a jz` 看它的 ZF；创建后 `0x443c17 and [esi+0xb0],~0x20000`、`0x443c21` 重读 —— 内存位我们不动，不会残留。
 
-**P6 证据**：练习（`0x4c5f8c >= 0`）与回放（`GT+0xd0`）在 `0x417cc7` 30 帧自动退、空白卡走 state 3/4，三者都不经 `0x4183ea`；
+**P4′**：`0x44387b`（`[0x4cd624] & 0x180` → return 0，线程注销）与 `0x4439ed`（`this+0xb0 & 4` → 置 0x80 后 return 1）都在 `0x443b05` 之前。
+前者是关闭 / 切模式，商店时段不会命中；后者的位 4 语义未钉死。真命中那一帧本断点不跑，下一帧才重开，中间敌人 0x1b / Gui 0x21 各跑一帧。
+`BP_ce_shop_reopen` 把重开帧与成交帧的差记进日志（零售应为 +31），> 31 标 `(late, gap!)`；`test_pause_after_purchase` 钉住「暂停不走帧号」的前提。
+
+**P6 证据**：练习（`0x4c5f8c >= 0`）与回放（`0x417cd8` 先要 `[0x4cf418] != 0` 再看 `GT+0xd0`）在 `0x417cc7` 30 帧自动退、空白卡走 state 3/4，三者都不经 `0x4183ea`；
 `blocked` 再挡一道。中途退出：`ce_shop_on_gamethread` 要求同关且距成交 ≤ 300 帧（`TIME_IN_STAGE` `0x4ccce8` 由 GameThread 尾
 `0x443d16` 递增），否则作废；MSG 下一关置位时名额重算。
 
-**P8 证据**：成交后暂停：商店 state 5 在暂停下仍会退（`0x417d14..0x417d2d`），指针清零 → GameThread 若跑到 `0x443b05` 就重开，
+**P8 证据**：成交后暂停：商店的 UpdateFunc 是 `or [esi+4],2`（`0x4171d4` 一带，暂停时仍 tick），state 5 在暂停下跳过倒计时直接退（`0x417d14 → 0x417d2d`），指针清零 → GameThread 若跑到 `0x443b05` 就重开，
 新店 state 0 在暂停下 `return 1` 等到恢复。从暂停退到标题：teardown `0x443711` 走 `sub_417880` → 析构，GameThread 不再 tick，
 成交记录靠 P6 的关卡 / 帧数校验作废。
 

@@ -42,6 +42,7 @@
 #define CE_SPELL_FLAG_ACTIVE       0x1
 #define CE_SPELL_FLAG_BONUS        0x2
 #define CE_SPELL_FLAG_SURVIVAL     0x8
+#define CE_SPELL_FLAG_TIMED_OUT    0x80
 #define CE_SPELL_BONUS             0x7c       /* int：符卡奖励（0x42a320 写，超时 0x42f00c 清零，收符卡 0x42a780 计分）*/
 #define CE_EM_CAN_CAPTURE          0x44       /* zEnemyManager.can_still_capture_spell（ExpHP；超时路径清 0）*/
 #define CE_EM_BOSS_IDS             0x48       /* int[4] boss enemy_id（get_boss_enemy_full 0x4237f0 按它走链表）*/
@@ -55,7 +56,6 @@
 #define CE_ED_INTERRUPT_SLOTS      8
 #define CE_FN_GUI_UPDATE_LIVES     0x441f10   /* thiscall(gui; lives, fragments, max) ret 0xc：刷 HUD 残机行（死亡 0x45c2xx、商店复原 0x4179xx 都调；一手反汇编 AUDIT O28）*/
 #define CE_SE_INVALID              0x10       /* 无效操作（商店买不起同款）*/
-#define CE_SE_RELEASE_ALT          0x4d
 
 #define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)
 #define CE_MONEY()        (*(int32_t *)CE_ADDR_MONEY)

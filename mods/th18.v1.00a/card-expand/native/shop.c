@@ -10,7 +10,8 @@
  *   ce_shop_setup      门里：两个断点已挂；记一行配置。
  *
  * 为什么无空档帧：商店 on_tick 优先级 0xc，在自己 tick 里析构（state 5 → 0x4176e0 → 0x417857 清指针）；
- * GameThread 0x10 随后跑到这里重开；敌人 0x1a / GUI(MSG) 0x20 看到的指针始终非 0。
+ * GameThread 0x10 随后跑到这里重开；敌人 0x1b / GUI(MSG) 0x21 看到的指针始终非 0。
+ * 例外（AUDIT P4′）：GameThread 在 0x443b05 之前有两条提前返回（0x44387b、0x4439ed），恰在那一帧命中就晚一帧重开——日志标 late。
  * 练习模式（0x4c5f8c >= 0）与 replay 回放（GameThread+0xd0 != 0）里商店 30 帧自动退、不走成交分支，天然不重开；再显式挡一道。
  */
 #include "card_expand.h"
@@ -45,8 +46,9 @@ int __cdecl BP_ce_shop_reopen(x86_reg_t *regs, void *bp_info)
     int blocked   = CE_PRACTICE_STAGE() >= 0 || (gt && *(int32_t *)(gt + CE_GT_REPLAY_PLAYING) != 0);
     if (ce_shop_on_gamethread(&s_shop, flag_set, shop_open, CE_CURRENT_STAGE(), CE_TIME_IN_STAGE(), blocked)) {
         regs->eax |= CE_GT_FLAG_OPEN_SHOP;
-        ce_log("shop: reopen (visit %d/%d, stage %d, frame %d, money %d)",
-               s_shop.visits - s_shop.visits_left, s_shop.visits, CE_CURRENT_STAGE(), CE_TIME_IN_STAGE(), CE_MONEY());
+        int gap = CE_TIME_IN_STAGE() - s_shop.last_bought_frame;          /* 零售退场 30 帧：成交帧 + 31 = 重开帧；更晚 = 中间有空档帧 */
+        ce_log("shop: reopen%s (visit %d/%d, stage %d, frame %d = bought + %d, money %d)", gap > 31 ? " (late, gap!)" : "",
+               s_shop.visits - s_shop.visits_left, s_shop.visits, CE_CURRENT_STAGE(), CE_TIME_IN_STAGE(), gap, CE_MONEY());
     } else if (flag_set) {
         ce_log("shop: opened by msg (visit 1/%d, stage %d, frame %d, money %d)",
                s_shop.visits, CE_CURRENT_STAGE(), CE_TIME_IN_STAGE(), CE_MONEY());

@@ -11,7 +11,7 @@
 boss 的每段攻击是敌人对象里的一个**中断槽** `{hp_value, time, sub_life, sub_timeout}`：血量掉到 `hp_value` 走 `sub_life`，
 `time_in_ecl` 计时到 `time` 走 `sub_timeout`。符卡只是这段攻击上叠的一个全局 `Spellcard` 对象（`0x4cf2c0`），
 自己不判胜负——**胜负由中断槽决定**：击破 = 血量路径，超时 = 计时路径。要「跳过」一张符卡，把计时写到阈值即可，
-引擎下一帧自己按超时收场。
+引擎在同一帧的 EnemyManager tick 里自己按超时收场。
 
 ## 1. 对象与偏移（ExpHP 命名 + 一手核对）
 
@@ -68,13 +68,14 @@ if (slot.time <= data.time_in_ecl.cur) {
 
 | 路 | 写什么 | 结果 |
 | --- | --- | --- |
-| **超时**（神之宣告用）| `data.time_in_ecl.cur = cur_f = slot.time`；再清 `spell.flags & 2`、`spell.bonus = 0`（耐久符卡超时本来算收下）| 下一帧 §2 ① 原样跑：血条落到阈值、`sub_timeout`、失败演出、无奖励、无 Sannyo 碎片 |
-| **击破** | `data + 0x50d4 = 大数` | 下一帧 §2 ② ③：按收符卡算，给奖励 / 碎片 |
+| **超时**（神之宣告用）| `data.time_in_ecl.cur = cur_f = slot.time`；再清 `spell.flags & 2`、`spell.bonus = 0`（耐久符卡超时本来算收下）| 同帧 §2 ① 原样跑（Player tick 0x17 写、EnemyManager tick 0x1b 判；Enemy tick 体 `0x42FF80` 里比较先于 `Timer__increment`）：血条落到阈值、`sub_timeout`、失败演出、无奖励、无 Sannyo 碎片。已超时（bit7）而 ECL 未到 523 的窗口要自己挡 |
+| **击破** | `data + 0x50d4 = 大数` | 同帧 §2 ② ③：按收符卡算，给奖励 / 碎片 |
 
 boss 找法照 `0x4237F0`：`boss_ids[i]` → 走 `+0x18c` 链表比 `enemy+0x6830`。
 
 ## 5. Follow-up
 
+- 🟡 `0x4cf280` = REPLAY_UNSAFE_RNG、`0x4cf288` = REPLAY_SAFE_RNG（ExpHP 相邻命名规律 + 使用者分布），未登记进 `engine.h`。
 - 🟡 `zSpellcard+0x24` 的语义（超时 60 帧内不清奖励的那个门）未追。
 - ⏳ ECL 522（宣言）case 的参数表与 `boss_idx` 的来源未逐行反。
 - ⏳ 中断槽由 ECL `setInterrupt(槽, 血量, 超时, 子)` 写入（`mods/…/assets/ecl/make_dev_ecl.py` 已在改它）；指令号未在本文核对。

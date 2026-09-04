@@ -6,7 +6,7 @@
  *   开店 = 关末 MSG opcode 36 置 GameThread+0xb0 的 0x20000 位；GameThread__on_tick 0x443b05 看到就 new 一家店；
  *   关店 = 商店自己在 state 5（成交后 30 帧）析构，把全局商店指针清零；
  *   冻结 = 敌人 / 弹幕 / GUI(MSG) 都是「商店指针非 0 就跳过本帧」；
- *   优先级 商店 0xc → GameThread 0x10 → 敌人 0x1a → GUI 0x20：商店在自己 tick 里关门，同一帧 GameThread 就能重开，无空档帧。
+ *   优先级 商店 0xc → GameThread 0x10 → 敌人 0x1b → GUI 0x21：商店在自己 tick 里关门，同一帧 GameThread 就能重开，无空档帧。
  *
  * 状态机只看两件事：成交断点（0x4183ea）记「本次进店买了」；GameThread 断点每帧问一次「要不要重开」。
  */
@@ -22,6 +22,7 @@ typedef struct {
     int bought;          /* 本次进店已成交（成交断点置 1，重开或作废时清 0）*/
     int bought_stage;    /* 成交时的 CURRENT_STAGE */
     int bought_frame;    /* 成交时的 TIME_IN_STAGE */
+    int last_bought_frame; /* 最近一次成交帧（重开后仍保留，给日志算间隔）*/
 } ce_shop_state_t;
 
 void ce_shop_reset(ce_shop_state_t *s, int visits);

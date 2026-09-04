@@ -8,6 +8,7 @@ void ce_shop_reset(ce_shop_state_t *s, int visits)
     s->bought       = 0;
     s->bought_stage = -1;
     s->bought_frame = -1;
+    s->last_bought_frame = -1;
 }
 
 void ce_shop_on_bought(ce_shop_state_t *s, int stage, int frame)
@@ -15,6 +16,7 @@ void ce_shop_on_bought(ce_shop_state_t *s, int stage, int frame)
     s->bought       = 1;
     s->bought_stage = stage;
     s->bought_frame = frame;
+    s->last_bought_frame = frame;
 }
 
 int ce_shop_on_gamethread(ce_shop_state_t *s, int flag_set, int shop_open, int stage, int frame, int blocked)

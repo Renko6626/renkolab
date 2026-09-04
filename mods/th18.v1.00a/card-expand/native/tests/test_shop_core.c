@@ -65,6 +65,17 @@ static void test_next_stage_resets(void)
     CHECK(ce_shop_on_gamethread(&s, 0, 0, 2, 141, 0));
 }
 
+/* 成交后暂停很久：暂停时 GameThread 提前返回、TIME_IN_STAGE 不走，帧号仍连续 → 300 帧窗口的前提成立 */
+static void test_pause_after_purchase(void)
+{
+    ce_shop_state_t s; ce_shop_reset(&s, 2);
+    CHECK(!ce_shop_on_gamethread(&s, 1, 0, 1, 100, 0));
+    ce_shop_on_bought(&s, 1, 110);
+    /* 暂停 5000 个真实帧：本断点根本不被调，TIME_IN_STAGE 停在 110..140 之间 */
+    CHECK(ce_shop_on_gamethread(&s, 0, 0, 1, 141, 0));
+    CHECK(s.last_bought_frame == 110);
+}
+
 /* blocked（练习 / replay 回放）：即使有成交记录也不开 */
 static void test_blocked(void)
 {
@@ -91,6 +102,7 @@ int main(void)
     test_no_purchase_no_reopen();
     test_stale_bought_is_discarded();
     test_next_stage_resets();
+    test_pause_after_purchase();
     test_blocked();
     test_one_visit_is_retail();
     printf("test_shop_core: %d passed, %d failed\n", s_pass, s_fail);
