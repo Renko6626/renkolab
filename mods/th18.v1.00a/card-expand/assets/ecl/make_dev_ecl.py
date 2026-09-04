@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""开发辅助：st01–st06 全部做成「近乎空壳」——进关 = logo → 对话 → 血量缩百倍的 boss → 关底商店。只进 _test patch。
+"""开发辅助：st01–st06 全部做成「近乎空壳」——进关 = logo → 对话 → 血量缩百倍的 boss → 关底商店。单独一个可勾选的 patch（th18_card_expand_devstage），想打正常弹幕就不勾。
 
     python3 make_dev_ecl.py                 # 编 assets/ecl/stNN.ecl.txt（空壳，入库）+ 现场改零售 stNNbs.ecl → native/build/ecl/
     python3 make_dev_ecl.py --regen-shells  # 从零售重新生成六个空壳源（结构变了才需要；生成物入库）

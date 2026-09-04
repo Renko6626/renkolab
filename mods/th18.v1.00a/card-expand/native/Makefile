@@ -23,7 +23,7 @@ anm:
 	python3 ../assets/build_abcard.py
 	python3 ../assets/build_ability.py
 
-## ecl    —— 开发辅助：st01–st06 空壳（道中删除、boss 血量 ÷100、死时多掉钱）→ build/ecl/，只进 _test
+## ecl    —— 开发辅助：st01–st06 空壳（道中删除、boss 血量 ÷100、死时多掉钱）→ build/ecl/，单独一个可勾选的 patch（_devstage）
 ecl:
 	python3 ../assets/ecl/make_dev_ecl.py
 
@@ -100,15 +100,15 @@ dllverify: $(DLL)
 ##         （dist/ 已 gitignore：DLL 是构建产物，不入库；随时 make dist 重建）
 DIST := ../dist
 dist: anm ecl
-	rm -rf $(DIST) && mkdir -p $(DIST)/bin $(DIST)/patch-step1 $(DIST)/patch-step3 $(DIST)/patch-test
+	rm -rf $(DIST) && mkdir -p $(DIST)/bin $(DIST)/patch-step1 $(DIST)/patch-step3 $(DIST)/patch-test $(DIST)/patch-devstage/th18
 	$(MAKE) -s ROWS=58  gen dll files >/dev/null
 	cp $(DLL) $(DIST)/bin/ && cp ../patch/*.js $(DIST)/patch-step1/ && cp -r ../patch-test/. $(DIST)/patch-test/
 	$(MAKE) -s ROWS=255 gen files >/dev/null
 	cp -r ../patch/. $(DIST)/patch-step3/
 	cp build/abcard.anm build/ability.anm $(DIST)/patch-step3/th18/ && python3 mkfiles.py $(DIST)/patch-step3 >/dev/null
-	cp build/ecl/st0[1-6].ecl build/ecl/st0[1-6]bs.ecl $(DIST)/patch-test/th18/ && python3 mkfiles.py $(DIST)/patch-test >/dev/null
+	cp ../patch-devstage/patch.js $(DIST)/patch-devstage/ && cp build/ecl/st0[1-6].ecl build/ecl/st0[1-6]bs.ecl $(DIST)/patch-devstage/th18/ && python3 mkfiles.py $(DIST)/patch-devstage >/dev/null
 	cp ../DIST-README.txt $(DIST)/README.txt
-	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test README.txt
+	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test patch-devstage README.txt
 	@echo "dist/ 就绪："; ls $(DIST)
 
 ## release —— 构建 dist，同步进发布仓库 local/vendor/th18_modkit 并提交；PUSH=1 再推

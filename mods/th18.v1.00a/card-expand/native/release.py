@@ -7,7 +7,8 @@
 renkolab 是开发仓库，th18_modkit 是发布仓库（朋友 clone 下来一键启动）。
 Windows 那边只负责 `git pull`。
 
-只覆盖**生成物**：三个 patch 的 th18.v1.00a.js、它们的 files.js、DLL、_255 的 th18/cards.js 与重建的 th18/abcard.anm、_test 的 cards_dev.js。
+只覆盖**生成物**：三个 patch 的 th18.v1.00a.js、它们的 files.js、DLL、_255 的 th18/cards.js 与重建的 th18/abcard.anm、_test 的 cards_dev.js、
+_devstage 的 patch.js + 六关 ECL（这个 patch 整个以 renkolab 为准）。
 patch.js / 侧车 .json / README 是 modkit 里手工维护的文案，这里**不碰**。
 """
 import json, os, subprocess, sys, zlib, hashlib
@@ -26,21 +27,22 @@ MAP = {                                   # dist 里的 → modkit 里的
     "patch-step3/th18/ability.anm": "thcrap/repos/Renko_1055/th18_card_expand_255/th18/ability.anm",
     "patch-test/th18.v1.00a.js":  "thcrap/repos/Renko_1055/th18_card_expand_test/th18.v1.00a.js",
     "patch-test/th18/cards_dev.js": "thcrap/repos/Renko_1055/th18_card_expand_test/th18/cards_dev.js",
-    "patch-test/th18/st01.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st01.ecl",
-    "patch-test/th18/st01bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st01bs.ecl",
-    "patch-test/th18/st02.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st02.ecl",
-    "patch-test/th18/st02bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st02bs.ecl",
-    "patch-test/th18/st03.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st03.ecl",
-    "patch-test/th18/st03bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st03bs.ecl",
-    "patch-test/th18/st04.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st04.ecl",
-    "patch-test/th18/st04bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st04bs.ecl",
-    "patch-test/th18/st05.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st05.ecl",
-    "patch-test/th18/st05bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st05bs.ecl",
-    "patch-test/th18/st06.ecl":     "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st06.ecl",
-    "patch-test/th18/st06bs.ecl":   "thcrap/repos/Renko_1055/th18_card_expand_test/th18/st06bs.ecl",
+    "patch-devstage/patch.js":      "thcrap/repos/Renko_1055/th18_card_expand_devstage/patch.js",   # 这个 patch 的 patch.js 以 renkolab 为准
+    "patch-devstage/th18/st01.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st01.ecl",
+    "patch-devstage/th18/st01bs.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st01bs.ecl",
+    "patch-devstage/th18/st02.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st02.ecl",
+    "patch-devstage/th18/st02bs.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st02bs.ecl",
+    "patch-devstage/th18/st03.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st03.ecl",
+    "patch-devstage/th18/st03bs.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st03bs.ecl",
+    "patch-devstage/th18/st04.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st04.ecl",
+    "patch-devstage/th18/st04bs.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st04bs.ecl",
+    "patch-devstage/th18/st05.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st05.ecl",
+    "patch-devstage/th18/st05bs.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st05bs.ecl",
+    "patch-devstage/th18/st06.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st06.ecl",
+    "patch-devstage/th18/st06bs.ecl": "thcrap/repos/Renko_1055/th18_card_expand_devstage/th18/st06bs.ecl",
     "bin/th18_card_expand.dll":   "mods/th18_card_expand.dll",
 }
-PATCH_DIRS = ("th18_card_expand", "th18_card_expand_255", "th18_card_expand_test")
+PATCH_DIRS = ("th18_card_expand", "th18_card_expand_255", "th18_card_expand_test", "th18_card_expand_devstage")
 
 
 def sh(*args, cwd=None, check=True):
