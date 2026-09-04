@@ -56,6 +56,7 @@ return mgr->num_total;
 
 - **`mode & 1` 直接变成 flags bit0**。mode 1（存档）和 3（replay）→ bit0=1；
   mode 0（道具）和 2（购买）→ bit0=0。
+- 🟡 **每关开始，卡组里每张卡的 +0x00（ctor 槽）会再被调一次**（2026-09-04 mod 实跑：初始携带 mode 1 的卡 `on_stage_start(+0x34)` 后紧跟 `ctor(+0x00)`；买齐五张黑桃的隐藏效果之后每关又触发）。调用点未反（Ghidra 断连时发现），此时 `owned[id]` 已为 1，可据此区分「新获得」。
 - **ctor/dtor 返回非 0 就当场删卡**。这不是错误路径，而是**即时卡的实现方式**（§3）。
 - **`mode & 2` 决定是否调 dtor**：所以商店购买（mode 2）会**先 ctor 再 dtor**，
   道具掉落（mode 0）只调 ctor，存档装载（mode 1）两个都不调。

@@ -107,6 +107,10 @@ typedef void (__attribute__((thiscall)) *ce_fn_add_bomb_t)(void *globals, int un
 static inline void ce_add_life(void) { ((ce_fn_add_life_t)CE_FN_ADD_LIFE)((void *)CE_ADDR_GLOBALS_INNER); }
 static inline void ce_add_bomb(void) { ((ce_fn_add_bomb_t)CE_FN_ADD_BOMB)((void *)CE_ADDR_GLOBALS_INNER, 0); }
 static inline int  ce_owned(uint32_t id) { return id < 255 && CE_OWNED_ARRAY()[id] != 0; }
+/* ctor 不只在获得时调：每关开始引擎会对卡组里每张卡再调一次 +0x00（实跑 2026-09-04：初始携带的卡 on_stage_start 后紧跟 ctor）。
+ * 真正的获得路径（道具 mode 0 / 购买 mode 2）里 owned[自己] 要到 ctor 之后才置 1（0x412d42），关卡开始那次早就是 1 了——
+ * 「获得即触发」的效果在 ctor 里先问这个。*/
+static inline int  ce_fresh_acquire(ce_card_t *c) { return !ce_owned(ce_card_id(c)); }
 
 /* sdk.c：主动卡机器（桩里调）*/
 int  ce_sdk_c_press(void *self, const ce_hooks_t *h);

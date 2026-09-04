@@ -202,7 +202,8 @@ SDK 在 `+0x2c` 桩里先跑状态机（空闲：清释放位、门控下递减�
 脚本号 / sprite 号由 `build_ability.py` 生成到 `anm_ids.h`（`CE_ANM_ABILITY_SCRIPT_*`）。样例：反转牌 `on_activate` 起 `script68` 亮牌一圈。
 引擎侧一手：[`engine/anm/th18/01-vm-instantiate.md`](../../../engine/anm/th18/01-vm-instantiate.md)。
 `ce_add_life()` / `ce_add_bomb()`（`0x4575f0` 裸 ret / `0x457690` ret 4 带 dummy，AUDIT O26）：引擎自己的加法，钳上限、放音效、起特效；上限要一起涨照零售先 `+1` 钳 7。
-`ce_owned(id)`：读本 mod 搬迁后的 `owned[]`（`mgr+0xd70`）。注意 `owned[自己]` 在 ctor 之后才置 1。集卡判定用 `ce_royal_flush_ready(owned, self, set, n)`（sdk_core，有单测）。
+`ce_owned(id)`：读本 mod 搬迁后的 `owned[]`（`mgr+0xd70`）。注意 `owned[自己]` 在 ctor 之后才置 1。
+★ **ctor 每关开始会再被调一次**（引擎对卡组里每张卡调 +0x00，实跑证实）：「获得即触发」的效果在 ctor 里先 `if (!ce_fresh_acquire(c)) return 0;`（= `owned[自己] == 0`）。即时卡（返回 1 当场销毁）不受影响。集卡判定用 `ce_royal_flush_ready(owned, self, set, n)`（sdk_core，有单测）。
 
 ## 10. 边界与不做的
 

@@ -3,6 +3,7 @@
  * 触发点不另开断点：卡只能从商店买到，成交时 allocate_new_card(mode 2) 会调该卡的 ctor（02-lifecycle §3），
  * 而 owned[id] = 1 写在 ctor 之后（0x412d42）——所以 ctor 里看「其余四张是否已 owned」，齐了就是第五张，正好只触发一次。
  * 初始携带（mode 1）不调 ctor，编成里带满五张不算（用户设定：只有买齐才算）。
+ * ★ 但每关开始引擎会对卡组里每张卡再调一次 ctor（实跑：买齐后每关又触发一次，共 6 次）——用 ce_fresh_acquire 挡掉。
  *
  * 命 / bomb 照零售 CardLife / CardBomb 的 dtor：先把上限 +1（钳 7），再调引擎的加法（钳上限、放音效、起特效）。
  * 返回 0：黑桃是正常卡，要入卡组。 */
@@ -13,6 +14,7 @@ static const uint32_t SPADES[5] = { 58, 59, 60, 61, 62 };
 int ce_royal_flush_ctor(ce_card_t *c)
 {
     uint32_t self = ce_card_id(c);
+    if (!ce_fresh_acquire(c)) return 0;                 /* 每关开始引擎会再调一次 ctor：owned[自己] 已是 1，不是新获得 */
     if (!ce_royal_flush_ready(CE_OWNED_ARRAY(), self, SPADES, 5)) return 0;
     if (!CE_GAME_THREAD()) { ce_log("royal: complete but not in game thread, skip"); return 0; }
     int32_t m = CE_MONEY();
