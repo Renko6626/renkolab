@@ -83,6 +83,8 @@ test-host:
 	./tests/build/test_sdk_core
 	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_shop_core tests/test_shop_core.c shop_core.c
 	./tests/build/test_shop_core
+	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_blue_eyes_core tests/test_blue_eyes_core.c cards/blue_eyes_core.c -lm
+	./tests/build/test_blue_eyes_core
 
 ## x87 自检 —— 只看我们自己的目标文件
 dllx87: $(OBJS)
