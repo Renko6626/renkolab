@@ -525,6 +525,7 @@ M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未�
 | O28d | boss 找法与多 boss | **CONFIRMED** —— 照 `0x4237F0`：`boss_ids[4]` → `+0x18c` 链表比 `+0x6830`；对每个 boss 各推一次，4096 步护栏 |
 | O28e | 拒绝发动不丢充能 | **CONFIRMED** —— SDK 在 `on_activate` 返回 `CE_ACTIVATE_REFUSED` 时把刚装填的充能计时退回 `{-1, 0, 0.0}`（= 充满态）、清释放位、state 留 0；与 Tenshi 的门控 `state == 0 && +0x38 <= 0` 一致 |
 | O28g | 自然超时到 ECL 523 清 bit0 之间按 C | **PARTIAL（审阅补）** —— 见下「O28g 证据」 |
+| O28h | 全屏消弹调用的两个引擎函数的约定 | **CONFIRMED** —— 见下「O28h 证据」 |
 | O28f | 残机减半的边界 | **CONFIRMED** —— `ce_judgment_cost`：`lives <= 0 → 0`（拒绝），否则 `(lives+1)/2`（单测 7 项）；只动 `CURRENT_LIVES`，碎片不动 |
 
 **O28a 证据**：C 键在 Player tick（0x17）、判定在 EnemyManager tick（0x1b，Enemy tick 体 `0x42ff80` 里比较先于 `Timer__increment`）：**同一帧**收场；ECL VM `0x430d30` 只在宣言 case `0x434fc2` 碰 `+0x2bc`，`wait` 用别的计时器，改它不会提前唤醒脚本； `0x42ED40` 每帧取第一个 `hp_value > -1 && time > 0` 的槽，`slot.time <= cur` 即走超时段（血量钉到阈值、`sub_timeout`、Spellcard 置 0x80 / 清奖励）；比较是 `<=`，写成等值下一帧必触发；`prev` 一并写，`cur_f` 同步（zTimer 三件套，O23 教训）
@@ -532,6 +533,8 @@ M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未�
 **O28b 证据**：超时段对 `flags & 8` 的槽走 `(flags & 9) == 9` = 收下；我们在写计时的同一帧清 bit1、`bonus = 0`、`can_still_capture_spell = 0`，结束 `0x42A780` 看 bit1 走失败演出，ECL 523 的 Sannyo 碎片也看 bit1。**限制**：耐久符卡的 `sub_timeout` 脚本本身是「守住」分支，脚本里写的掉落照旧；`0x42ed40` 耐久路径累加的 `0x4ccd6c` 无人读
 
 **O28c 证据**：一手反汇编：`mov edx,ecx`（this = gui），读 `[ebp+8]` 命数、`[ebp+0xc]` 碎片、`[ebp+0x10]` 上限，`ret 0xc`；零售在 `0x417a10..0x417a28`（`AbilityShop__sub_417880`）与 `0x45d1aa..0x45d1bd`（`Player__commit_death_and_enter_state2`）都以 `push [0x4ccd54]; push [0x4ccd4c]; push lives` 调它
+
+**O28h 证据**：`BulletManager__cancel_all` `0x4297a0`：序言 `push ebp; mov ebp,esp; sub esp,0x18; push ebx/esi/edi; mov edi,[0x4cf2bc]`，不读 ecx 与 `[ebp+8]`，裸 `ret`；调用者 ECL 消弹 case `0x434d4e` / `0x434e07` 与 `GuiMsgVm` 构造 `0x43e2ea` 都是不压参的 `call`。`LaserManager__cancel_all` `0x449090`：`mov ecx,[0x4cf3f4]` 自取 this，读 `[ebp+8]` 当 mode 传给每条激光的 `vtable+0x28(mode, 0)`，`ret 8`（两个栈参，`0x4490c4`）；ECL 两处 `push 0; push 1/0; call`，玩家死亡 `0x45c3c9 push ecx; push 1; call`（第二参从不读）。我们照 ECL 写 `(1, 0)`，声明为 stdcall 两参。调用时机在写完中断槽计时之后、同一 `on_activate` 内。
 
 **O28g 证据**：非耐久符卡：超时段置 bit7（`0x42a320` 每张新符卡清），卡里 `flags & 0x80` → 拒绝。耐久符卡自然超时不置 bit7、`enemy+0x635c` 的超时位也被清，只靠「活动槽已清（hp_value = -1）→ 找不到槽 → 拒绝」兜底；ECL 预装多个带超时的槽时会误伤下一段。实跑清单：符卡刚超时那几帧连按 C 看是否 refuse
 

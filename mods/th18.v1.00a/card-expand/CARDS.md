@@ -31,7 +31,7 @@
 | 63 | 强欲之壶 | 购买时立刻获得两张随机卡牌（商店随机池的规则：未拥有、本关可用、按权重）；本身不进卡组 | `ctor` 里 `pick_weighted_random_offer` ×2 → `allocate_new_card(mode 2)`，返回 1 当场销毁（即时卡）。卡图 `POT_OF_GREED`（sprite 132/133，用户原创）| `pot.c` | 🔧 |
 | 66 | 神之宣告 | 主动（C 键）：消耗一半残机（向上取整），让 boss 当前符卡立刻按超时结束（无奖励、失败演出）。不在符卡中 / 已超时 / 无残机时拒绝发动（无效音、充能不消耗）。充能 60 s。卡图与演出见下 | `on_activate`：写 boss 中断槽计时到阈值 + 清符卡奖励位；`ce_gui_update_lives` 刷 HUD；拒绝 = `CE_ACTIVATE_REFUSED` | `judgment.c` | 🔧 |
 
-**神之宣告（66）补充**：卡图 `JUDGMENT`（sprite 134/135，用户原创）。演出：发动音 0x4d（反转牌同款）+ `ability.anm` script77——卡图副本在场地中央半透明浮现（alpha 150）、75 帧缓缓放大 0.55 → 0.7 并上浮 24 px、45 帧后 30 帧淡出。限制：耐久符卡的超时脚本自带掉落照旧（AUDIT O28b）。
+**神之宣告（66）补充**：卡图 `JUDGMENT`（sprite 134/135，用户原创）。发动同时全屏消弹（弹幕 → 点道具 + 激光，引擎 `cancel_all`，O28h）。演出：发动音 0x4d（反转牌同款）+ `ability.anm` script77——卡图副本铺满弹幕区半透明浮现（alpha 140，scale 1.25 → 1.45）、75 帧缓缓放大并上浮 24 px、45 帧后 30 帧淡出。限制：耐久符卡的超时脚本自带掉落照旧（AUDIT O28b）。
 
 ## 致敬・UNO
 

@@ -114,6 +114,14 @@ static inline void ce_gui_update_lives(void)
     void *gui = CE_GUI();
     if (gui) ((ce_fn_gui_lives_t)CE_FN_GUI_UPDATE_LIVES)(gui, CE_CURRENT_LIVES(), CE_LIFE_FRAGMENTS(), CE_LIVES_MAX());
 }
+/* 全屏消弹：弹幕（→ 点道具）+ 激光，照 ECL 消弹指令的写法（AUDIT O28h）。*/
+typedef void (*ce_fn_bullet_cancel_all_t)(void);
+typedef int  (__attribute__((stdcall)) *ce_fn_laser_cancel_all_t)(int mode, int unused);
+static inline void ce_cancel_all_bullets(void)
+{
+    if (CE_BULLET_MGR()) ((ce_fn_bullet_cancel_all_t)CE_FN_BULLET_CANCEL_ALL)();
+    ((ce_fn_laser_cancel_all_t)CE_FN_LASER_CANCEL_ALL)(1, 0);
+}
 static inline int  ce_owned(uint32_t id) { return id < 255 && CE_OWNED_ARRAY()[id] != 0; }
 /* ctor 不只在获得时调：每关开始引擎会对卡组里每张卡再调一次 +0x00（实跑 2026-09-04：初始携带的卡 on_stage_start 后紧跟 ctor）。
  * 真正的获得路径（道具 mode 0 / 购买 mode 2）里 owned[自己] 要到 ctor 之后才置 1（0x412d42），关卡开始那次早就是 1 了——

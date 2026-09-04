@@ -1,5 +1,6 @@
 /* 神之宣告 —— 主动卡：boss 符卡进行中按 C，消耗一半残机（向上取整），符卡按「超时」立刻结束、不给奖励。
  * 没有残机 / 不在符卡里 / 找不到带超时槽的 boss → 拒绝发动（0x10 无效音，充能退回）。充能 3600 帧（60 s）。
+ * 发动同时全屏消弹（弹幕 + 激光，引擎 cancel_all 两个函数，AUDIT O28h）——符卡收场那一帧场上的弹不会白白打死人。
  *
  * 引擎侧（engine/ecl/th18/01-boss-interrupts-and-spellcard.md，AUDIT O28）：
  *   符卡进行中 = SPELLCARD+0x78 bit0；奖励存活 = bit1（收符卡时按它计分、Sannyo 碎片也看它）。
@@ -77,10 +78,11 @@ static int on_activate(ce_card_t *c)
     *(int32_t *)(spell + CE_SPELL_BONUS) = 0;
     *(int32_t *)(em + CE_EM_CAN_CAPTURE) = 0;
 
+    ce_cancel_all_bullets();                                                  /* 安全垫：全屏消弹（弹 → 点道具）+ 激光 */
     uint8_t *p = CE_PLAYER();
     ce_play_sound(CE_SE_RELEASE, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);      /* 反转牌同款发动音 */
     /* 演出：ability.anm script77（assets/ability/scripts/77_judgment_flash.anm.txt）——卡图副本在场地中央半透明浮现
-     * （alpha 150）、75 帧内缓缓放大 0.55 → 0.7 并上浮 24 px，45 帧后 30 帧淡出。type(1) 二维、层 20，pos y 从区域顶部起算（236 ≈ 正中偏下）。*/
+     * （alpha 140）、铺满弹幕区（scale 1.25 → 1.45，320 高的卡图 × 1.45 ≈ 464 > 区域 448）、75 帧内缓缓放大并上浮 24 px，45 帧后 30 帧淡出。type(1) 二维、层 20，pos y 从区域顶部起算（236 ≈ 正中偏下）。*/
     uint32_t fx = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_JUDGMENT_FLASH, 20);
     ce_log("judgment: lives %d -> %d (cost %d), %u boss attack(s) expired, spell flags %08x, flash anm id %08x",
            lives, lives - cost, cost, expired, *(uint32_t *)(spell + CE_SPELL_FLAGS), fx);
