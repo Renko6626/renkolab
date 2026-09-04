@@ -110,7 +110,7 @@ DLL 装载时按合并后的表**现算**这三条，超了写 `FAIL:` 并把分
 | `new_weight` | 所有新卡的 weight 改成这个值（如 20 → 每张 25 份 + 未拥有 5 份）|
 
 覆盖在容量检查之前应用，日志 `cards_dev: … retail_weight=6 new_weight=20 (N rows changed)`。
-`_test` 还带 `st01.ecl` / `st01bs.ecl`（`assets/ecl/make_dev_ecl.py` 现场从零售反编译改出来的）：一关近乎空壳，logo → 对话 → 一发一阶段的 boss → 关底商店。
+`_test` 还带 `st01.ecl`（源 `assets/ecl/st01.ecl.txt`，空壳）/ `st01bs.ecl`（`make_dev_ecl.py` 现场把零售 boss 的 `lifeSet` 改 1）：一关近乎空壳，logo → 对话 → 一发一阶段的 boss → 关底商店。
 
 ## 6. 卡图（放两张 PNG，其余交给 `assets/`）
 

@@ -3,11 +3,10 @@
 
     python3 make_dev_ecl.py            # → native/build/ecl/st01.ecl, st01bs.ecl
 
-零售 ECL 是 ZUN 的内容，仓库里只放这份变换脚本：现场用 thecl 反编译 local/th18.v1.00a/dat/ 的原文件，
-做文本替换，再编回去。改动：
-  st01.ecl   main：删掉 @MainFront() → 道中 boss → @MainLatter() 那一段（道中全部），只留 logo、短 wait、对话、boss
-  st01bs.ecl 所有 lifeSet(N) → lifeSet(1)：boss 每个阶段一发就过
-thecl 往返（-d 再 -c）在这两份文件上字节一致，所以没改的部分不会走样。
+  st01.ecl   源文本就在仓库里：assets/ecl/st01.ecl.txt（真·空壳：只剩头部、main、LogoEnemy、MainBoss，零售敌机子程序一律不留），
+             直接 thecl -c 编译。
+  st01bs.ecl 满是 ZUN 的符卡脚本，不入库：现场反编译 local/th18.v1.00a/dat/st01bs.ecl，所有 lifeSet(N) → lifeSet(1)
+             （boss 每个阶段一发就过），再编回。thecl 往返在它上面字节一致，没改的部分不会走样。
 """
 import re
 import subprocess
@@ -25,8 +24,6 @@ DAT = REPO / "local" / "th18.v1.00a" / "dat"
 OUT = MOD / "native" / "build" / "ecl"
 ECLMAP = REPO / "local" / "vendor" / "eclmap" / "eclmap" / "th18.eclm"
 
-MAIN_CUT_BEGIN = "    @MainFront();\n"
-MAIN_CUT_END = "    wait(200);\n"
 
 
 def thecl():
@@ -59,17 +56,6 @@ def compile_(t, name, text):
     run([t, "-c", VERSION, "-m", ECLMAP, txt, OUT / f"{name}.ecl"])
 
 
-def patch_main(text):
-    m = re.search(r"^void main\(\)\n\{\n.*?^\}\n", text, re.S | re.M)
-    if not m:
-        raise SystemExit("st01.ecl 里找不到 main()")
-    body = m.group(0)
-    a, b = body.find(MAIN_CUT_BEGIN), body.find(MAIN_CUT_END)
-    if a < 0 or b < a:
-        raise SystemExit("st01 main 的道中段落长得和预期不一样（找不到 @MainFront() … wait(200);）")
-    body2 = body[:a] + "    wait(30);\n" + body[b + len(MAIN_CUT_END):]
-    return text.replace(body, body2, 1)
-
 
 def patch_boss(text):
     text2, n = re.subn(r"lifeSet\(\d+\)", "lifeSet(1)", text)
@@ -81,11 +67,11 @@ def patch_boss(text):
 def main():
     t = thecl()
     OUT.mkdir(parents=True, exist_ok=True)
-    st01 = patch_main(decompile(t, "st01"))
-    compile_(t, "st01", st01)
+    src = HERE / "st01.ecl.txt"
+    run([t, "-c", VERSION, "-m", ECLMAP, src, OUT / "st01.ecl"])
     bs, n = patch_boss(decompile(t, "st01bs"))
     compile_(t, "st01bs", bs)
-    print(f"ecl: st01.ecl（道中删除）、st01bs.ecl（{n} 处 lifeSet → 1）→ {OUT.relative_to(MOD)}")
+    print(f"ecl: st01.ecl（空壳，源 {src.relative_to(MOD)}）、st01bs.ecl（{n} 处 lifeSet → 1）→ {OUT.relative_to(MOD)}")
     return 0
 
 

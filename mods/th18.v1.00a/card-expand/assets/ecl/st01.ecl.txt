@@ -1,0 +1,59 @@
+anim { "enemy.anm"; "st01enm.anm"; }
+ecli { "default.ecl"; "st01bs.ecl"; "st01mbs.ecl"; }
+
+void MainBossSpell();
+
+// 开发辅助：st01 空壳 —— 只留 logo、对话、boss（一发一阶段的 st01bs.ecl 由 make_dev_ecl.py 现场生成）。
+// 道中全部删除；来源结构照零售 main，零售的敌机子程序不保留。thecl -c 18 -m th18.eclm 编译。
+
+void main()
+{
+    flagSet(32);
+    wait(1);
+    setChapter(0);
+    enmCreateA("MapleEnemy", 0.0f, 0.0f, 40, 1000, 1);
+    unless ($SPELL_ID >= 0) goto main_352 @ 0;
+    @MainBossSpell();
+    goto main_308 @ 0;
+main_288:
+    wait(1000);
+main_308:
+    if (1) goto main_288 @ 0;
+main_352:
+    @LogoEnemy() async;
++60: //60
+    nop();
+    wait(30);
+    setChapter(41);
+    dialogRead(0);
+    @MainBoss();
+    goto main_1616 @ 60;
+main_1596:
+    wait(1000);
+main_1616:
+    if (1) goto main_1596 @ 60;
+    delete();
+}
+
+void LogoEnemy()
+{
+    wait(584);
+    stageLogo();
+    return;
+}
+
+void MainBoss()
+{
+    dialogWait();
+    setChapter(43);
+    enmCreateA("Boss", 144.0f, -16.0f, 40, 1000, 0);
+    dialogWait();
++1: //1
+    bossWait();
+    setChapter(81);
++60: //61
+    dialogRead(1);
+    dialogWait();
+    return;
+    return;
+}
