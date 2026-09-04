@@ -65,12 +65,15 @@ def main():
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     big = fit(a.src, a.trim, a.bg, not a.no_detect, a.margin, a.fill)
+    art = big
+    (out / "_art").mkdir(exist_ok=True)
+    art.save(out / "_art" / f"{a.name}.png")                  # 无框画面留档：_min 与以后重出框都从它来
     if a.no_frame:
         big.save(out / f"{a.name}_max.png")
     else:
         big = cardframe.apply_frame(big)                      # 零售同款边框（画面等比覆盖 220×284）
         cardframe.save_framed(big, out / f"{a.name}_max.png")
-    big.resize((MIN_W, MIN_H), Image.LANCZOS).save(out / f"{a.name}_min.png")
+    art.resize((MIN_W, MIN_H), Image.LANCZOS).save(out / f"{a.name}_min.png")   # _min 不带框（零售同款）
     print(f"{a.name}: {a.name}_max.png {MAX_W}x{MAX_H} · {a.name}_min.png {MIN_W}x{MIN_H}  ← {a.src.name}"
           f"{'  [fill]' if a.fill else ''}")
     return 0

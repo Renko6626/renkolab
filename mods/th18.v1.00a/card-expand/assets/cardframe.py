@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """给 256×320 的卡图加零售同款边框（程序合成，不含零售像素）。
 
-    python3 cardframe.py                 # 给 cards/*_max.png 全部补框（已补过的跳过），并重出 _min
+    python3 cardframe.py                 # 给 cards/*_max.png 全部补框（已补过的跳过）；_min 一律从 cards/_art/NAME.png（无框画面）重出
     python3 cardframe.py NAME [NAME…]    # 只处理这几张
+
+零售 _min 是裸画面（64×80，无框）——HUD 卡组图标不带框；只有 _max 带框。所以无框画面要留一份：cards/_art/NAME.png（256×320）。
 
 零售 abcard 的框（117 张逐像素一致，量自 KANAME_max / ALICE_OP_max）：
   外圈 3 px 纯黑 → 13 px 深色斜面 → 2 px 纯黑 → 画面区 220×284（每边内缩 18 px）。
@@ -88,15 +90,25 @@ def save_framed(im: Image.Image, path: Path):
     im.save(path, pnginfo=meta)
 
 
+ART = CARDS / "_art"
+
+
+def save_min_from_art(name: str, art: Image.Image):
+    """_min = 无框画面缩到 64×80（零售同款：HUD 图标不带框）。"""
+    art.convert("RGBA").resize((MIN_W, MIN_H), Image.LANCZOS).save(CARDS / f"{name}_min.png")
+
+
 def reframe(name: str) -> bool:
-    big = CARDS / f"{name}_max.png"
+    big, art_path = CARDS / f"{name}_max.png", ART / f"{name}.png"
+    if not art_path.exists():
+        raise SystemExit(f"{name}: 缺 {art_path.relative_to(HERE)}（无框画面）——用 fit_card.py 重出，或从旧版本恢复")
+    art = Image.open(art_path)
+    save_min_from_art(name, art)
     if is_framed(big):
-        print(f"{name}: already framed, skip")
+        print(f"{name}: _max already framed; _min regenerated from _art")
         return False
-    out = apply_frame(Image.open(big))
-    save_framed(out, big)
-    out.resize((MIN_W, MIN_H), Image.LANCZOS).save(CARDS / f"{name}_min.png")
-    print(f"{name}: framed (art 220x284 inside 256x320), _min regenerated")
+    save_framed(apply_frame(art), big)
+    print(f"{name}: _max framed (art 220x284 inside 256x320), _min from _art")
     return True
 
 

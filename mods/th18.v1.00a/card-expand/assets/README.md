@@ -13,6 +13,7 @@
 | `cards/<NAME>_max.png` | **256×320** RGBA | 大图：编成 / 商店 / 图鉴用 |
 | `cards/<NAME>_min.png` | **64×80** RGBA | 小图：HUD 卡组图标 |
 | `cards/ORDER.txt` | 一行一个 `NAME` | **只追加**。行号决定 sprite 号 |
+| `cards/_art/<NAME>.png` | 256×320 RGBA | 无框画面（`fit_card.py` 自动留档）：`_min` 与重出框的源 |
 
 `NAME` 建议用卡的 `internal_name`（如 `SPADE_10`）。尺寸不对构建直接报错。
 两种出图方式：
@@ -23,7 +24,7 @@
 
 **边框**：零售 117 张卡共用同一个框（外 3 px 黑 → 13 px 深色斜面、边中高光 → 内 2 px 黑，画面区 220×284）。
 `cardframe.py` 按量出来的参数程序合成它（仓库里不放零售像素），`fit_card.py` 默认套上（`--no-frame` 关）；
-`python3 cardframe.py` 给 `cards/*_max.png` 补框并重出 `_min`（PNG 里记 `renkolab-frame=1`，重复跑不会套两层）。
+**零售的 `_min`（HUD 图标）不带框**，所以无框画面留在 `cards/_art/NAME.png`，`_min` 从它缩出；`python3 cardframe.py` 给 `_max` 补框、从 `_art` 重出 `_min`（PNG 里记 `renkolab-frame=1`，重复跑不会套两层）。
 画面按等比覆盖 220×284 居中裁（宽裁 ~1.4%），不拉伸。`ability.anm` 里的卡图副本引用同一批 PNG，一起带框。
 
 ## 索引怎么来
