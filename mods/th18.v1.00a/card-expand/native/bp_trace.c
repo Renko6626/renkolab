@@ -51,12 +51,14 @@ int __cdecl BP_ce_test_deck(x86_reg_t *regs, void *bp_info)
     if (regs->esi == 0) {
         cursor = 0;
         int m = ce_dev_start_money();                       /* 开局 reset_cards 重建卡组的时点，顺手给起始金钱（dev）*/
-        if (m >= 0) { ce_log("test: start money %d -> %d", CE_MONEY(), m); CE_MONEY() = m; }
+        if (m >= 0 && CE_MONEY() == 0) { ce_log("test: start money 0 -> %d", m); CE_MONEY() = m; }   /* reset_cards 一局多次，只在 0 时写 */
+        int32_t *owned = (int32_t *)(CE_ABILITY_MGR() + CE_MGR_OWNED);   /* reset_cards 先清 owned[] 再进本循环（02-lifecycle §6）*/
+        for (unsigned i = 0; i < ce_dev_owned_count(); ++i) { owned[ce_dev_owned_id(i)] = 1; ce_log("test: start_owned: id %u marked owned", ce_dev_owned_id(i)); }
     }
     uint32_t id = *(const uint8_t *)(uintptr_t)(regs->eax + regs->esi + CE_TEST_DECK_SAVE_OFF);
-    if (id == CE_NULL_ROW && cursor < ce_dev_deck_count()) {
+    if ((id == CE_NULL_ROW || ce_dev_deck_force()) && cursor < ce_dev_deck_count()) {
         uint32_t nid = ce_dev_deck_id(cursor++);
-        ce_log("test: initial deck slot %u: empty -> id %u", regs->esi, nid);
+        ce_log("test: initial deck slot %u: %s -> id %u", regs->esi, id == CE_NULL_ROW ? "empty" : "forced", nid);
         id = nid;
     }
     regs->eax = id;
