@@ -30,6 +30,9 @@
 | --- | --- | --- | --- | --- | --- |
 | 63 | 强欲之壶 | 购买时立刻获得两张随机卡牌（商店随机池的规则：未拥有、本关可用、按权重）；本身不进卡组 | `ctor` 里 `pick_weighted_random_offer` ×2 → `allocate_new_card(mode 2)`，返回 1 当场销毁（即时卡）。卡图 `POT_OF_GREED`（sprite 132/133，用户原创）| `pot.c` | 🔧 |
 | 66 | 神之宣告 | 主动（C 键）：消耗一半残机（向上取整），让 boss 当前符卡立刻按超时结束（无奖励、失败演出）。不在符卡中 / 已超时 / 无残机时拒绝发动（无效音、充能不消耗）。充能 60 s。卡图与演出见下 | `on_activate`：写 boss 中断槽计时到阈值 + 清符卡奖励位；`ce_gui_update_lives` 刷 HUD；拒绝 = `CE_ACTIVATE_REFUSED` | `judgment.c` | 🔧 |
+| 67 | 青眼白龙 | 主动（C 键）：献祭 1 残机召唤跟随自机的龙；2500 点生命替玩家挡子弹（每发 −1，弹变点道具）；每 5 秒向上一道光束；生命归零死亡，过关消失。残机 0 拒绝。充能 10 s | `on_activate` 扣命 + 起龙 ANM；`on_active_tick` 跟随（Tenshi lerp）+ `ce_cancel_radius(max = hp)` + `ce_damage_rect`；`on_stage_start`/`on_run_reset` 删 VM | `blue_eyes.c` + `blue_eyes_core.c` | 🔧 |
+
+**青眼白龙（67）补充**：光束 = 30 帧 × 每帧请求 100 的矩形伤害源（宽 32、从龙口到区域顶边），**不改** `player+0x47984`，实际每波 ≤ 3000 由引擎每帧上限决定；光束不消弹、激光不挡。跟随目标自机上方 80 px（要石同款 lerp 0.04）、挡弹半径 48、有命中那帧龙染橙（要石同款）。卡图 / 龙 / 光束都是占位（sprite 136/137，ability 118/119，script78/79；`assets/ability/gen_blue_eyes_placeholder.py`）。设计 `docs/superpowers/specs/2026-09-04-blue-eyes-design.md`，AUDIT O29。
 
 **神之宣告（66）补充**：卡图 `JUDGMENT`（sprite 134/135，用户原创）。发动同时全屏消弹（弹幕 → 点道具 + 激光，引擎 `cancel_all`，O28h）。演出：发动音 0x4d（反转牌同款）+ `ability.anm` script77——卡图副本铺满弹幕区半透明浮现（alpha 140，scale 1.25 → 1.45）、75 帧缓缓放大并上浮 24 px、45 帧后 30 帧淡出。限制：耐久符卡的超时脚本自带掉落照旧（AUDIT O28b）。
 

@@ -150,6 +150,8 @@ static inline int ce_cancel_radius(const float *pos, float r, int max_count, int
 static inline int ce_damage_rect(const float *center, float angle, int life, int dmg, float w, float h)
 {
     int idx;
+    uint32_t ang_bits;
+    __builtin_memcpy(&ang_bits, &angle, 4);            /* ★ 压栈的栈参一律走寄存器：内联汇编里 push 之后 esp 相对的 "m" 操作数会错位（第一版就错在 angle）*/
     __asm__ volatile ("movss %[w], %%xmm2\n\t"
                       "movss %[h], %%xmm3\n\t"
                       "pushl %[dmg]\n\t"
@@ -158,7 +160,7 @@ static inline int ce_damage_rect(const float *center, float angle, int life, int
                       "pushl %[c]\n\t"
                       "call *%[fn]"
                       : "=a"(idx)
-                      : [w] "m"(w), [h] "m"(h), [dmg] "r"(dmg), [life] "r"(life), [ang] "m"(angle), [c] "r"(center),
+                      : [w] "m"(w), [h] "m"(h), [dmg] "r"(dmg), [life] "r"(life), [ang] "r"(ang_bits), [c] "r"(center),
                         [fn] "r"((uintptr_t)CE_FN_PLAYER_DMGSRC_RECT)
                       : "ecx", "edx", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "cc");
     return idx;

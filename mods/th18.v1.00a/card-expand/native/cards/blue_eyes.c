@@ -1,0 +1,105 @@
+/* 青眼白龙 —— 主动卡：按 C 献祭 1 残机，召唤一条跟着自机的龙。龙有 BE_HP 点生命，替玩家挡子弹（每挡一发 −1，
+ * 被挡的弹照炸弹消弹变点道具），每 BE_WAVE_PERIOD 帧向上喷一道矩形伤害光束（BE_WAVE_FRAMES 帧 × BE_WAVE_DMG）。
+ * 生命归零 → 死亡动画、结束；过关 / 局末龙消失。残机 0 时拒绝（不许献祭最后一条命）。充能 BE_RECHARGE 帧。
+ *
+ * 零售原型：跟随 + 挡弹 + 计数 = Tenshi 要石（0x40e8c0）；光束 = Remilia 脉冲（0x40f3a0）。伤害上限 player+0x47984 不动。
+ * 纯逻辑在 blue_eyes_core.c（主机单测）；引擎调用是 sdk.h 的薄包装（AUDIT O29）。
+ * 设计：docs/superpowers/specs/2026-09-04-blue-eyes-design.md */
+#include "sdk.h"
+#include "blue_eyes_core.h"
+
+#define BE_COLOR_IDLE 0xffffffffu
+#define BE_COLOR_HIT  0xff0080ffu          /* Tenshi 要石有命中那帧的颜色（0x40eb60）*/
+#define BE_SE_SUMMON  CE_SE_RELEASE         /* 0x4d 发动音 */
+#define BE_SE_BEAM    CE_SE_BOMB            /* 0x2c */
+#define BE_SE_DEATH   0x29                  /* Tenshi 要石收场音 */
+
+static float player_x(void) { uint8_t *p = CE_PLAYER(); return p ? *(float *)(p + CE_PLAYER_X) : 0.0f; }
+
+static int refuse(const char *why)
+{
+    ce_play_sound(CE_SE_INVALID, player_x());
+    ce_log("blue_eyes: refused (%s)", why);
+    return CE_ACTIVATE_REFUSED;
+}
+
+static void dismiss(ce_card_t *c, const char *why)
+{
+    be_state_t *s = ce_state(c, be_state_t);
+    if (!s) return;
+    if (s->anm_id || s->beam_id) {
+        ce_anm_delete(s->anm_id);
+        ce_anm_delete(s->beam_id);
+        ce_log("blue_eyes: dismissed (%s) hp %d after %u frames, %u waves, %u blocked", why, s->hp, s->frames, s->waves, s->blocked);
+    }
+    s->anm_id = 0; s->beam_id = 0; s->hp = 0;
+}
+
+static int on_activate(ce_card_t *c)
+{
+    uint8_t *p = CE_PLAYER();
+    if (!p) return refuse("no player");
+    int lives = CE_CURRENT_LIVES();
+    if (lives < 1) return refuse("no lives");
+    be_state_t *s = ce_state(c, be_state_t);
+    if (!s) return refuse("no state slot");
+
+    const float *pp = (const float *)(p + CE_PLAYER_X);
+    be_summon(s, pp[0], pp[1], pp[2]);
+    s->anm_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_DRAGON, 13);
+    if (!s->anm_id) return refuse("dragon anm failed");
+    ce_anm_set_pos(s->anm_id, s->x, s->y, s->z);
+
+    CE_CURRENT_LIVES() = lives - 1;
+    ce_gui_update_lives();
+    ce_play_sound(BE_SE_SUMMON, pp[0]);
+    ce_log("blue_eyes: summoned, lives %d -> %d, hp %d, anm id %08x, pos (%.1f, %.1f)", lives, lives - 1, s->hp, s->anm_id, s->x, s->y);
+    return 1;
+}
+
+static int on_active_tick(ce_card_t *c, uint32_t elapsed)
+{
+    be_state_t *s = ce_state(c, be_state_t);
+    uint8_t *p = CE_PLAYER();
+    if (!s || !p) return 0;
+    if (!ce_anm_get_vm(s->anm_id)) {                       /* 引擎把 VM 收掉了（O29h）：龙没了就结束 */
+        ce_log("blue_eyes: dragon vm gone at frame %u", s->frames);
+        s->anm_id = 0; s->beam_id = 0;
+        return 0;
+    }
+    const float *pp = (const float *)(p + CE_PLAYER_X);
+    be_follow(s, pp[0], pp[1], pp[2]);
+    ce_anm_set_pos(s->anm_id, s->x, s->y, s->z);
+
+    float pos[3] = { s->x, s->y, s->z };
+    int blocked = s->hp > 0 ? ce_cancel_radius(pos, BE_RADIUS, s->hp, 0) : 0;
+    ce_anm_set_color(s->anm_id, blocked ? BE_COLOR_HIT : BE_COLOR_IDLE);
+
+    be_step_t st = be_step(s, blocked);
+    if (st.wave_start) {
+        s->beam_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BEAM, 13);
+        ce_play_sound(BE_SE_BEAM, s->x);
+        ce_log("blue_eyes: wave %u start at frame %u (hp %d, cap %d)", s->waves, s->frames, s->hp, *(int32_t *)(p + CE_PLAYER_DAMAGE_CAP));
+    }
+    if (st.beam_dmg && s->y > 0.0f) {                      /* 光束：从龙口到区域顶边（y = 0）的矩形 */
+        float center[3] = { s->x, s->y * 0.5f, s->z };
+        ce_damage_rect(center, 0.0f, 2, st.beam_dmg, BE_BEAM_WIDTH, s->y);
+        ce_anm_set_pos(s->beam_id, s->x, s->y - BE_BEAM_SPRITE_H * 0.5f, s->z);
+    }
+    if (elapsed % 60 == 0 && blocked) ce_log("blue_eyes: hp %d (blocked %u, frame %u)", s->hp, s->blocked, s->frames);
+    if (st.died) {
+        ce_anm_interrupt(s->anm_id, 1);                    /* 脚本 interruptLabel(1)：放大淡出后 delete */
+        ce_anm_delete(s->beam_id);
+        ce_play_sound(BE_SE_DEATH, s->x);
+        ce_log("blue_eyes: died after %u frames, %u waves, %u blocked", s->frames, s->waves, s->blocked);
+        s->anm_id = 0; s->beam_id = 0;
+        return 0;
+    }
+    return 1;
+}
+
+static void on_stage_start(ce_card_t *c) { dismiss(c, "stage start"); }
+static void on_run_reset(ce_card_t *c)   { dismiss(c, "run reset"); }
+
+CE_CARD(67, .active_recharge = BE_RECHARGE, .on_activate = on_activate, .on_active_tick = on_active_tick,
+            .on_stage_start = on_stage_start, .on_run_reset = on_run_reset);
