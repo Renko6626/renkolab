@@ -10,6 +10,7 @@
 | 贴图 | `entries/ORDER.txt`：`NAME  源图(相对 assets/)  [WxH]` | 不写尺寸 = 卡图 256×320；写 `WxH`（2 的幂）= 整张贴图一个 sprite（横幅等）。只追加不重排。第 k 行 → entry 7+k / sprite 109+k |
 | 脚本 | `scripts/NN_name.anm.txt`，`NN` 从 68 起连续 | 一个文件一个 `script scriptNN { … }`；正文用 `@NAME` 引用上面的 sprite |
 
+`make_blue_eyes_art.py`：青眼白龙的场上贴图——从 `blue_eyes/_src/` 的黑底俯视图抠底出 256×256 `DRAGON.png`（泛洪掩码 + 边缘亮度斜坡），光束 `BEAM.png` 32×512 程序生成。
 `gen_banner.py "ROYAL FLUSH"`：金色金属光泽 + 黑描边的大字横幅（512×128，`banner/`），皇家同花顺的亮字用它。
 
 `make anm` 跑 `build_ability.py`：重编 → `native/build/ability.anm`，自检零售部分没变，

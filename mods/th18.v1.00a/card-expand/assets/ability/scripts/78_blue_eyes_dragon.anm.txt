@@ -6,14 +6,14 @@ script script78 {
     zWriteDisable(1);
     sprite(@BLUE_EYES_DRAGON);
     scale(0.0f, 0.0f);
-    scaleTime(20, 4, 1.0f, 1.0f);
+    scaleTime(20, 4, 0.45f, 0.45f);   // 256 px 贴图 → 场上约 115 px 高（翼展约 93 px，挡弹半径 48 与之相称）
 idle:
     posTime(30, 4, 0.0f, 0.0f, 0.0f);
 +30: // 30
     jmp(idle, 0);
     stop();
     interruptLabel(1);
-    scaleTime(8, 4, 2.0f, 2.0f);
+    scaleTime(8, 4, 0.9f, 0.9f);
     alphaTime(8, 0, 0);
 +8: // 38
     delete();

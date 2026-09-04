@@ -13,7 +13,8 @@
 #define BE_SUMMON_DY      (-100.0f)
 #define BE_FOLLOW_LERP    0.04f
 #define BE_BEAM_WIDTH     32.0f
-#define BE_BEAM_SPRITE_H  512.0f   /* 光束贴图高（32×512）：光束 VM 放在龙上方半张处 */
+#define BE_BEAM_SPRITE_H  512.0f   /* 光束贴图高（32×512）：光束 VM 放在龙头上方半张处 */
+#define BE_MOUTH_DY       (-52.0f) /* 龙头（贴图顶端）相对龙中心的 y：256 × 0.45 / 2 ≈ 58，头尖略进一点 */
 
 typedef struct {
     int32_t  hp;

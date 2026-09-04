@@ -6,6 +6,7 @@
 
 | `POT_OF_GREED.png` | 强欲之壶（id 63） | 用户原创（1122×1402，4:5 满版） | `fit_card.py POT_OF_GREED … --no-detect --trim 0 --margin 0`：1:1 缩到 256×320 |
 | `JUDGMENT.png` | 神之宣告（id 66） | 同上 | 同上 |
+| `BLUE_EYES.png` | 青眼白龙（id 67） | 用户原创（1122×1402，白底立绘） | 同上（`--no-detect --trim 0 --margin 0`）。场上的龙用另一张俯视图：`ability/blue_eyes/_src/BLUE_EYES_TOPDOWN.png`（黑底），`ability/make_blue_eyes_art.py` 抠黑底出 256×256 |
 | `english_pattern/*.svg` | 黑桃 10/J/Q/K/A（id 58–62） | Wikimedia Commons，Dmitry Fomin，CC0 | 见该目录 README：渲染 640 高 → `fit_card.py --no-detect --trim 0 --bg '#ffffff'`（两侧白底填充） |
 
 现成卡图一律走 `fit_card.py`，别手工缩。

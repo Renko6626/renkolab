@@ -81,10 +81,11 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
         ce_play_sound(BE_SE_BEAM, s->x);
         ce_log("blue_eyes: wave %u start at frame %u (hp %d, cap %d)", s->waves, s->frames, s->hp, *(int32_t *)(p + CE_PLAYER_DAMAGE_CAP));
     }
-    if (st.beam_dmg && s->y > 0.0f) {                      /* 光束：从龙口到区域顶边（y = 0）的矩形 */
-        float center[3] = { s->x, s->y * 0.5f, s->z };
-        ce_damage_rect(center, 0.0f, 2, st.beam_dmg, BE_BEAM_WIDTH, s->y);
-        ce_anm_set_pos(s->beam_id, s->x, s->y - BE_BEAM_SPRITE_H * 0.5f, s->z);
+    float mouth_y = s->y + BE_MOUTH_DY;                    /* 龙头 y */
+    if (st.beam_dmg && mouth_y > 0.0f) {                   /* 光束：从龙头到区域顶边（y = 0）的矩形 */
+        float center[3] = { s->x, mouth_y * 0.5f, s->z };
+        ce_damage_rect(center, 0.0f, 2, st.beam_dmg, BE_BEAM_WIDTH, mouth_y);
+        ce_anm_set_pos(s->beam_id, s->x, mouth_y - BE_BEAM_SPRITE_H * 0.5f, s->z);
     }
     if (elapsed % 60 == 0 && blocked) ce_log("blue_eyes: hp %d (blocked %u, frame %u)", s->hp, s->blocked, s->frames);
     if (st.died) {
