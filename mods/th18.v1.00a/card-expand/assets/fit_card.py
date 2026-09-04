@@ -5,6 +5,7 @@
     python3 fit_card.py NAME src.png --trim 0 --bg '#000000'     # 等比缩放居中、不修边、黑底
     python3 fit_card.py NAME src.png --no-detect                 # 不做去白边，整图直接放
 
+⑥ 默认再套零售同款边框（cardframe.py，--no-frame 关）。
 步骤：① 去白边（非白像素的包围盒）② 上下各修 --trim 比例 ③ 缩到高 320 − 2·margin：默认等比、居中；
 --fill 时宽直接拉到 256（不保比例，两侧不留底色）④ 贴到 --bg 底色的 256×320 上 ⑤ _min = 整图缩到 64×80。
 """
@@ -13,6 +14,8 @@ import sys
 from pathlib import Path
 
 from PIL import Image
+
+import cardframe
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "cards"
@@ -56,12 +59,17 @@ def main():
     ap.add_argument("--margin", type=int, default=8, help="上下留白像素（默认 8）")
     ap.add_argument("--no-detect", action="store_true", help="不做去白边")
     ap.add_argument("--fill", action="store_true", help="横向拉伸到满宽 256（不保比例；上下仍留 margin）")
+    ap.add_argument("--no-frame", action="store_true", help="不加零售同款边框（默认加，cardframe.py）")
     ap.add_argument("--out", default=str(OUT))
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     big = fit(a.src, a.trim, a.bg, not a.no_detect, a.margin, a.fill)
-    big.save(out / f"{a.name}_max.png")
+    if a.no_frame:
+        big.save(out / f"{a.name}_max.png")
+    else:
+        big = cardframe.apply_frame(big)                      # 零售同款边框（画面等比覆盖 220×284）
+        cardframe.save_framed(big, out / f"{a.name}_max.png")
     big.resize((MIN_W, MIN_H), Image.LANCZOS).save(out / f"{a.name}_min.png")
     print(f"{a.name}: {a.name}_max.png {MAX_W}x{MAX_H} · {a.name}_min.png {MIN_W}x{MIN_H}  ← {a.src.name}"
           f"{'  [fill]' if a.fill else ''}")

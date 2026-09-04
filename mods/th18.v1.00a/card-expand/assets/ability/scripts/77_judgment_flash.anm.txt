@@ -6,12 +6,12 @@ script script77 {
     type(1);
     zWriteDisable(1);
     anchor(0, 0);
-    scale(1.25f, 1.25f);
+    scale(1.5f, 1.5f);
     alpha(0);
     pos(0.0f, 236.0f, 0.0f);
 0:
     alphaTime(12, 0, 140);
-    scaleTime(75, 0, 1.45f, 1.45f);
+    scaleTime(75, 0, 1.7f, 1.7f);
     posTime(75, 0, 0.0f, 212.0f, 0.0f);
 +45: // 45
     alphaTime(30, 0, 0);

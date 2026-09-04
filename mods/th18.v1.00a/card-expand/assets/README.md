@@ -21,6 +21,11 @@
 
 第三方 / 原始素材放 `cards/_src/`（原件 + 出处 README）。
 
+**边框**：零售 117 张卡共用同一个框（外 3 px 黑 → 13 px 深色斜面、边中高光 → 内 2 px 黑，画面区 220×284）。
+`cardframe.py` 按量出来的参数程序合成它（仓库里不放零售像素），`fit_card.py` 默认套上（`--no-frame` 关）；
+`python3 cardframe.py` 给 `cards/*_max.png` 补框并重出 `_min`（PNG 里记 `renkolab-frame=1`，重复跑不会套两层）。
+画面按等比覆盖 220×284 居中裁（宽裁 ~1.4%），不拉伸。`ability.anm` 里的卡图副本引用同一批 PNG，一起带框。
+
 ## 索引怎么来
 
 零售 `abcard.anm` 有 118 个 entry（0..117），**一个 entry 一个 sprite，sprite 号 = entry 号**，
