@@ -46,10 +46,7 @@ int      ce_new_card_initial_unlocked(unsigned i);
 unsigned ce_dev_deck_count(void);
 uint32_t ce_dev_deck_id(unsigned i);
 int      ce_dev_trace(void);
-int      ce_dev_start_money(void);   /* cards_dev.js start_money，-1 = 不动；只在 MONEY == 0 时写（开局那次）*/
-int      ce_dev_deck_force(void);    /* start_deck_force：非空格也换 */
-unsigned ce_dev_owned_count(void);   /* start_owned：开局直接置 owned[]（不发卡）*/
-uint32_t ce_dev_owned_id(unsigned i);
+int      ce_dev_start_money(void);   /* cards_dev.js start_money，-1 = 不动 */
 /* 行为 SDK（sdk.c）：门里核对 + 对账；返回 1 = 通过 */
 int      ce_sdk_setup(uint8_t *module_base, int trace);
 /* 战线 E 第二块（menu.c）：顺序表重排、图鉴条目数、站点核对 */

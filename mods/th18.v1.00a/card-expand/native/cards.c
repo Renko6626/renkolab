@@ -160,21 +160,15 @@ static uint32_t s_dev_deck[16];
 static unsigned s_dev_deck_n;
 static int      s_dev_trace;
 static int      s_dev_start_money = -1;
-static int      s_dev_deck_force;
-static uint32_t s_dev_owned[32];
-static unsigned s_dev_owned_n;
 
 unsigned ce_dev_deck_count(void)      { return s_dev_deck_n; }
 uint32_t ce_dev_deck_id(unsigned i)   { return i < s_dev_deck_n ? s_dev_deck[i] : 0; }
 int      ce_dev_trace(void)           { return s_dev_trace; }
 int      ce_dev_start_money(void)     { return s_dev_start_money; }   /* -1 = 不动 */
-int      ce_dev_deck_force(void)      { return s_dev_deck_force; }
-unsigned ce_dev_owned_count(void)     { return s_dev_owned_n; }
-uint32_t ce_dev_owned_id(unsigned i)  { return i < s_dev_owned_n ? s_dev_owned[i] : 0; }
 
 static void load_dev_config(uint8_t *cave, unsigned rows)
 {
-    s_dev_deck_n = 0; s_dev_trace = 0; s_dev_start_money = -1; s_dev_deck_force = 0; s_dev_owned_n = 0;
+    s_dev_deck_n = 0; s_dev_trace = 0; s_dev_start_money = -1;
     int retail_w = -1, new_w = -1;
     json_t *root = p_stack_game_json_resolve("cards_dev.js", NULL);
     if (!root) return;
@@ -195,18 +189,6 @@ static void load_dev_config(uint8_t *cave, unsigned rows)
         if (rw && rw->type == J_INTEGER) retail_w = (int)p_json_integer_value(rw);
         const json_t *nw = p_json_object_get(root, "new_weight");
         if (nw && nw->type == J_INTEGER) new_w = (int)p_json_integer_value(nw);
-        const json_t *df = p_json_object_get(root, "start_deck_force");
-        s_dev_deck_force = df && df->type == J_TRUE;
-        const json_t *ow = p_json_object_get(root, "start_owned");
-        if (ow && ow->type == J_ARRAY) {
-            size_t n = p_json_array_size(ow);
-            for (size_t i = 0; i < n && s_dev_owned_n < sizeof s_dev_owned / sizeof s_dev_owned[0]; ++i) {
-                const json_t *v = p_json_array_get(ow, i);
-                long long id = v && v->type == J_INTEGER ? p_json_integer_value(v) : -1;
-                if (id < 1 || id >= CE_MAX_ROWS) { ce_log("cards_dev: start_owned[%u] invalid — ignored", (unsigned)i); continue; }
-                s_dev_owned[s_dev_owned_n++] = (uint32_t)id;
-            }
-        }
         const json_t *sm = p_json_object_get(root, "start_money");
         if (sm && sm->type == J_INTEGER && p_json_integer_value(sm) >= 0 && p_json_integer_value(sm) <= 9999)
             s_dev_start_money = (int)p_json_integer_value(sm);
@@ -214,8 +196,8 @@ static void load_dev_config(uint8_t *cave, unsigned rows)
         ce_log("cards_dev: cards_dev.js root is not an object — ignored");
     p_json_decref_safe(root);
     unsigned changed = ce_weight_override(cave, rows, retail_w, new_w, s_ids, s_count);
-    ce_log("cards_dev: start_deck has %u ids (force=%d), start_owned %u ids, trace=%d, retail_weight=%d new_weight=%d (%u rows changed), start_money=%d",
-           s_dev_deck_n, s_dev_deck_force, s_dev_owned_n, s_dev_trace, retail_w, new_w, changed, s_dev_start_money);
+    ce_log("cards_dev: start_deck has %u ids, trace=%d, retail_weight=%d new_weight=%d (%u rows changed), start_money=%d",
+           s_dev_deck_n, s_dev_trace, retail_w, new_w, changed, s_dev_start_money);
 }
 
 /* ---- 入口 ---- */
