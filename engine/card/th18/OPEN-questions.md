@@ -4,38 +4,24 @@
 > **用途**：把「已知不知道」集中登记，免得散落在各篇的 Follow-up 里被忘掉。
 > 本文**不下结论**，只钉住问题、已有线索和验法。
 
-## 1. 🟡 装备卡的子机 shooter 数据存在哪（本子系统最大的缺口）
+## 1. ✅ 已解决（2026-09-05）：装备卡的子机 shooter 数据存在哪
 
-**问题**：装备卡（`CardReimu1/2`、`CardMarisa1/2`、`CardSakuya1/2`、`CardSanae1/2`、
-`CardYoumu`、`CardAlice`、`CardCirno`、`CardOkina`、`CardNue`、`CardMisumaru`）
-每张生成一个子机，每射击帧按**逐卡烘死的索引**取一张 shooter 表开火。索引能到 `0x15`(21)，
-但 `th18.dat` 解包只有 `pl00`–`pl03` 四个 `.sht`。**那这些表到底存在哪？**
+**答案：假设 1 成立** —— 就在四个 `pl0X.sht` 里。`+0xe0` 是一张 **40 项**的 shooterset 偏移数组
+（数据区起点 `+0x180` 是硬编码常量），其中：
 
-**已知一手线索**：
+| 索引 | 内容 |
+| --- | --- |
+| `0x00`–`0x09` | 自机主炮（火力档 0–4 × 非聚焦/聚焦）|
+| **`0x0a`–`0x16`** | **13 组装备卡子机弹幕**，四个角色的文件同构（所以卡里能把索引烘死成立即数）|
+| `0x17`–`0x27` | 空位（值 0），17 个 |
 
-- 取表点（`Player__tick_shooters_for_ability_card` `0x40A9C0`、`Player__tick_shooting_state` `0x45EA00`）：
+全文见 [`../../sht/th18/01-file-layout-and-shooterset-index.md`](../../sht/th18/01-file-layout-and-shooterset-index.md)
+（布局 / 装载解析 / 索引分配）与 [`../../sht/th18/02-shooter-record.md`](../../sht/th18/02-shooter-record.md)
+（`0x5c` 字段图 / 发射判定 / 瞄准链路）。另外两个假设**被证伪**：表不在 exe 的 `.rdata`（假设 2），
+索引也不跨卡复用（假设 3，11 张卡 11 个不同索引 + Sakuya 按聚焦占两个）。
 
-  ```c
-  shooter_table = *(char**)( *(int*)(PLAYER_PTR + 0x47940) + 0xe0 + index*4 );
-  ```
-
-  表项 stride `0x5c`，符号位（`*ptr < 0`）终止 —— 与 `th16:` 的 SHT shooterset 同形（TH16 stride 0x58）。
-- 玩家本体的基础 shot **也**走同一个 `+0x47940` / `+0xe0` / `idx*4`，两条发射路径并行。
-- 逐卡索引见 [`08-catalog.md`](08-catalog.md) §D。
-
-**待验假设**（互斥，逐个验）：
-
-1. **4 个 `pl0X.sht` 其实很大**，内部 `+0xe0` 是按 index 寻址的 shooter-表指针数组，
-   把该角色所有可用卡的支援弹幕都打包进去。
-   *验法*：反出谁写 `PLAYER + 0x47940`；看它读哪个 `.sht`、文件多大、`+0xe0` 数组多长；
-   再对 `pl00.sht` 做字节布局，数 shooterset 个数是否 ≥ 0x16。
-2. **表内嵌在 exe 的 `.rdata`**，`+0x47940` 指向静态结构。
-   *验法*：`get_xrefs_to` 写 `+0x47940` 的点；源是 exe 全局而非堆分配的 `.sht` 缓冲则成立。
-3. **index 跨「角色 × 卡」复用同一张表**，索引数 < 卡数。
-   *验法*：统计所有 `on_tick_shooters` override 里 index 取值集合的大小。
-
-**参照**：[`../../sht/th16/07-shooterset-organization.md`](../../sht/th16/07-th16-shooterset-organization.md)
-（TH16 的 shooterset 组织，待验是否跨作同构）。
+对 mod 的两条推论：**子机与其子弹的贴图都取自 `ability.anm`**；**瞄准 = 写 `player+0x479cc` +
+`func_on_init = 5`**。见 [`03-hooks.md`](03-hooks.md) §5。
 
 ## 2. 🟡 `zTableCardData` 仍未知的字段
 

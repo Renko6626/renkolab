@@ -127,5 +127,16 @@
   shooter_table = *(char**)( *(int*)(PLAYER_PTR + 0x47940) + 0xe0 + index*4 );
   ```
 
-  逐卡索引与子机偏移见 [`08-catalog.md`](08-catalog.md) §D；**这些 shooter 表存在哪**仍是开放问题
-  → [`OPEN-questions.md`](OPEN-questions.md)。
+  逐卡索引与子机偏移见 [`08-catalog.md`](08-catalog.md) §D。**「这些 shooter 表存在哪」已经解决**
+  （2026-09-05）：就在 `pl0X.sht` 里，`+0xe0` 那张 40 项偏移数组的第 `0x0a`–`0x16` 项，四个角色的文件同构 ——
+  见 [`../../sht/th18/01-file-layout-and-shooterset-index.md`](../../sht/th18/01-file-layout-and-shooterset-index.md)。
+
+三条对写卡的人有用的推论（一手，出处见 [`../../sht/th18/02-shooter-record.md`](../../sht/th18/02-shooter-record.md)）：
+
+- **子机的贴图与子弹的贴图都取自 `ability.anm`**：`allocate_option` 的最后一个参数是 `ability.anm`
+  的脚本号（Reimu 用 2、Alice 用 `0x10`）；`0x40A9C0` 开火期间把 `player+0x10` 换成
+  `AbilityManager->ability_anm`，于是 shooter 的 `+0x22` 也按 `ability.anm` 解释，打完还原。
+- **瞄准**：把角度写进 `player+0x479cc`，并让该组 shooter 的 `func_on_init = 5`（`0x4612d0` 会用它
+  覆写 `bullet+0x64`）。这是 `CardAlice` 的做法，零售天天在跑。
+- **`+0x1c` 只在按住射击键时广播**（`0x45EA00` 里被 `short_timer != prev` 那层门罩着）；
+  想要不按射击键也定时开火，得自己在别的槽里调 `0x40A9C0` 并自带计时器。
