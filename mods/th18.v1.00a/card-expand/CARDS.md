@@ -74,6 +74,7 @@ script90 火花在命中点。瞄准角与距离是自己的确定性算术（�
 **不改任何游戏资源文件**——第一版曾追加 `pl0X.sht` 的 shooterset 让子机真开火，后来改掉：自机弹天生要飞过去，
 与「瞬发单体」相悖。那条链的研究（[`engine/sht/th18/`](../../../engine/sht/th18/README.md)）与工具
 （`assets/sht/`）留着给以后真需要「子机连射」的卡。卡图（青色裂核，白底放大居中）与场上电球（黄绿球）是用户原创，电弧（黄白闪电链）程序生成——都过 `assets/ability/make_broken_core_art.py`；卡图 sprite 144/145。
+`category: 1`（子机装备）：图鉴 / 编成里排在零售子机卡 REIMU_OP…MAGATAMA 那一段之后（2026-09-06 起顺序表按类别插入，见 DATA.md `category`）。
 
 ## 约定
 
@@ -81,4 +82,5 @@ script90 火花在命中点。瞄准角与距离是自己的确定性算术（�
   这种卡 `deck_visible: 0`（编成里不列，初始携带不调 ctor 会变成死卡）、`repeatable: 1`（可再刷出）。
 - 「随机」一律走游戏自己的 RNG 或确定性计数，不引入自己的随机源（replay）。
 - 主动卡：`category: 0`，`active_recharge` 给帧数（零售瞬发卡 20–60 s），`on_activate` 返回 0 瞬发 / 1 持续。
+- `category` 决定图鉴 / 编成里排在哪一段：0 主动（RICEBALL 之后）、1 子机装备（MAGATAMA 之后）、2 被动（MAGATAMA2 之后）。
 - 文案不能含 ASCII `%`，用 `％`。

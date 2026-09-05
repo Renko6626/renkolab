@@ -135,3 +135,30 @@ unsigned ce_weight_override(uint8_t *table, unsigned nrows, int retail_weight, i
     }
     return changed;
 }
+
+unsigned ce_build_order(uint32_t *out, unsigned cap,
+                        const uint32_t *retail, const uint32_t *retail_cat, unsigned nretail,
+                        const uint32_t *new_ids, const uint32_t *new_cat, unsigned nnew,
+                        uint32_t null_row, uint32_t back_row)
+{
+    unsigned n = 0;
+    if (nretail + nnew + 1 > cap) return 0;
+    for (unsigned i = 0; i < nretail; ++i) {
+        out[n++] = retail[i];
+        int last_of_cat = 1;                                   /* i 是不是该类别在零售表里的最后一张 */
+        for (unsigned j = i + 1; j < nretail; ++j)
+            if (retail_cat[j] == retail_cat[i]) { last_of_cat = 0; break; }
+        if (!last_of_cat) continue;
+        for (unsigned k = 0; k < nnew; ++k)
+            if (new_cat[k] == retail_cat[i]) out[n++] = new_ids[k];
+    }
+    for (unsigned k = 0; k < nnew; ++k) {                      /* 类别在零售表里不存在的：排最后 */
+        int seen = 0;
+        for (unsigned i = 0; i < nretail; ++i) if (retail_cat[i] == new_cat[k]) { seen = 1; break; }
+        if (!seen) out[n++] = new_ids[k];
+    }
+    unsigned visible = n;
+    out[n++] = null_row;
+    for (; n < cap; ++n) out[n] = back_row;
+    return visible;
+}

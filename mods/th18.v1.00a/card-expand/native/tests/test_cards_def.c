@@ -159,8 +159,28 @@ static void test_weight_override(void)
     #undef W
 }
 
+static void test_build_order(void)
+{
+    /* 零售缩影：3 资源、1 子机、2 被动、0 主动 分块；新卡 100(被动) 101(子机) 102(主动) 103(类别 9 不存在) 104(子机) */
+    const uint32_t retail[]     = { 1, 2, 8, 9, 21, 22, 41, 42 };
+    const uint32_t retail_cat[] = { 3, 3, 1, 1, 2,  2,  0,  0 };
+    const uint32_t new_ids[]    = { 100, 101, 102, 103, 104 };
+    const uint32_t new_cat[]    = { 2,   1,   0,   9,   1 };
+    uint32_t out[16];
+    unsigned vis = ce_build_order(out, 16, retail, retail_cat, 8, new_ids, new_cat, 5, 56, 57);
+    const uint32_t want[16] = { 1, 2, 8, 9, 101, 104, 21, 22, 100, 41, 42, 102, 103, 56, 57, 57 };
+    CHECK(vis == 13);
+    for (unsigned i = 0; i < 16; ++i) CHECK(out[i] == want[i]);
+    /* 没有新卡：零售原序 + NULL + BACK */
+    vis = ce_build_order(out, 16, retail, retail_cat, 8, NULL, NULL, 0, 56, 57);
+    CHECK(vis == 8 && out[8] == 56 && out[9] == 57);
+    /* 放不下：返回 0 */
+    CHECK(ce_build_order(out, 13, retail, retail_cat, 8, new_ids, new_cat, 5, 56, 57) == 0);
+}
+
 int main(void)
 {
+    test_build_order();
     test_weight_override();
     test_defaults();
     test_text_ok();

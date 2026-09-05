@@ -16,7 +16,7 @@
 | 3 | 本局「已拥有」记录 | `zAbilityManager.owned[]` `+0xc84` int[56] | 56，对象止于 `0xd70` | 对象扩到 `0x116c`，数组搬到 `+0xd70` | ✅ |
 | 4 | 解锁状态可读、可写、可存档 | `zScoreFile.unlocked_cards` `+0x5f588` uint8[57] | 57，在存档里 | 影子数组 codecave + side-car 文件；零售 id 仍写存档 | ✅ |
 | 5 | 名字与说明 | `zAbilityText` `0x63e0` = 57 × `0x1c0` | 57，对象尾部就是别的字段 | 不扩对象，3 处读按 id 重定向到 DLL 缓冲 | ✅ |
-| 6 | 在图鉴 / 卡组编成里出现 | 显示顺序表 `0x4b3600` 57 项；`zAbilityMenu.__card_ids[56]`；条目数 `0x38` ×7 | 57 / 56 / 56 | 顺序表搬迁重排；对象扩容；条目数由 DLL 现写 56+N | ✅ |
+| 6 | 在图鉴 / 卡组编成里出现 | 显示顺序表 `0x4b3600` 57 项；`zAbilityMenu.__card_ids[56]`；条目数 `0x38` ×7 | 57 / 56 / 56 | 顺序表搬迁重排（新 id 按类别插进零售同类别区段末尾，`ce_build_order`）；对象扩容；条目数由 DLL 现写 56+N | ✅ |
 | 7 | 在商店里出现 | `AbilityShop` 三处循环只看前 56 个 id；随机池 560 份、offer 57 槽 | 56 | 上界 → rows；cave 里 NULL/BACK 行 `+0x14 := 6` 排除幻影；容量装载时现算 | 🔧 待实跑 |
 | 8 | 卡图 | `abcard.anm` 的 sprite，行里 `+0x2c/+0x30` | 零售 118 个 sprite（= entry 号） | [`assets/`](assets/README.md)：两张 PNG + ORDER → `make anm` 重编 `abcard.anm`（118 起追加）→ 随 `_255` 整文件替换；JSON 填索引；DLL 不碰 | 🔧（工具就位，黑桃五张 118–127 待实跑）|
 | 9 | 行为 | 跳转表指向的构造器 + 虚表 | — | 跳转表不动：断点 `ce_card_bind`（`0x412cec`）把登记了行为的 id 的对象虚表换成 DLL 里的拷贝，槽是 C 写的 `thiscall` 桩（[`SDK.md`](SDK.md)）| 🔧 待实跑 |

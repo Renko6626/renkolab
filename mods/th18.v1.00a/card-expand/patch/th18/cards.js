@@ -197,7 +197,7 @@
     ],
     "internal_name": "BROKEN_CORE",
     "initial_unlocked": 1,
-    "category": 2,
+    "category": 1,
     "price_tier": 8,
     "weight": 2,
     "sprite_large": 144,

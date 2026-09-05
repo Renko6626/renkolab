@@ -6,7 +6,7 @@
  *
  * patch 已把顺序表搬进 codecave（255 项，尾界 = 255 项处）、把 __card_ids 从 +0x304
  * 搬到对象尾部 +0x13fc（255 项）、把编成前的清理循环抬到 255。这里在门里做剩下的：
- *   1. 重排顺序表：[零售 0..55, 已注册的新 id…, 56(NULL=空槽), 其余填 57(BACK)]
+ *   1. 重排顺序表：[零售 0..55 原序，新 id 按类别插进同类别区段末尾（ce_build_order）, 56(NULL=空槽), 其余填 57(BACK)]
  *      57 在编成里不可见（+0x20 = 0），图鉴按条目数走不到它。
  *   2. 把图鉴条目数的 7 处立即数写成 56 + N。两处是 cmp r,imm8（符号扩展）→ 条目数 ≤ 127。
  *   3. 核对 patch 的 27 处（7 顺序表 + 20 zAbilityMenu）都打上了。
@@ -15,6 +15,7 @@
  */
 #include <string.h>
 #include "card_expand.h"
+#include "engine.h"       /* CE_FN_TABLE_GET：按 id 取表行（类别在 +0x0c）*/
 
 static int write_code(uint8_t *p, const void *src, unsigned n)
 {
@@ -46,7 +47,16 @@ static int check_sites(uint8_t *base, uint32_t *order)
     return bad == 0;
 }
 
-/* 顺序表重排。零售表 [56] 必须是 56（NULL），否则这不是我们认识的表。 */
+/* 顺序表重排。零售表 [56] 必须是 56（NULL），否则这不是我们认识的表。
+ * 新卡不再一股脑排在零售之后，而是按类别（表行 +0x0c）插进零售同类别区段的末尾（ce_build_order，主机单测）：
+ * 装备卡跟着 REIMU_OP…MAGATAMA 那一段、被动跟着 MAGATAMA2、主动跟着 RICEBALL。类别从已填好的表里读（门里此时表已装载）。*/
+typedef uint8_t *(__attribute__((fastcall)) *menu_table_get_t)(uint32_t id);
+static uint32_t card_category(uint32_t id)
+{
+    const uint8_t *row = ((menu_table_get_t)CE_FN_TABLE_GET)(id);
+    return row ? *(const uint32_t *)(row + 0x0c) : 4u;         /* 4 = 哨兵类别：零售表里没有 → 排最后 */
+}
+
 static int rebuild_order(uint8_t *base, uint32_t *order)
 {
     const uint32_t *retail = (const uint32_t *)(base + CE_ORDER_RVA);
@@ -54,15 +64,22 @@ static int rebuild_order(uint8_t *base, uint32_t *order)
         ce_verdict("FAIL: retail order table [%u] = %u, expected %u", CE_ORDER_COUNT - 1, retail[CE_ORDER_COUNT - 1], CE_NULL_ROW);
         return 0;
     }
-    unsigned n = 0, N = ce_new_card_count();
-    for (unsigned i = 0; i < CE_ORDER_COUNT - 1; ++i) order[n++] = retail[i];
+    static uint32_t retail_cat[CE_ORDER_COUNT], new_ids[CE_MAX_ROWS], new_cat[CE_MAX_ROWS];
+    unsigned N = ce_new_card_count();
+    for (unsigned i = 0; i < CE_ORDER_COUNT - 1; ++i) retail_cat[i] = card_category(retail[i]);
     for (unsigned i = 0; i < N; ++i) {
         uint32_t id = ce_new_card_id(i);
         if (id < CE_RETAIL_UNLOCKED || id >= CE_MAX_ROWS) { ce_verdict("FAIL: registered new card id %u out of range", id); return 0; }
-        order[n++] = id;
+        new_ids[i] = id;
+        new_cat[i] = card_category(id);
     }
-    order[n++] = CE_NULL_ROW;
-    for (; n < CE_MAX_ROWS; ++n) order[n] = CE_ORDER_COUNT;        /* 57 = BACK：不可见 */
+    unsigned vis = ce_build_order(order, CE_MAX_ROWS, retail, retail_cat, CE_ORDER_COUNT - 1, new_ids, new_cat, N, CE_NULL_ROW, CE_ORDER_COUNT);
+    if (vis != CE_ORDER_COUNT - 1 + N) { ce_verdict("FAIL: order table overflow (%u visible)", vis); return 0; }
+    for (unsigned i = 0; i < N; ++i) {
+        unsigned pos = 0;
+        while (pos < vis && order[pos] != new_ids[i]) ++pos;
+        ce_log("menu: new card %u (category %u) at order[%u], after id %u", new_ids[i], new_cat[i], pos, pos ? order[pos - 1] : 0);
+    }
     return 1;
 }
 

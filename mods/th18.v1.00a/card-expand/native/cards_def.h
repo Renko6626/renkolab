@@ -58,3 +58,12 @@ unsigned ce_weight_override(uint8_t *table, unsigned nrows, int retail_weight, i
 
 int  ce_shop_capacity_check(const uint8_t *table, unsigned nrows, unsigned *pool, unsigned *guaranteed,
                             char *err, unsigned cap);
+
+/* 显示顺序表（图鉴 / 编成共用）：零售 56 项原序不动，**新卡按类别插进对应区段末尾**——零售表本身就是按类别分块的
+ * （0 主动 / 1 子机装备 / 2 被动能力 / 3 资源；BLANK 是块首的例外，不管它）。每个新 id 排在「最后一张同类别零售卡」之后，
+ * 同类别新卡之间保持注册顺序；类别在零售表里不存在的新卡排在所有零售卡之后。然后 null_row（编成空槽），余下填 back_row。
+ * 返回可见条目数（零售 + 新卡），= 图鉴条目数。out 至少 cap 项；nretail + nnew + 1 > cap 时返回 0。*/
+unsigned ce_build_order(uint32_t *out, unsigned cap,
+                        const uint32_t *retail, const uint32_t *retail_cat, unsigned nretail,
+                        const uint32_t *new_ids, const uint32_t *new_cat, unsigned nnew,
+                        uint32_t null_row, uint32_t back_row);

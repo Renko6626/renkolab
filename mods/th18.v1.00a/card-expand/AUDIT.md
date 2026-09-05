@@ -327,6 +327,7 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 | M8 | 顺序表填充值 57（BACK）在两个菜单里都不可见 | **CONFIRMED** —— 编成循环先查 `+0x20`（`0x4149de cmp [eax],0`），BACK 行 `+0x20 = 0` → 跳过；图鉴按条目数 56+N 走，填充在 NULL(56) 之后走不到 |
 | M9 | 图鉴条目非 7 的倍数（56+N）时最后一行能到 | **CONFIRMED（实跑，2026-09-02）** —— 57 条目，图鉴里第 57 项「测试卡牌 58」可达可选；编成里也能选进卡组。翻页代码 `sub_415b70` 对非整行无特殊处理 |
 | M10 | 门里写代码段的时机 | **CONFIRMED** —— `ce_gate` 在 `ScoreFile__load` 入口，主菜单 / 任何 `zAbilityMenu` 都还没创建；`VirtualProtect` 与 `restore_alloc_bound` 同一做法；写之前核对该处仍是 `0x38` |
+| M12 | 新卡按类别插进零售顺序表的同类别区段（2026-09-06） | **CONFIRMED（主机单测）** —— 见下「M12 证据」；可见条目数仍 = 56 + N，M2 / M8 / M9 的结论不变 |
 | M11 | 新增 27 处 binhack 全同长、只换常量 | **CONFIRMED** —— `make verify`；新旧字节各喂 objdump 逐条比对（`push 0x13fc→0x17f8`、`[edi+eax*4+0x304]→[…+0x13fc]`、`[esi-0x4e8]→[esi+0xc10]`、顺序表 6 处 `[r*4+T]→[r*4+cave]`、尾界 `cmp eax,T_END→cave+0x3fc`）|
 
 
@@ -356,6 +357,11 @@ E5 已经说明它验不了 binhack；这一条说明它连「表填了没」都
 直接 `+0x304` 14 处；`0x4145d2 [esi-0x4e8]`（esi 走 `+0x7ec`）、`0x414b3f [eax-0x8e8]`（eax 走 `+0xbec`）→
 改成 `+0xc10` / `+0x810`，`0x7ec+0xc10 = 0xbec+0x810 = 0x13fc`。全二进制 `+0x304` 的其它 6 处在
 `0x405e21..0x406349`（另一类对象）与 CRT `0x491b26`，不是菜单。
+
+**M12 证据**：零售表 `0x4b3600` 逐张读表行 `+0x0c`：0..55 依次是 BLANK(2)、资源(3)×7、子机装备(1)×14（REIMU_OP…NUE_OP、MAGATAMA）、
+被动(2)×21、主动(0)×12、MAGATAMA2(2)——本来就按类别分块。`ce_build_order`（`cards_def.c`，`test_cards_def` 覆盖）把每个新 id 排在
+「最后一张同类别零售卡」之后、同类别新卡保持注册序，类别在零售表里不存在的排在所有零售卡之后，再 NULL(56)、余下 BACK(57)。
+类别从已装载的表读（`0x407d70` fastcall(id)，门里此时表已填）；日志 `menu: new card <id> (category c) at order[i], after id <prev>` 逐张打出。
 
 **实跑通过**（2026-09-02，用户报告；见 §0）。
 
