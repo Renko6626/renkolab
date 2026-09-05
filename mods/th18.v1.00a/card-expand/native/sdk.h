@@ -96,6 +96,11 @@ static inline void ce_play_sound(uint32_t id, float x)
 #include "voice_ids.h"
 #define ce_play_voice(NAME, x)  ce_play_sound(CE_VOICE_##NAME, (x))
 
+/* 炸弹：直接调引擎自己的 do_bomb（无参 cdecl）。返回 0 = 放出去了，-1 = 被它自己的守卫拦下
+ * （已经在放 / +0xa0 非零）——**失败是安全的，什么都不会发生**。扣炸弹数由它内部做且钳 0，
+ * 所以哪怕 CURRENT_BOMBS 已经是 0 也不会扣成负数，调用方不用碰计数器。AUDIT §R。 */
+static inline int ce_do_bomb(void) { return ((int (*)(void))CE_FN_DO_BOMB)(); }
+
 /* ANM：从一个已装载的 anm（CE_ABILITY_ANM() / 取 CE_MGR_ABCARD_ANM）起脚本，挂 world 列表，实体坐标 (0,0,0)
  * = 场地正中（脚本里 originMode(1)）。返回 anm id（0 = 失败）。脚本自己 delete() 的一次性特效不用记 id。
  * 只能在主线程（桩 / 断点里）调；引擎函数 thiscall + ret 0x10，四个栈参由被调方清（AUDIT O24）。*/
