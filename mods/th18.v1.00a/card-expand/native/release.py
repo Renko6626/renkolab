@@ -8,7 +8,7 @@ renkolab 是开发仓库，th18_modkit 是发布仓库（朋友 clone 下来一�
 Windows 那边只负责 `git pull`。
 
 只覆盖**生成物**：三个 patch 的 th18.v1.00a.js、它们的 files.js、DLL、_255 的 th18/cards.js、th18/voice.js 与
-th18/voice/*.wav（整目录镜像）与重建的 th18/abcard.anm、_test 的 cards_dev.js、
+th18/voice/*.wav（整目录镜像）与重建的 th18/abcard.anm / ability.anm / pl0X.sht、_test 的 cards_dev.js、
 _devstage 的 patch.js + 六关 ECL（这个 patch 整个以 renkolab 为准）。
 patch.js / 侧车 .json / README 是 modkit 里手工维护的文案，这里**不碰**。
 """
@@ -26,6 +26,10 @@ MAP = {                                   # dist 里的 → modkit 里的
     "patch-step3/th18/cards.js":  "thcrap/repos/Renko_1055/th18_card_expand_255/th18/cards.js",
     "patch-step3/th18/abcard.anm": "thcrap/repos/Renko_1055/th18_card_expand_255/th18/abcard.anm",
     "patch-step3/th18/ability.anm": "thcrap/repos/Renko_1055/th18_card_expand_255/th18/ability.anm",
+    "patch-step3/th18/pl00.sht": "thcrap/repos/Renko_1055/th18_card_expand_255/th18/pl00.sht",
+    "patch-step3/th18/pl01.sht": "thcrap/repos/Renko_1055/th18_card_expand_255/th18/pl01.sht",
+    "patch-step3/th18/pl02.sht": "thcrap/repos/Renko_1055/th18_card_expand_255/th18/pl02.sht",
+    "patch-step3/th18/pl03.sht": "thcrap/repos/Renko_1055/th18_card_expand_255/th18/pl03.sht",
     "patch-test/th18.v1.00a.js":  "thcrap/repos/Renko_1055/th18_card_expand_test/th18.v1.00a.js",
     "patch-test/th18/cards_dev.js": "thcrap/repos/Renko_1055/th18_card_expand_test/th18/cards_dev.js",
     "patch-devstage/patch.js":      "thcrap/repos/Renko_1055/th18_card_expand_devstage/patch.js",   # 这个 patch 的 patch.js 以 renkolab 为准
@@ -103,7 +107,7 @@ def main():
         for root, _dirs, names in os.walk(d):           # 递归：th18/cards.js 这类子目录文件也要进清单
             for n in sorted(names):
                 rel = os.path.relpath(os.path.join(root, n), d).replace(os.sep, "/")
-                if rel.endswith((".js", ".anm", ".ecl", ".wav")) and rel != "files.js":
+                if rel.endswith((".js", ".anm", ".ecl", ".wav", ".sht")) and rel != "files.js":
                     out[rel] = zlib.crc32(open(os.path.join(root, n), "rb").read()) & 0xffffffff
         out = dict(sorted(out.items()))
         f = os.path.join(d, "files.js")

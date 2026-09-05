@@ -36,7 +36,7 @@ def refresh(patch_dir):
         for name in sorted(names):
             full = os.path.join(root, name)
             rel = os.path.relpath(full, patch_dir).replace(os.sep, "/")
-            if rel == "files.js" or not rel.endswith((".js", ".anm", ".ecl", ".wav")):
+            if rel == "files.js" or not rel.endswith((".js", ".anm", ".ecl", ".wav", ".sht")):
                 continue
             cand.append((rel, full))
     skip = gitignored([f for _, f in cand], patch_dir)
