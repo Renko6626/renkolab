@@ -862,7 +862,7 @@ Miss 一次 → 残机一次少 **2**，日志
 | U10 | 判定框的 w / h / angle 约定 | **CONFIRMED** —— `0x45f0f0` 矩形分支：把 `敌人 − 源` 旋转 `−angle` 后，`w/2` 比沿 angle 的轴、`h/2` 比垂直轴，敌人按半径 `param_3` 的圆做圆角矩形判定。我们 angle = 0、24×24，就是轴对齐的小方块 |
 | U11 | 伤害走正常管线 | **CONFIRMED** —— 同一函数末尾 `min(本帧合计, player+0x47984)` 钳每帧上限、`0x4cccfc` 计分。与主炮 / 青眼同一条路 |
 | U12 | 伤害会被每帧上限钳 | **已知并接受** —— 80 要过 `player+0x47984`（每帧从 `sht+0x28` 复位）：Reimu 90 / Marisa 160 / Sanae 120 吃得下，**Sakuya 只有 60 会被钳**；同帧主炮也在打的话再分掉一部分。零售子机卡共有的规则 |
-| U13 | 电弧 / 火花 VM 的 pos / rotation / scale 由 C 写不会被脚本盖掉 | **CONFIRMED** —— script89 不碰 `rotate*`；它从第 1 帧起每帧 `scale(%F0, 随机 %F1)` 抖动，`%F0` = C 写进 `vm+0x4b4`（float_script_vars，ExpHP）的 scale.x，第 0 帧的 scale 由 C 直接写。script90 的 scaleTime 只在火花自己身上。rotation 字段 `vm+0x3c`（自机弹更新 `0x45edb0` 写 `+0x44` = rz）|
+| U13 | 电弧 / 火花 VM 的 pos / rotation / scale 由 C 写不会被脚本盖掉 | **CONFIRMED** —— 见下「U13 证据」 |
 | U14 | replay 安全 | **CONFIRMED** —— 节奏只依赖帧计数，目标只依赖敌人坐标，角度 / 距离是我们自己的确定性 SSE 算术（`bc_atan2f` 多项式、`sqrtss`；`-fno-math-errno` 让它不掉进 libm）。`make dllx87` 仍报 0 |
 | U15 | 不改任何游戏资源 | **CONFIRMED** —— 只多 `ability.anm` 的两个 entry + 三个脚本（本来就在重建）。`pl0X.sht` 不再发（`append_shooterset.py` 的 `APPEND` 为空 → 不产出；`release.py` 目录镜像会把 modkit 里旧的删掉）|
 | U16 | SHT 工具与研究仍成立 | **不受影响** —— `engine/sht/th18/` 两篇是独立结论；`assets/sht/append_shooterset.py` 的三条不变式校验照旧；`sdk.h` 的 `ce_tick_shooters_for_card` 留着（无调用者）。将来真要「子机连射」的卡，`APPEND` 加一项就回来 |
@@ -878,6 +878,10 @@ Miss 一次 → 残机一次少 **2**，日志
 反过来 **`card+0x1c` 是安全的**：`allocate_option` 自己往那儿写子机的 anm vm id，
 SDK 的对象布局里 `+0x18`/`+0x1c` 没人用（列表结点占 `0x0c`–`0x17`，计时器从 `0x20` 起）。
 零售的 `CardReimu1__operator_delete` `0x40ab20` 在析构时按它删 VM；我们在 `on_load` / `on_run_reset` 里做同一件事。
+
+**U13 证据**：script89 不碰 `rotate*`；第 0 帧的 scale 由 C 直接写，第 1 帧起脚本每帧
+`scale(%F0, 随机 %F1)` 抖动，其中 `%F0` = C 写进 `vm+0x4b4`（`float_script_vars`，ExpHP zAnmVmPrefix）的 scale.x。
+script90 的 `scaleTime` 只在火花自己身上。rotation 字段 `vm+0x3c`（自机弹每帧更新 `0x45edb0` 写 `+0x44` = rz）。
 
 **U8 证据**：`ce_damage_rect(center = 目标坐标, angle 0, life 2, dmg 80, 24 × 24)`。判定只罩住目标中心
 ±12 px；别的敌人要被打到得和目标叠在一起。这与 Remilia 脉冲（`0x40f4a6`，宽 32 矩形）、
