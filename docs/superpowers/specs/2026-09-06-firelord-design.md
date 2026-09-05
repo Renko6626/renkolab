@@ -40,6 +40,7 @@
 3. **重建子机**：`Player__repopulate_options_and_notify_cards`（this = `PLAYER+0x620`，一个哑栈参，`ret 4`）——Tsukasa 扣完**无条件**调，我们照做
    （扣 2 档时档数必变）。它顺手把 `on_power_level_change` 广播给所有卡（装备卡在此重建自己的子机，与零售一致）。
 
+召唤成功那帧在本体位置放一次与火球落地相同的爆炸演出（script94 光环 + 10 颗 script96 火星 + 小震屏，`impact_fx` 共用），像从火里冒出来。
 火力不足 → `0x10` 无效音、`CE_ACTIVATE_REFUSED`（充能退回），与青眼「残机 0 拒绝」同一条路。
 
 ### 2.2 移动

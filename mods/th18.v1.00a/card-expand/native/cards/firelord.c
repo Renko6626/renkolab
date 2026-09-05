@@ -38,6 +38,18 @@ static void bar_destroy(fl_state_t *s, int fade)
     s->bar_bg_id = 0; s->bar_id = 0;
 }
 
+/* 爆炸演出（火球落地 / 登场共用）：script94 光环 + FL_BURST 颗 script96 火星 + 小震屏。音效由调用方放（落地 0x2c、登场 0x4d + 语音）。*/
+static void impact_fx(float x, float y, float z)
+{
+    uint32_t b = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_BLAST, 13);
+    if (b) ce_anm_set_pos(b, x, y, z);
+    for (int i = 0; i < FL_BURST; i++) {
+        uint32_t q = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_EMBER, 13);
+        if (q) ce_anm_set_pos(q, x, y, z);
+    }
+    ce_screen_shake(FL_SHAKE_TIME, FL_SHAKE_START, FL_SHAKE_END);
+}
+
 static float player_x(void) { uint8_t *p = CE_PLAYER(); return p ? *(float *)(p + CE_PLAYER_X) : 0.0f; }
 
 static int refuse(const char *why)
@@ -104,6 +116,7 @@ static int on_activate(ce_card_t *c)
     s->bar_bg_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR_BG, 13);
     s->bar_id    = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR, 13);
     bar_update(s);
+    impact_fx(s->x, s->y + fl_bob_dy(s), s->z);            /* 登场：从火里冒出来（复用火球落地的光环 / 火星 / 震屏）*/
 
     /* 照 Tsukasa：spend_power → 无条件 repopulate（扣 2 档时档数必变；repopulate 顺手广播 on_power_level_change）*/
     int level_changed = ce_spend_power(FL_POWER_COST);
@@ -173,13 +186,7 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
     }
     if (st.ball_arrived) {                                 /* 打击感：爆炸光环 + 一圈火星 + 小震屏 + 0x2c */
         ce_anm_delete(s->ball_id); s->ball_id = 0;
-        uint32_t b = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_BLAST, 13);
-        if (b) ce_anm_set_pos(b, s->ex, s->ey, pz);
-        for (int i = 0; i < FL_BURST; i++) {
-            uint32_t q = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_EMBER, 13);
-            if (q) ce_anm_set_pos(q, s->ex, s->ey, pz);
-        }
-        ce_screen_shake(FL_SHAKE_TIME, FL_SHAKE_START, FL_SHAKE_END);
+        impact_fx(s->ex, s->ey, pz);
         ce_play_sound(FL_SE_BLAST, s->ex);
     }
     if (st.blast_dmg) {                                    /* 每帧一个**新**源：一个源对同一敌人只结算一次（AUDIT U9）*/

@@ -58,7 +58,7 @@
 随机（落点 / 目标）走游戏自己的 `Rng__rand_dword(&REPLAY_SAFE_RNG)` `0x402740` / `0x4cf288`。血条复用青眼的 script86 / 87。
 美术：卡图用户立绘（`fit_card.py --fill`，sprite 146/147）；本体用户正面像抠白底 256×256（`ability/make_firelord_art.py`，script91 缩放 0.25 ≈ 64 px 高、挡弹半径 28）；待命上下呼吸浮动 ±4 px（`fl_bob_dy`）+ 每帧 2 颗身体火焰粒子（script97，往上飘），移动 60 帧 quintic easing、落点限弹幕区下 1/3；
 火球 / 拖尾 / 爆炸贴图程序生成（同脚本，script92–94）。语音 `FIRELORD_SUMMON`（id `0x55`）/ `FIRELORD_ATTACK`（`0x56`）：用户 ogg 经 `voice/convert_voice.py` 转 wav。
-设计 `docs/superpowers/specs/2026-09-06-firelord-design.md`。
+登场演出复用火球落地那套（光环 + 火星 + 小震屏，`impact_fx`）。设计 `docs/superpowers/specs/2026-09-06-firelord-design.md`。
 
 ## 装备（子机）
 
