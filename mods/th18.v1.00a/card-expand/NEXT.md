@@ -14,6 +14,7 @@
 | 7 商店、10 JSON 数据 | 🔧 待实跑（AUDIT §N）|
 | 9 行为（SDK + 黑桃五张 + 强欲之壶 + 反转牌）| 🔧 待实跑（AUDIT §O）← **先做这个** |
 | 8 卡图 | 🔧 工具就位（[`assets/`](assets/README.md)）：黑桃五张占位图 sprite 118–127 已进 `_255/th18/abcard.anm`，待实跑 |
+| **15 破损核心（id 71）** | 🔧 **待实跑**（AUDIT §U）—— 第一张真装备卡：电球子机 + 追加进 `pl0X.sht` 的自定义弹幕 |
 | **14 腐化（id 70）** | 🔧 **待实跑**（AUDIT §T）—— 被动：放炸弹扣的是上限，一次给满七发、用完为止 |
 | **13 加倍（id 69）** | 🔧 **待实跑**（AUDIT §S）—— 被动：Miss 掉 2 命、敌人掉落 ×2 |
 | **12 黄昏（id 68）** | 🔧 **待实跑**（AUDIT §R）—— 被动：最后一颗炸弹用掉后自动再放一发 |
@@ -74,13 +75,36 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 通过后：MAP §5 与 AUDIT §P 顶部记「实跑通过」。想改次数就改常量（以后可挂 `cards.js`）；
 **关卡中间开店**（MSG opcode 36 或 DLL 直接置 `GameThread+0xb0 |= 0x20000`）技术上可行，但 Stage / Spellcard 不冻结，只该在对话里做——见 §3.5。
 
+## 1e. 破损核心（id 71，2026-09-05，待实跑）
+
+**装备卡，本 mod 第一张走零售装备卡机制的卡**（不是自绘）：身边一颗电球子机，每 2 秒朝最近的敌人
+（512 px 内）劈一道闪电，每发 80 伤害。实现 `native/cards/broken_core.c` + `broken_core_core.c`；
+设计 `docs/superpowers/specs/2026-09-05-broken-core-design.md`；审计 AUDIT §U。
+
+**这一段顺带解决了 `engine/card/th18/OPEN-questions.md` §1**（装备卡的子机 shooter 数据存在哪）：
+就在四个 `pl0X.sht` 的 `+0xe0` 偏移数组里，40 项、零售用 23 项、**尾部 17 项是空的**。
+新开的 `engine/sht/th18/` 两篇是布局与字段图。我们占第 `0x17` 项，**还剩 16 个 = 以后 16 张子机卡**。
+
+**新增的分发件**：`th18/pl0[0-3].sht`（`_255` patch，纯追加、每次构建回读校验）。
+这是本 mod 第一次替换 `.anm` 之外的游戏资源 —— **实跑第一件事就是确认 thcrap 真的替换了它**（AUDIT U15）：
+若没被替换，第 `0x17` 项偏移是 0 → 会打出 shooterset 0 的**主炮弹**（不崩，但一眼看得出不对：
+出来的是自机的针 / 星，不是闪电）。
+
+日志应有：`sdk: 71 bound (.on_power_level_change = …, .on_tick_2 = …, .on_load = …, .on_run_reset = …)`
+→ 进关 `broken_core: option allocated (ptr …, anm id …)` → 有敌人时
+`broken_core: fire #N at frame …, orb (x, y), angle …`（只记前 3 发与每第 25 发）。
+体感：自机右侧一颗青白电球（慢转 + 亮度呼吸），每 2 秒朝最近的敌人劈一道会转向的闪电，
+命中掉血 + 电流噪声（`se_noise` `0x46`）；没有敌人时**攒着不发**，敌人一进射程立刻劈。
+进商店电球收起、出店回来；过关不消失（装备卡）。
+崩溃优先怀疑：`ce_allocate_option` 的压栈序（U1）、子机槽认领（U4）、`fire_rate` 若被改成 0（U6 除零）。
+
 ## 1c. 神之宣告（id 66，2026-09-04，待实跑）
 
 主动卡：boss 符卡中按 C → 残机减半（向上取整，1 条也能用）→ 符卡立刻按超时结束（血条落到阈值、失败演出、无奖励）。
 不在符卡里 / 残机 0 / 没有带超时槽的 boss → 0x10 无效音、充能不消耗。实现 `native/cards/judgment.c`，不开断点；
 引擎一手 [`engine/ecl/th18/01-boss-interrupts-and-spellcard.md`](../../../engine/ecl/th18/01-boss-interrupts-and-spellcard.md)，审计 AUDIT O28。
-卡图 `JUDGMENT` sprite 134/135（强欲之壶同批 132/133，abcard.anm 已重建）。发动演出 script77（`JUDGMENT_FX` entry15 / sprite117，ability.anm 已重建）：卡图铺满弹幕区半透明浮现 → 放大上浮 → 淡出，共 75 帧，日志带 `flash anm id`；发动同时全屏消弹（弹 → 点道具、激光一起消，O28h）。`cards_dev.js` 起手卡组已带 66。
-
+卡图 `JUDGMENT` sprite 134/135（强欲之壶同批 132/133，abcard.anm 已重建）。
+**注意**：`cards_dev.js` 的起手卡组只有 5 格，2026-09-05 起是 **71/70/68/69/67** —— 要试 66 就临时换掉一格。发动演出 script77（`JUDGMENT_FX` entry15 / sprite117，ability.anm 已重建）：卡图铺满弹幕区半透明浮现 → 放大上浮 → 淡出，共 75 帧，日志带 `flash anm id`；发动同时全屏消弹（弹 → 点道具、激光一起消，O28h）。
 日志应有：`sdk: 66 bound (.active_recharge = 3600, .on_activate = on_activate)`；符卡里按 C → `judgment: lives 3 -> 1 (cost 2), 1 boss attack(s) expired, spell flags …`
 → 同帧符卡计时 00.00、boss 血条落到阈值、「失败」演出、进下一段；非符 / 无命 / 刚超时那几帧按 C → `judgment: refused (…)` 且充能条仍满。
 崩溃优先怀疑：`0x441f10` 的参数顺序（O28c）、`CE_ENEMY_DATA` 0x122c 的推导（O28a 三处交叉）。

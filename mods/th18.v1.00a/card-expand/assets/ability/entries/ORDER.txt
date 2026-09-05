@@ -13,3 +13,5 @@ JUDGMENT_FX  cards/JUDGMENT_max.png
 BLUE_EYES_DRAGON  ability/blue_eyes/DRAGON.png  256x256
 BLUE_EYES_BEAM  local/th18.v1.00a/anm/pl01/player/pl01/pl01b.png  256x128
 BLUE_EYES_FLARE  local/th18.v1.00a/anm/pl01/player/pl01/pl01b2.png  128x256
+BROKEN_CORE_ORB  ability/broken_core/CORE.png  128x128
+BROKEN_CORE_BOLT  ability/broken_core/BOLT.png  128x64

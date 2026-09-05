@@ -22,6 +22,7 @@
 | 9 | 行为 | 跳转表指向的构造器 + 虚表 | — | 跳转表不动：断点 `ce_card_bind`（`0x412cec`）把登记了行为的 id 的对象虚表换成 DLL 里的拷贝，槽是 C 写的 `thiscall` 桩（[`SDK.md`](SDK.md)）| 🔧 待实跑 |
 | 10 | 数据从哪来 | — | — | thcrap 栈里每个 patch 的 `th18/cards.js` 深合并 → 门里逐张校验、写 cave 行 + 文案 + 注册表（[`DATA.md`](DATA.md)）| 🔧 待实跑 |
 | 11 | 一句语音 | 音效表：cfg `0x4c9b80` 84 行 / wav 名 `0x4b47a0` 72 项 / slot `0x56c804` 84 × `0x18` / blob `0x56cfe4` 72 项 | 84 个 id（`0x00`–`0x53`），**一个空闲的都没有** | 四张表整体搬进 codecave 加长到 116 行，51 处站点改常量；`_patch_init` 从用户的 exe 拷零售内容 + 写新行骨架；DLL 在 `0x476410` 的门里填语音 blob（[`assets/voice/`](assets/voice/README.md)）| 🔧 待实跑 |
+| 12 | 一组**子机弹幕**（装备卡）| `pl0X.sht` 的 `+0xe0` shooterset 偏移数组 | 40 项，零售用 23 项 | 占尾部空位（第 `0x17` 起，还剩 16 个）：整文件替换四个 `.sht`，纯追加。子机本身走零售 `Player__allocate_option`，贴图与子弹脚本都放我们已经在重建的 `ability.anm`（[`engine/sht/th18/`](../../../engine/sht/th18/README.md)）| 🔧 待实跑（AUDIT §U）|
 
 第 1–6 段跑通的标志（✅ 2026-09-02）：用 `_test` 把 id 58 塞进空槽 → 开局分配到它 → 「获得」→ 重启仍解锁 → 图鉴里有它 → 编成里能选它。
 第 7 + 10 段的标志：`patch/th18/cards.js` 的黑桃五张在图鉴 / 编成 / 商店里出现、能买；名字 / 说明是 JSON 里的。
@@ -36,6 +37,7 @@
 | **DLL 运行时写代码** | 值到运行时才知道（新卡数量）| 门里 `VirtualProtect` 写，写前核对原值 | `menu.c`；`restore_alloc_bound` 同类 |
 | **thcrap 栈 JSON** | 数据由写卡的人给、可被别的 patch 叠加 | `stack_game_json_resolve` 深合并全栈的 `th18/cards.js`；DLL 只读、逐张校验、全有或全无 | `cards.c` ← `cards_def.c`（主机单测）|
 | **断点换虚表** | 新卡要有行为 | 对象由游戏 `new`，尾段断点把虚表指针换成 DLL 里的 21 槽拷贝；槽 = 编译器生成的 `thiscall` 桩 | `sdk.h` / `sdk.c` ← `sdk_core.c`（主机单测）；AUDIT §O |
+| **整文件替换（资源）** | 卡图 / 特效 / **子机弹幕**要新数据 | patch 里放一份重建的游戏资源文件，thcrap 在装载时顶掉零售的：`th18/abcard.anm`、`th18/ability.anm`、**`th18/pl0[0-3].sht`**。一律「取零售 + 纯追加 + 回读校验原内容逐字节不变」 | `assets/build_abcard.py` / `build_ability.py` / **`assets/sht/append_shooterset.py`**；AUDIT §U |
 
 **没有一个字节手写机器码**（除两个 `_patch_init` 里的 `rep movsd` 拷表 / 骨架循环，和测试钩子的 5 条指令）。
 

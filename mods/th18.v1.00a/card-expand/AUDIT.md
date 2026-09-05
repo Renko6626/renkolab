@@ -839,6 +839,74 @@ Miss 一次 → 残机一次少 **2**，日志
 日志 `corruption: bomb spent the cap — bombs 6/6 left`；过关后仍是 6/6（**不该**回到 3）；
 放到 0/0 后按炸弹键没反应。`sdk:` 那行要报 `ce_bomb_spent` 断点已应用，否则门会 `FAIL`。
 
+## U. 破损核心（id 71）—— 第一张走零售装备卡机制的卡（子机 + 追加 SHT shooterset）
+
+**没有手写机器码**：两处内联汇编只是照零售调用点复刻压栈序，调的是引擎自己的函数；
+外加一份**纯追加**的 `pl0X.sht`（四个文件，patch 整文件替换）。引擎一手见
+[`engine/sht/th18/01`](../../../engine/sht/th18/01-file-layout-and-shooterset-index.md) /
+[`02`](../../../engine/sht/th18/02-shooter-record.md)、[`engine/card/th18/03-hooks.md`](../../../engine/card/th18/03-hooks.md) §5。
+
+| # | claim | 结论 |
+| --- | --- | --- |
+| U1 | `Player__allocate_option` 的调用约定 | **CONFIRMED** —— 见下「U1 证据」 |
+| U2 | `Player__tick_shooters_for_ability_card` 的调用约定 | **CONFIRMED** —— `CardReimu1__on_shoot` `0x40ab00` 压 `0xa` / `[ebp+0xc]` / `[ebp+8]` / `[ecx+0x54]` 后 `call 0x40a9c0`，之后不动 esp ⇒ stdcall `ret 0x10`，ecx 不用 |
+| U3 | 子机指针不能存 `card+0x54` | **CONFIRMED** —— 见下「U3 证据」 |
+| U4 | 认领子机槽不会误用别人的 | **CONFIRMED** —— 12 个槽是公共池；用前查 `option+0x00 != 0` 且 `option+0xd0 == card+0x08`（`0x40a790` 把后者写进前者）。不成立就松手重申请 |
+| U5 | sht 追加不破坏解析器 | **CONFIRMED** —— 见下「U5 证据」 |
+| U6 | `fire_rate` 不能是 0 | **CONFIRMED** —— `0x40a9c0` 里是裸 `%`，没有零分支（主炮那条 `0x45ea00` 才有）。我们填 1，构建脚本校验 1–127 |
+| U7 | 开火挂 `on_tick_2` 而不是 `on_tick_shooters` | **CONFIRMED** —— 见下「U7 证据」 |
+| U8 | 瞄准角写 `player+0x479cc` 有效 | **CONFIRMED** —— `CardAlice__on_shoot` `0x40b5fa` `fstp [eax+0x479cc]` 后立即开火；`func_on_init = 5`（`0x4612d0`）读它、归一、覆写 `bullet+0x64` |
+| U9 | 闪电贴图会朝着飞行方向 | **CONFIRMED** —— 见下「U9 证据」 |
+| U10 | 子弹与子机的贴图都来自 `ability.anm` | **CONFIRMED** —— 见下「U10 证据」 |
+| U11 | 遍历敌人链表安全 | **CONFIRMED** —— 与零售最近敌人搜索 `0x438cb0` 同一套规则；只在 `on_tick_2` 读，不跨帧缓存 enemy 指针 |
+| U12 | 伤害会被每帧上限钳 | **已知并接受** —— 每发 80 要过 `player+0x47984`（每帧从 `sht+0x28` 复位）：Reimu 90 / Marisa 160 / Sanae 120 吃得下，**Sakuya 只有 60 会被钳**。零售子机卡共有的规则，不特殊处理 |
+| U13 | `player+0x479cc` 是共享的 | **已知并接受** —— Alice 的卡也写它。两张同帧开火时各自「写完立刻开火」，`func_on_init` 建弹时取值，顺序 = 写入顺序 |
+| U14 | replay 安全 | **CONFIRMED** —— 节奏只依赖帧计数，目标只依赖敌人坐标，角度是我们自己的确定性多项式（不引 libm / 不调游戏的 x87 atan2 / 无随机源）。`make dllx87` 仍报 0 |
+| U15 | thcrap 能替换 `pl0X.sht` | 🔧 **待实跑** —— 与两个 `.anm` 同机制（都走 `0x402060` 的文件装载），但本仓没验过 `.sht` |
+
+**U1 证据**：`CardReimu1__on_power_level_change` `0x40aae0` 逐指令是
+`push 2 / push 0x30 / push ecx / push 0x30 / push ecx`、`ecx = card`、`call 0x40a790`；
+调用方**不动 esp** ⇒ callee `ret 0x14`。也就是说**五个栈参里第 1、3 个是 card 自己**，
+第 2、4 个是非聚焦 / 聚焦的横向偏移，第 5 个是 `ability.anm` 的脚本号。反编译给的形参名会骗人，
+`sdk.h` 里按指令序原样复刻。
+
+**U3 证据**：新卡对象是基类 `zAbility`，`new(0x54)` 固定 `0x54` 字节（`SDK.md` §2），
+零售存子机指针的 `+0x54` 已经在对象外。改存 `ce_state()`。
+反过来 **`card+0x1c` 是安全的**：`allocate_option` 自己往那儿写子机的 anm vm id，
+而 SDK 的对象布局里 `+0x18`/`+0x1c` 没人用（列表结点占 `0x0c`–`0x17`，计时器从 `0x20` 起）。
+
+**U7 证据**：`+0x1c` 的广播在 `Player__tick_shooting_state` `0x45ea00` 里被
+`short_timer != prev` 罩着，**只在按住射击键时**发生。`on_tick_2` 是 AbilityManager 每帧
+（菜单 / 商店不跑），正是「自己定时打」要的。`fire_rate = 1` + 传 `timer = 0`
+⇒ `0 % 1 == 0` 必发，节奏完全由 C 的计数器定。
+
+**U9 证据**：脚本里的 `rotateAuto(1)` 置 `vm+0x538` 的 `0x200` 位；自机弹每帧更新
+`0x45edb0` 里 `if (vm+0x538 & 0x200) vm+0x44 = bullet+0x64` —— 取的是**弹的实时角度**
+（已被 U8 覆写），不是 shooter 里那个静态角。所以 C 侧不用碰旋转。
+
+**U10 证据**：`0x40a9c0` 开火前把 `player+0x10` 换成 `AbilityManager->ability_anm`、打完还原成
+`player+0xc`；`PlayerBullet__create` `0x45e320` 就用 `player+0x10` 起 shooter `+0x22` 号脚本。
+子机自己的脚本号是 `allocate_option` 的最后一参，同样取 `ability_anm`。数值面印证：
+13 组零售卡子机的 anm 取值全 `< 68`（零售 `ability.anm` 的脚本数），主炮那 10 组取 5–9（`pl0X.anm`）。
+
+**U5 证据**（sht 纯追加为什么安全）：解析器 `Player__initialize` `0x45a830`–`0x45a89c` 按头部 `+0x02`
+（= 40）循环，把 `+0xe0` 那 40 项**逐项** `+= buf + 0x180`（`0x180` 是 `LEA` 里的硬编码常量），
+再沿 stride `0x5c` 把四个 func 索引解成指针。零售只用 23 项、**尾部 17 项是 0** —— 它们
+解析后全指向 shooterset 0，于是 set 0 被重复解析 17 次。retail 不炸是因为：set 0 的四个 func
+索引全是 0，且四张表的 `[0]` 项都是 NULL（`0x4b4230[0]` / `0x4b4210[0]` / `0x4b41f0[0]` 直读 exe 均为 0），
+`0 → 0` 幂等。所以：**填第 `0x17` 项 + 文件尾接一组**不动前面任何字节；剩下 16 个空位照旧幂等。
+`append_shooterset.py` 每次构建后回读校验三条：头部 `+0x02` 仍是 40、set 0 的 func 仍全 0、
+前 23 组逐字节不变；再加 `fire_rate ∈ [1,127]`（U6）。
+
+**实跑要看的**：`_test` 起手卡组已带 71。日志应有
+`sdk: 71 bound (.on_power_level_change = …, .on_tick_2 = …, .on_load = …, .on_run_reset = …)`
+→ 进关 `broken_core: option allocated (ptr …, anm id …)` → 有敌人时每 2 秒一行
+`broken_core: fire #N at frame …, orb (x, y), angle …`（只打前 3 发与每第 25 发）。
+画面：自机右侧一颗青白电球（慢转、亮度呼吸），每 2 秒朝最近的敌人劈一道闪电，
+打中掉血、有电流噪声（`se_noise`）。进商店时电球收起（引擎 `FUN_00416cd0` 发中断 3），出店回来。
+过关不消失（装备卡）。崩溃优先怀疑：U1 的压栈序、U4 的槽认领、U15（sht 没被替换 → 索引 `0x17` 的
+偏移是 0 → 打出 shooterset 0 的主炮弹，不会崩但明显不对）。
+
 ## G. OPEN —— 还没解决的
 
 | # | 事项 | 说明 |

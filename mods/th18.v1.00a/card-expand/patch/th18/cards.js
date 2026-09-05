@@ -187,5 +187,20 @@
     "weight": 2,
     "sprite_large": 142,
     "sprite_small": 143
+  },
+  "71": {
+    "name": "破损核心",
+    "desc": [
+      "身边多一颗漏电的核心。",
+      "它每隔一会儿就朝最近的",
+      "敌人劈出一道闪电。"
+    ],
+    "internal_name": "BROKEN_CORE",
+    "initial_unlocked": 1,
+    "category": 2,
+    "price_tier": 8,
+    "weight": 2,
+    "sprite_large": 144,
+    "sprite_small": 145
   }
 }
