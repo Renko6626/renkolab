@@ -1,107 +1,224 @@
-# th18 音效 id 表（`play_sound(id)` → `se_*.wav`）
+# th18 音效表（`play_sound(id)` → `se_*.wav`）
 
 > **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
-> 一手（2026-09-04，headless pyghidra + 直读 exe），为 card-expand 找 trophy 音效时顺带把整张表恢复出来。
+> 一手：2026-09-04 首次恢复全表（headless pyghidra + 直读 exe）；**2026-09-05 重做**——为 card-expand 的语音扩表
+> 把整套结构挖到底，顺带订正了两处错。
 
 ## 0. 结论
 
-- `SoundManager__play_sound_at_position(id)` `0x476c70`（stdcall(id) + xmm2 声像；`FUN_00476be0` 是两参版）：
-  按 `id*0x14 + 0x4c9b8a` 取 word 优先级，把 id 排进 `0x56ad9c` 的 12 槽队列。
-- 配置表 **`0x4c9b80`，0x52 项 × 0x14 字节**：`+0` 缓冲区号（0..0x51 的一个置换）、`+4` wav 指针表下标、`+8` 低 word 声像 / 高 word 音量、`+0x10` 标志。
-- wav 指针表 **`0x4b47a0`，72 个 `char*`**（`se_*.wav`，`se_cardget` 出现两次）。
-- 初始化 `FUN_00476410`：对每项 j，`buffer[f0[j]] ← 装载 ptr[f1[j]]`（`0x476716` `mov eax,[eax*4+0x4c9b84]`；`0x47671d` `push [eax*4+0x4b47a0]`）。
-  所以 **`play_sound(id)` 放的是 j 满足 `f0[j] == id` 的 `ptr[f1[j]]`**。
-- 验证（与既有一手结论互证）：`0x05` 敌机/boss 死亡 `enep01`、`0x07` 商店确认 `ok00`、`0x10` 买不起 `invalid`、`0x11` 加命 `extend`、
-  `0x2c` X 键 bomb `slash`、`0x2e` 得 bomb `cardget`、`0x4d` Tenshi 发动 `release`、`0x4e` 切主动卡 `changeitem` —— 全部符合各处调用点的语义 ✅。
+- **`SoundManager` 是静态全局 `0x56ad7c`**，不是堆对象。此前当成独立全局的几个「数组」全是它的字段（§1）。
+- 音效由**五张表**驱动（§2）；`play_sound(id)` 取的是 **`+0` 等于 `id` 的那一行**，`+0` 是 `0..0x53` 的置换（§4）。
+- **两条不变式 I1 / I2 一旦被破坏就是挂死或跑飞**（§6）——扩表改造必须先满足它们。
 
-## 1. 表
+### 订正（相对 2026-09-04 版）
 
-| id | wav | 音量 |
+| # | 旧说法 | 一手更正 |
 | --- | --- | --- |
-| `0x00` | `se_plst00.wav` | 0 |
-| `0x01` | `se_plst00.wav` | 0 |
-| `0x02` | `se_pldead00.wav` | 100 |
-| `0x03` | `se_enep00.wav` | 5 |
-| `0x04` | `se_enep00.wav` | 5 |
-| `0x05` | `se_enep01.wav` | 100 |
-| `0x06` | `se_enep02.wav` | 100 |
-| `0x07` | `se_ok00.wav` | 100 |
-| `0x08` | `se_ok00.wav` | 100 |
-| `0x09` | `se_cancel00.wav` | 100 |
-| `0x0a` | `se_select00.wav` | 10 |
-| `0x0b` | `se_timeout.wav` | 100 |
-| `0x0c` | `se_timeout2.wav` | 100 |
-| `0x0d` | `se_powerup.wav` | 90 |
-| `0x0e` | `se_pause.wav` | 100 |
-| `0x0f` | `se_cardget.wav` | 100 |
-| `0x10` | `se_invalid.wav` | 100 |
-| `0x11` | `se_extend.wav` | 100 |
-| `0x12` | `se_lazer00.wav` | 50 |
-| `0x13` | `se_lazer01.wav` | 50 |
-| `0x14` | `se_lazer02.wav` | 0 |
-| `0x15` | `se_tan00.wav` | 50 |
-| `0x16` | `se_tan01.wav` | 50 |
-| `0x17` | `se_tan02.wav` | 50 |
-| `0x18` | `se_tan00.wav` | 20 |
-| `0x19` | `se_tan01.wav` | 20 |
-| `0x1a` | `se_tan02.wav` | 20 |
-| `0x1b` | `se_tan00.wav` | 50 |
-| `0x1c` | `se_power0.wav` | 100 |
-| `0x1d` | `se_power1.wav` | 100 |
-| `0x1e` | `se_ch00.wav` | 100 |
-| `0x1f` | `se_ch01.wav` | 100 |
-| `0x20` | `se_gun00.wav` | 10 |
-| `0x21` | `se_cat00.wav` | 100 |
-| `0x22` | `se_damage00.wav` | 0 |
-| `0x23` | `se_damage01.wav` | 0 |
-| `0x24` | `se_nodamage.wav` | 0 |
-| `0x25` | `se_item00.wav` | 0 |
-| `0x26` | `se_kira00.wav` | 50 |
-| `0x27` | `se_kira01.wav` | 50 |
-| `0x28` | `se_kira02.wav` | 50 |
-| `0x29` | `se_kira00.wav` | 50 |
-| `0x2a` | `se_graze.wav` | 20 |
-| `0x2b` | `se_graze.wav` | 20 |
-| `0x2c` | `se_slash.wav` | 100 |
-| `0x2d` | `se_slash.wav` | 100 |
-| `0x2e` | `se_cardget.wav` | 100 |
-| `0x2f` | `se_bonus.wav` | 100 |
-| `0x30` | `se_bonus2.wav` | 100 |
-| `0x31` | `se_nep00.wav` | 100 |
-| `0x32` | `se_boon00.wav` | 0 |
-| `0x33` | `se_don00.wav` | 0 |
-| `0x34` | `se_boon01.wav` | 0 |
-| `0x35` | `se_boon01.wav` | 0 |
-| `0x36` | `se_ch02.wav` | 100 |
-| `0x37` | `se_ch03.wav` | 0 |
-| `0x38` | `se_extend2.wav` | 100 |
-| `0x39` | `se_pin00.wav` | 100 |
-| `0x3a` | `se_pin01.wav` | 100 |
-| `0x3b` | `se_lgods1.wav` | 100 |
-| `0x3c` | `se_lgods2.wav` | 100 |
-| `0x3d` | `se_lgods3.wav` | 100 |
-| `0x3e` | `se_lgods4.wav` | 100 |
-| `0x3f` | `se_lgodsget.wav` | 100 |
-| `0x40` | `se_msl.wav` | 5 |
-| `0x41` | `se_msl2.wav` | 5 |
-| `0x42` | `se_pldead01.wav` | 100 |
-| `0x43` | `se_heal.wav` | 100 |
-| `0x44` | `se_msl3.wav` | 5 |
-| `0x45` | `se_fault.wav` | 100 |
-| `0x46` | `se_noise.wav` | 100 |
-| `0x47` | `se_etbreak.wav` | 0 |
-| `0x48` | `se_tan03.wav` | 0 |
-| `0x49` | `se_wolf.wav` | 0 |
-| `0x4a` | `se_bonus4.wav` | 100 |
-| `0x4b` | `se_big.wav` | 100 |
-| `0x4c` | `se_item01.wav` | 20 |
-| `0x4d` | `se_release.wav` | 100 |
-| `0x4e` | `se_changeitem.wav` | 100 |
-| `0x4f` | `se_trophy.wav` | 100 |
-| `0x50` | `se_warpr.wav` | 100 |
-| `0x51` | `se_warpl.wav` | 100 |
+| 1 | 配置表 `0x52` 项 | **`0x54` = 84 行**。界在 `0x476472` `CMP EDX,0x54` 与 `0x4766ef` `CMP ESI,0x4ca214`（`(0x4ca214 − 0x4c9b80) / 0x14 = 84`）|
+| 2 | 全表止于 id `0x51` | 漏了 **`0x52` → `se_trophy.wav`**（声像 `0xfe0c`，与 `0x4f` 同音不同声像）与 **`0x53` → `se_notice.wav`**。两者都有静态调用点（`0x4192c7`、`0x45653f`），**不是空闲槽** |
 
-## 2. 怎么再来一遍
+补充：`0x00`–`0x53` 里**没有任何空闲 id**。静态调用点只覆盖 43 个，其余由 ECL / ANM 动态传参使用，
+所以「找一个没人用的 id 塞自定义音」这条路走不通。
 
-`tooling/ghidra/scripts/sound_table.py th18`（指针表：字符串数据引用按地址排序）+ `dump_func_asm.py th18 0x476c70` +
-`find_imm_refs.py th18 0x4c9b80 0x4c9b84 0x4b47a0`（找到初始化函数），配置表本体直接从 exe 文件偏移 `0xc8580`（`.data` VA `0x4c9b80`）读。
+## 1. SoundManager 全局 `0x56ad7c`
+
+| 字段 | 绝对地址 | 偏移 | 形状 | 证据 |
+| --- | --- | --- | --- | --- |
+| `IDirectSound*` | `0x56ad80` | `+0x04` | 设备 | `0x4777b6` `MOV ECX,[0x56ad80]` 后走 vtable |
+| 本帧播放队列 | `0x56ad9c` | `+0x20` | 12 槽 | `0x476ca0` 循环 `CMP ECX,0xc` |
+| 每槽计数 | `0x56adcc` | `+0x50` | 12 × 4，上限 `0x3c` | `0x476cc9` `CMP EAX,0x3c` |
+| 每槽声像 | `0x56adfc` | `+0x80` | 12 × 128 × 4 | `0x476cd8` |
+| **slot 数组** | `0x56c804` | `+0x1a88` | **84 × 0x18** | §3 |
+| **blob 指针数组** | `0x56cfe4` | `+0x2268` | **72 × 4** | `0x4767cc` 写、`0x477788` 读 |
+| 加载线程状态 | `0x5704a4` | `+0x5728` | 0 = 未完，2 = 已结束 | `0x4767b3`、`0x47676c` |
+| SE / BGM 音量 | `0x5704ac` / `0x5704b0` | `+0x5730` / `+0x5734` | 初值 `0x64` | `0x476693`、`0x47669d` |
+
+`0x1a88 + 84 × 0x18 = 0x2268` —— **slot 数组与 blob 数组首尾相接，零 slack**；`+0x2388`（blob 数组之后）
+起是别的字段（6 处引用，`0x43e487` 等）。**对象内部无法原地扩容。**
+
+## 2. 五张表
+
+| 表 | 地址 | 形状 | 用途 |
+| --- | --- | --- | --- |
+| cfg 配置表 | `0x4c9b80` | 84 行 × 0x14 | 见下 |
+| wav 名表 | `0x4b47a0` | 72 × `char*` + NULL | `se_*.wav` 文件名 |
+| blob 指针 | `0x56cfe4` | 72 × 4 | 预加载好的 RIFF 字节 |
+| slot 数组 | `0x56c804` | 84 × 0x18 | DirectSound buffer 与播放态 |
+| 播放队列 | `0x56ad9c` | 12 槽 | 本帧待播 id |
+
+cfg 行字段（0x14 字节）：
+
+| 偏移 | 内容 | 备注 |
+| --- | --- | --- |
+| `+0x00` | **槽号 = 音效 id** | 是 `0..0x53` 的置换，不等于行号 |
+| `+0x04` | wav 名表下标 | 多行可指同一个（`se_cardget` 等 13 处重复）|
+| `+0x08` | 低 word 声像 / 高 word 音量 | 声像是 DirectSound 单位（用到 `0xfe0c` = −500）|
+| `+0x0c` | 🟡 循环标志 | **只有两行为 1**：id `0x14` `se_lazer02`（常驻激光音）与 id `0x37` `se_ch03`。两者都是持续音，语义高度自洽但未直接证 |
+| `+0x10` | 🟡 定位/游戏内标志 | 为 0 的六行是 id `0x00` `0x01` `0x07` `0x08` `0x09` `0x0a` —— `se_plst00`×2 / `se_ok00`×2 / `se_cancel00` / `se_select00`，全是菜单音 |
+
+**cfg 表原地扩不了**：表尾地址 `0x4ca214` 在 `0x401e0e`、`0x474b45` 被当**普通全局变量读写**
+（`MOV [0x4ca214],ECX` / `MOV [0x4ca214],EAX`）。`.data` 里紧随其后的 `0x23a` 字节零是别人的地盘，不是 slack。
+
+## 3. slot 元素字段图（0x18 字节，`0x56c804 + k*0x18`）
+
+| 偏移 | 内容 | 证据 |
+| --- | --- | --- |
+| `+0x00` | `IDirectSoundBuffer*` | `0x4713a1` Release(vt`+8`)、`0x444db9` Stop(vt`+0x48`)、`0x45a4bf` Play(vt`+0x30`) |
+| `+0x04` | 优先级/音量 word，**初值 `0xFFFFFFFF` = 空闲** | `0x401110` 写 −1；`play_sound` `0x476d06` 写 `cfg[id]+0xa` |
+| `+0x08` | **&cfg 行** | `0x401130` |
+| `+0x0c` | 槽号 | `0x401129` |
+| `+0x10` | 播放态 | `0x4775dc` |
+| `+0x14` | 保存的播放位 | `0x444d96`、`0x444db1` |
+
+## 4. id → wav 的映射是置换
+
+`play_sound(id)` 走 **`+0` 等于 `id` 的那一行**，再取 `wavname[该行 +4]`。
+与 2026-09-04 版全表逐条比对：**置换解释 82/82 命中，「id 直接当行号」只 11/82** —— 置换成立。
+
+`0x476410` 的第一段循环（`0x476450`）就是在建这个映射：对每个槽号 `k`，扫 cfg 表找 `+0 == k` 的行，
+把行地址写进 `slot[k].+8`。
+
+## 5. 两条链路
+
+### 5.1 播放
+
+```
+play_sound(id, x)            0x476c70（stdcall(id) + xmm2 声像；0x476be0 是两参版 ret 8）
+  EDI ← movsx word [id*0x14 + 0x4c9b8a]      // cfg[id] 的音量/优先级
+  在 0x56ad9c 的 12 槽队列里找 id 或占一个空槽
+  slot[id].+4 ← EDI                           // 0x476d06
+消费者 0x476d20：读 slot[i].+0 的 buffer，Play / SetPan / SetVolume
+```
+
+**两个版本都没有 id 边界检查** —— 越界 id 会拿越界行的字节当音量、并往越界 slot 写，直接烂内存。
+
+### 5.2 预加载与建 buffer
+
+```
+0x4767b0（独立线程）   for i in 0..0x48: blob[i] = read_file(wavname[i])     // 0x402060，走 dat
+0x476410 SoundManager::init
+  循环 1（0x476450，界 CMP EDX,0x54）  slot[k] = { +0:−1, +8:&行(+0==k), +0xc:k }
+  循环 2（0x4766c2，界 CMP ESI,0x4ca214）for 行 j: this=&slot[j]; 0x4776f0(wavname[行j.+4])
+0x4776f0  从 blob[行.+4] 的内存 parse RIFF（检 "RIFF"/"fmt "/"data"），
+          先在别的 slot 里找同一 wav 下标 → 命中则 IDirectSound::DuplicateSoundBuffer（vt+0x14）
+```
+
+**`0x4776f0` 只从内存 blob parse，不碰文件系统** —— 想加自定义音，把字节放进 blob 槽即可，不必进 dat。
+
+`0x401100 life_before_main__sub_401100` 是**循环 1 的 pre-main 副本**（CRT 静态初始化期运行），
+界写死成 `0x401139` `CMP EDX,0x7e0`（= 84 × 0x18 字节）。
+
+`0x45a4a0` 遍历 slot 数组调 Play —— **设备丢失 / 暂停后的统一重播**；`0x444d80` 遍历调 Stop —— stop-all。
+
+零售 71 个 wav 全是 PCM（`fmt` tag 1，chunk 16 字节），44.1k/22.05k × 8/16 bit × 单/双声道混用，
+共 5.8 MB —— **引擎的 RIFF 解析不挑格式**。
+
+## 6. ★ 两条不变式
+
+改造这套表的人必须先满足它们，否则不是崩溃而是**挂死或静默跑飞**：
+
+| # | 不变式 | 违反的后果 |
+| --- | --- | --- |
+| **I1** | 每行的 `+0` 两两不同，且恰好覆盖 `0 .. 行数−1` | 循环 1 的扫描 `CMP [EAX],EDX / ADD EAX,0x14 / JNZ`（`0x476460`）**没有上界** —— 找不到就一直往后扫 |
+| **I2** | 每行 `+4` 指向的 blob 槽都非 NULL | `0x4776f0` 在 blob 为 NULL 时进 `0x477768` 的 `Sleep(10)` 等待循环，只有 `[0x5704a4] == 2` 才脱身 —— 正常流程里等不到 |
+
+零售 84 行**都满足** I1（2026-09-05 直读 exe 验证）。
+
+## 7. 全表（84 行）
+
+| id | wav | 音量 | 声像 | `+0x10` |
+| --- | --- | --- | --- | --- |
+| `0x00` | `se_plst00.wav` | 0 | `0xf894` | 0 |
+| `0x01` | `se_plst00.wav` | 0 | `0xff38` | 0 |
+| `0x02` | `se_pldead00.wav` | 100 | `0xfbb4` | 1 |
+| `0x03` | `se_enep00.wav` | 5 | `0xfb50` | 1 |
+| `0x04` | `se_enep00.wav` | 5 | `0xfa24` | 1 |
+| `0x05` | `se_enep01.wav` | 100 | `0xfc7c` | 1 |
+| `0x06` | `se_enep02.wav` | 100 | `0xfe0c` | 1 |
+| `0x07` | `se_ok00.wav` | 100 | `0xfe0c` | 0 |
+| `0x08` | `se_ok00.wav` | 100 | `0xfed4` | 0 |
+| `0x09` | `se_cancel00.wav` | 100 | `0xfe70` | 0 |
+| `0x0a` | `se_select00.wav` | 10 | `0xfce0` | 0 |
+| `0x0b` | `se_timeout.wav` | 100 | `0xfe0c` | 1 |
+| `0x0c` | `se_timeout2.wav` | 100 | `0xfed4` | 1 |
+| `0x0d` | `se_powerup.wav` | 90 | `0xff9c` | 1 |
+| `0x0e` | `se_pause.wav` | 100 | `0xfce0` | 1 |
+| `0x0f` | `se_cardget.wav` | 100 | `0xfce0` | 1 |
+| `0x10` | `se_invalid.wav` | 100 | `0x0000` | 1 |
+| `0x11` | `se_extend.wav` | 100 | `0xff9c` | 1 |
+| `0x12` | `se_lazer00.wav` | 50 | `0xfaec` | 1 |
+| `0x13` | `se_lazer01.wav` | 50 | `0xfa88` | 1 |
+| `0x14` | `se_lazer02.wav` | 0 | `0xf448` | 1 |
+| `0x15` | `se_tan00.wav` | 50 | `0xf894` | 1 |
+| `0x16` | `se_tan01.wav` | 50 | `0xf768` | 1 |
+| `0x17` | `se_tan02.wav` | 50 | `0xf6a0` | 1 |
+| `0x18` | `se_tan00.wav` | 20 | `0xfed4` | 1 |
+| `0x19` | `se_tan01.wav` | 20 | `0xf8f8` | 1 |
+| `0x1a` | `se_tan02.wav` | 20 | `0xf8f8` | 1 |
+| `0x1b` | `se_tan00.wav` | 50 | `0xfbb4` | 1 |
+| `0x1c` | `se_power0.wav` | 100 | `0xfd44` | 1 |
+| `0x1d` | `se_power1.wav` | 100 | `0xfd44` | 1 |
+| `0x1e` | `se_ch00.wav` | 100 | `0xfed4` | 1 |
+| `0x1f` | `se_ch01.wav` | 100 | `0xfed4` | 1 |
+| `0x20` | `se_gun00.wav` | 10 | `0xfa24` | 1 |
+| `0x21` | `se_cat00.wav` | 100 | `0xfed4` | 1 |
+| `0x22` | `se_damage00.wav` | 0 | `0xfc90` | 1 |
+| `0x23` | `se_damage01.wav` | 0 | `0xfe0c` | 1 |
+| `0x24` | `se_nodamage.wav` | 0 | `0xfc90` | 1 |
+| `0x25` | `se_item00.wav` | 0 | `0xfa24` | 1 |
+| `0x26` | `se_kira00.wav` | 50 | `0xfbb4` | 1 |
+| `0x27` | `se_kira01.wav` | 50 | `0xfaec` | 1 |
+| `0x28` | `se_kira02.wav` | 50 | `0xfa24` | 1 |
+| `0x29` | `se_kira00.wav` | 50 | `0xfe0c` | 1 |
+| `0x2a` | `se_graze.wav` | 20 | `0xfda8` | 1 |
+| `0x2b` | `se_graze.wav` | 20 | `0xfd44` | 1 |
+| `0x2c` | `se_slash.wav` | 100 | `0x0000` | 1 |
+| `0x2d` | `se_slash.wav` | 100 | `0xfda8` | 1 |
+| `0x2e` | `se_cardget.wav` | 100 | `0x0000` | 1 |
+| `0x2f` | `se_bonus.wav` | 100 | `0x0000` | 1 |
+| `0x30` | `se_bonus2.wav` | 100 | `0x0000` | 1 |
+| `0x31` | `se_nep00.wav` | 100 | `0xff38` | 1 |
+| `0x32` | `se_boon00.wav` | 0 | `0xfe0c` | 1 |
+| `0x33` | `se_don00.wav` | 0 | `0x0000` | 1 |
+| `0x34` | `se_boon01.wav` | 0 | `0x0000` | 1 |
+| `0x35` | `se_boon01.wav` | 0 | `0xfed4` | 1 |
+| `0x36` | `se_ch02.wav` | 100 | `0xfed4` | 1 |
+| `0x37` | `se_ch03.wav` | 0 | `0xfa24` | 1 |
+| `0x38` | `se_extend2.wav` | 100 | `0x0000` | 1 |
+| `0x39` | `se_pin00.wav` | 100 | `0xff38` | 1 |
+| `0x3a` | `se_pin01.wav` | 100 | `0xff38` | 1 |
+| `0x3b` | `se_lgods1.wav` | 100 | `0xfe0c` | 1 |
+| `0x3c` | `se_lgods2.wav` | 100 | `0xfe0c` | 1 |
+| `0x3d` | `se_lgods3.wav` | 100 | `0xfe0c` | 1 |
+| `0x3e` | `se_lgods4.wav` | 100 | `0x0000` | 1 |
+| `0x3f` | `se_lgodsget.wav` | 100 | `0x0000` | 1 |
+| `0x40` | `se_msl.wav` | 5 | `0xfc7c` | 1 |
+| `0x41` | `se_msl2.wav` | 5 | `0xfc7c` | 1 |
+| `0x42` | `se_pldead01.wav` | 100 | `0x0000` | 1 |
+| `0x43` | `se_heal.wav` | 100 | `0x0000` | 1 |
+| `0x44` | `se_msl3.wav` | 5 | `0xf63c` | 1 |
+| `0x45` | `se_fault.wav` | 100 | `0xfe0c` | 1 |
+| `0x46` | `se_noise.wav` | 100 | `0x0000` | 1 |
+| `0x47` | `se_etbreak.wav` | 0 | `0xfe70` | 1 |
+| `0x48` | `se_tan03.wav` | 0 | `0xfe0c` | 1 |
+| `0x49` | `se_wolf.wav` | 0 | `0xfe0c` | 1 |
+| `0x4a` | `se_bonus4.wav` | 100 | `0x0000` | 1 |
+| `0x4b` | `se_big.wav` | 100 | `0x0000` | 1 |
+| `0x4c` | `se_item01.wav` | 20 | `0x0000` | 1 |
+| `0x4d` | `se_release.wav` | 100 | `0x0000` | 1 |
+| `0x4e` | `se_changeitem.wav` | 100 | `0x0000` | 1 |
+| `0x4f` | `se_trophy.wav` | 100 | `0x0000` | 1 |
+| `0x50` | `se_warpr.wav` | 100 | `0x0000` | 1 |
+| `0x51` | `se_warpl.wav` | 100 | `0x0000` | 1 |
+| `0x52` | `se_trophy.wav` | 100 | `0xfe0c` | 1 |
+| `0x53` | `se_notice.wav` | 100 | `0x0000` | 1 |
+
+## 8. 怎么再来一遍
+
+`tooling/ghidra/scripts/sound_table.py th18`（指针表：字符串数据引用按地址排序）
++ `dump_func_asm.py th18 0x476c70` / `0x476410` / `0x4776f0`
++ `find_imm_refs.py th18 0x4c9b80 0x4c9b84 0x4b47a0 0x56c804 0x56cfe4`（操作数级引用，别用字节级扫描——有假阳性）。
+配置表本体直接从 exe 文件偏移 `0xc8580`（`.data` VA `0x4c9b80`）读。
+
+**下游**：card-expand 的音效表扩容把这五张表全搬进 codecave，
+见 `docs/superpowers/specs/2026-09-05-voice-expand-design.md` 与 `mods/th18.v1.00a/card-expand/AUDIT.md` §Q。
