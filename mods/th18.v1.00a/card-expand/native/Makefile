@@ -2,7 +2,7 @@
 ROWS ?= 255
 PATCH := ../patch/th18.v1.00a.js
 
-.PHONY: all check gen verify files clean test-host anm anm-verify ecl
+.PHONY: all check gen verify files clean test-host anm anm-verify ecl snd-check
 
 all: gen verify test-host dll
 
@@ -14,9 +14,13 @@ step1:
 step3: anm
 	$(MAKE) ROWS=255 gen verify test-host dll dllx87 files
 
-## check  —— 只扫描 + 校验两条不变式，不产出（顺带 anm-verify：重建的 abcard.anm 自检）
-check: anm-verify
+## check  —— 只扫描 + 校验两条不变式，不产出（顺带 anm-verify / snd-check）
+check: anm-verify snd-check
 	python3 sites.py check
+
+## snd-check —— 音效表 51 处站点的扫描 + 完整性审计（只读，不产出）
+snd-check:
+	python3 tests/test_sound_sites.py
 
 ## anm    —— abcard.anm（../assets/cards/ 新卡图）+ ability.anm（../assets/ability/ 贴图副本 + 特效脚本）→ build/；生成 anm_ids.h
 anm:
