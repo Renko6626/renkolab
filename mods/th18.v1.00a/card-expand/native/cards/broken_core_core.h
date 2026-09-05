@@ -6,7 +6,9 @@
 #pragma once
 #include <stdint.h>
 
-#define BC_PERIOD     120       /* 帧：蓄满一发要 2 秒 */
+#define BC_PERIOD     60        /* 帧：蓄满一发要 1 秒（2026-09-06 平衡：120 → 60，名义 DPS 40 → 120，零售子机卡中位 120–135）*/
+#define BC_HIT_FRAMES 4         /* 一道闪电的伤害拆成连续 4 帧、每帧一个新伤害源（一个源对同一敌人只算一次）：单帧 30 才不撞每帧上限（Sakuya 60）*/
+#define BC_DMG_FRAME  30        /* 每帧 30 × 4 = 一道 120 */
 #define BC_RANGE      512.0f    /* 锁敌半径（抄 CardAlice 的搜索半径 `0x4b93b0`）*/
 #define BC_RANGE_SQ   (BC_RANGE * BC_RANGE)
 
@@ -14,12 +16,15 @@ typedef struct {
     uint32_t frames;      /* 子机存在以来的帧数 */
     uint32_t charge;      /* 距上次开火的帧数；>= BC_PERIOD = 蓄满 */
     uint32_t shots;       /* 已打出去几发 */
+    uint32_t hit_left;    /* 这一道还剩几帧要放伤害源（bc_did_fire 置 BC_HIT_FRAMES，bc_hit_frame 每帧取一）*/
+    float    tx, ty;      /* 这一道钉住的目标坐标（开火那帧记下）*/
 } bc_state_t;
 
 /* 每帧一次：计时。返回 1 = 蓄满了（可以打）。蓄满后若没目标会一直保持蓄满，
  * 直到 bc_did_fire 才清零——「攒着，敌人一进射程就劈」。*/
 int  bc_tick(bc_state_t *s);
-void bc_did_fire(bc_state_t *s);
+void bc_did_fire(bc_state_t *s, float tx, float ty);   /* 记目标、清充能、开始 BC_HIT_FRAMES 帧的伤害 */
+int  bc_hit_frame(bc_state_t *s);                        /* 每帧一次（含开火那帧）：返回 1 = 本帧在 (tx, ty) 放一个 BC_DMG_FRAME 的源 */
 
 /* 挑最近的：reset → 逐个 consider → angle。距离平方比较，不开方。 */
 typedef struct {

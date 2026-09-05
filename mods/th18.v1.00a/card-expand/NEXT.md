@@ -79,8 +79,8 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 ## 1f. 破损核心（id 71，2026-09-05，待实跑）
 
 **装备卡，本 mod 第一张走零售装备卡机制的卡**：身边一颗电球子机（`Player__allocate_option`，引擎管位置 /
-聚焦位移 / 进店收起），每 2 秒朝最近的敌人（512 px 内）**瞬间**劈一道电弧，那一个敌人吃 80 伤害
-（定点伤害源 `ce_damage_rect` 钉在目标上 + 电弧 / 火花两条特效 VM）。实现 `native/cards/broken_core.c` +
+聚焦位移 / 进店收起），每 1 秒朝最近的敌人（512 px 内）**瞬间**劈一道电弧，那一个敌人吃 120 伤害
+（连续 4 帧 × 30 的定点伤害源 `ce_damage_rect` 钉在目标上 + 电弧 / 火花两条特效 VM；2026-09-06 平衡：原 80 / 2 s 只有零售子机卡的三分之一）。实现 `native/cards/broken_core.c` +
 `broken_core_core.c`；设计 `docs/superpowers/specs/2026-09-05-broken-core-design.md`；审计 AUDIT §U。
 **不改任何游戏资源文件**（只多 `ability.anm` 的两个 entry + 三个脚本）。
 
@@ -92,7 +92,7 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 日志应有：`sdk: 71 bound (.on_power_level_change = …, .on_tick_2 = …, .on_load = …, .on_run_reset = …)`
 → 进关 `broken_core: option allocated (ptr …, anm id …)` → 有敌人时
 `broken_core: fire #N at frame …, orb (x, y) -> target (x, y) dist … angle …`（只记前 3 发与每第 25 发）。
-体感：自机右侧一颗青白电球（慢转 + 亮度呼吸）；每 2 秒一道电弧**瞬间**连到最近的敌人、命中点一团火花 +
+体感：自机右侧一颗青白电球（慢转 + 亮度呼吸）；每 1 秒一道电弧**瞬间**连到最近的敌人、命中点一团火花 +
 电流噪声（`se_noise` `0x46`），敌人掉血（devstage 的 boss 血量 ÷100，看得很清楚）；没有敌人时**攒着不发**，
 敌人一进射程立刻劈。进商店电球收起、出店回来；过关不消失（装备卡）。
 崩溃优先怀疑：`ce_allocate_option` 的压栈序（U1）、子机槽认领（U3）。视觉怀疑：电弧方向 / 长度（U10、`anchor(1, 0)`）。

@@ -1,4 +1,4 @@
-/* 破损核心（id 71）—— 装备卡：身边多一颗电球子机，每 BC_PERIOD 帧朝最近的敌人劈一道闪电。
+/* 破损核心（id 71）—— 装备卡：身边多一颗电球子机，每 BC_PERIOD 帧朝最近的敌人劈一道闪电（一道 120 = 连续 4 帧 × 30）。
  *
  * 子机走**零售装备卡机制**：`Player__allocate_option` 的 zPlayerOption（引擎管位置 / 聚焦位移 / 开店收起），
  * 长相 = ability.anm script88。与零售装备卡的两处不同：
@@ -19,9 +19,8 @@
 
 #define BC_OPTION_OFFSET  0x18      /* 子机相对自机的横向偏移（非聚焦 / 聚焦同值）。零售：Marisa1 0x10、Alice 0x1c、Reimu1 0x30 */
 #define BC_RETRY_FRAMES   60        /* 没拿到子机时的重试间隔（槽满 / 还没进关）*/
-#define BC_DMG            80        /* 每道闪电；Sakuya 的每帧上限 60 会把它钳到 60（AUDIT U12）*/
-#define BC_HIT_W          24.0f     /* 钉在目标上的判定：只要罩住它的中心 */
-#define BC_HIT_H          24.0f
+#define BC_HIT_W          32.0f     /* 钉在目标上的判定：罩住它的中心；4 帧里目标会挪一点，比第一版 24 放宽 */
+#define BC_HIT_H          32.0f
 #define BC_HIT_LIFE       2         /* 帧；同一敌人只结算一次（tag 守卫），2 帧是给结算留的余量 */
 #define BC_SE             0x46      /* se_noise：电流 */
 #define BC_BEAM_TEX_W     256.0f    /* 电弧贴图的宽（scale.x = 距离 / 它）*/
@@ -105,6 +104,12 @@ static int on_tick_2(ce_card_t *c)
         o = make_option(c, s);
         if (!o) return 0;
     }
+    /* 上一道的后续伤害帧：每帧在钉住的目标坐标放一个新源（AUDIT U9：一源一算，所以要拆帧；U12：单帧 30 不撞上限）*/
+    pz = ((const float *)(p + CE_PLAYER_X))[2];
+    if (bc_hit_frame(&s->st)) {
+        float center[3] = { s->st.tx, s->st.ty, pz };
+        ce_damage_rect(center, 0.0f, BC_HIT_LIFE, BC_DMG_FRAME, BC_HIT_W, BC_HIT_H);
+    }
     if (!bc_tick(&s->st) || !em) return 0;
 
     ox = (float)*(int32_t *)(o + CE_OPT_POS_X) * CE_SUBPIXEL_TO_PIXEL;
@@ -118,12 +123,13 @@ static int on_tick_2(ce_card_t *c)
     if (!bc_aim_angle(&aim, &angle)) return 0;               /* 没目标：继续攒着（蓄满状态保持）*/
     tx = ox + aim.dx;
     ty = oy + aim.dy;
-    pz = ((const float *)(p + CE_PLAYER_X))[2];
 
-    /* 伤害：一个小判定钉在目标上，原地结算 BC_HIT_LIFE 帧。angle 只影响判定框的朝向，给 0 就是轴对齐。 */
-    {
+    /* 伤害：钉在目标上的小判定，从这一帧起连续 BC_HIT_FRAMES 帧每帧一个新源（本帧的这一个在这里放，其余由上面的 bc_hit_frame 放）。
+     * angle 只影响判定框的朝向，给 0 就是轴对齐。 */
+    bc_did_fire(&s->st, tx, ty);
+    if (bc_hit_frame(&s->st)) {
         float center[3] = { tx, ty, pz };
-        ce_damage_rect(center, 0.0f, BC_HIT_LIFE, BC_DMG, BC_HIT_W, BC_HIT_H);
+        ce_damage_rect(center, 0.0f, BC_HIT_LIFE, BC_DMG_FRAME, BC_HIT_W, BC_HIT_H);
     }
 
     /* 特效：电弧从电球拉到敌人。贴图朝 +x 铺满 BC_BEAM_TEX_W，脚本里 anchor(1, 0) 左端对齐，
@@ -140,7 +146,6 @@ static int on_tick_2(ce_card_t *c)
     spark = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BROKEN_CORE_SPARK, 13);
     if (spark) ce_anm_set_pos(spark, tx, ty, pz);
     ce_play_sound(BC_SE, ox);
-    bc_did_fire(&s->st);
     if (s->st.shots <= 3 || s->st.shots % 25 == 0)
         ce_log("broken_core: fire #%u at frame %u, orb (%.1f, %.1f) -> target (%.1f, %.1f) dist %.1f angle %.3f",
                s->st.shots, s->st.frames, ox, oy, tx, ty, bc_aim_dist(&aim), angle);

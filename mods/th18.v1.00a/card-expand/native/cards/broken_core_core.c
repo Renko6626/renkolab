@@ -8,10 +8,19 @@ int bc_tick(bc_state_t *s)
     return s->charge >= BC_PERIOD;
 }
 
-void bc_did_fire(bc_state_t *s)
+void bc_did_fire(bc_state_t *s, float tx, float ty)
 {
     s->charge = 0;
     s->shots++;
+    s->tx = tx; s->ty = ty;
+    s->hit_left = BC_HIT_FRAMES;
+}
+
+int bc_hit_frame(bc_state_t *s)
+{
+    if (s->hit_left == 0) return 0;
+    s->hit_left--;
+    return 1;
 }
 
 void bc_aim_reset(bc_aim_t *a)

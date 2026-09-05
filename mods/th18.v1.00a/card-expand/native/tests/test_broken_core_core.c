@@ -16,7 +16,7 @@ static int fails;
 
 static void test_charge(void)
 {
-    bc_state_t s = {0, 0, 0};
+    bc_state_t s = {0, 0, 0, 0, 0.0f, 0.0f};
     for (int i = 1; i < BC_PERIOD; i++)
         CHECK(!bc_tick(&s), "帧 %d 就蓄满了", i);
     CHECK(bc_tick(&s), "第 %d 帧该蓄满", BC_PERIOD);
@@ -26,8 +26,13 @@ static void test_charge(void)
     for (int i = 0; i < 300; i++) CHECK(bc_tick(&s), "蓄满后第 %d 帧掉了", i);
     CHECK(s.shots == 0, "还没开火 shots=%u", s.shots);
 
-    bc_did_fire(&s);
-    CHECK(s.shots == 1, "shots=%u", s.shots);
+    bc_did_fire(&s, 10.0f, 20.0f);
+    CHECK(s.shots == 1 && s.tx == 10.0f && s.ty == 20.0f, "shots=%u", s.shots);
+    /* 一道 = BC_HIT_FRAMES 帧伤害，之后不再放 */
+    int hits = 0;
+    for (int i = 0; i < BC_HIT_FRAMES + 5; i++) hits += bc_hit_frame(&s);
+    CHECK(hits == BC_HIT_FRAMES, "伤害帧 %d ≠ %d", hits, BC_HIT_FRAMES);
+    CHECK(BC_HIT_FRAMES * BC_DMG_FRAME == 120, "一道 = %d", BC_HIT_FRAMES * BC_DMG_FRAME);
     CHECK(!bc_tick(&s), "刚开完火不该马上又蓄满");
     for (int i = 1; i < BC_PERIOD; i++) bc_tick(&s);
     CHECK(bc_tick(&s), "第二发该蓄满了");

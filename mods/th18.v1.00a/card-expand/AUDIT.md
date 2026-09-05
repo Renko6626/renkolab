@@ -857,11 +857,11 @@ Miss 一次 → 残机一次少 **2**，日志
 | U5 | 子机坐标的读法 | **CONFIRMED** —— `option+0x5c/+0x60` 是定点 int32，`× 0x4b908c = 1/128` 变像素（`0x40a9c0`、`0x40b6f4` 两处一手）|
 | U6 | 开火挂 `on_tick_2` | **CONFIRMED** —— AbilityManager 每帧、菜单 / 商店不跑；节奏是 C 的计数器（`bc_tick`，主机单测）。不依赖 `+0x1c on_tick_shooters`（那个只在按住射击键时广播）|
 | U7 | 遍历敌人链表安全 | **CONFIRMED** —— 与零售最近敌人搜索 `0x438cb0` 同一套规则（`EnemyManager+0x18c`、跳过 `+0x635c & 0xc000021`、坐标 `+0x1270/+0x1274`）；只在 `on_tick_2` 读，不跨帧缓存 enemy 指针 |
-| U8 | 定点伤害源钉在目标上 = **单体** | **CONFIRMED** —— 见下「U8 证据」 |
+| U8 | 定点伤害源钉在目标上 = **单体** | **CONFIRMED** —— 见下「U8 证据」（2026-09-06 起判定 32×32、一道拆 4 帧 × 30）|
 | U9 | 同一敌人只结算**一次** | **CONFIRMED** —— 见下「U9 证据」 |
 | U10 | 判定框的 w / h / angle 约定 | **CONFIRMED** —— `0x45f0f0` 矩形分支：把 `敌人 − 源` 旋转 `−angle` 后，`w/2` 比沿 angle 的轴、`h/2` 比垂直轴，敌人按半径 `param_3` 的圆做圆角矩形判定。我们 angle = 0、24×24，就是轴对齐的小方块 |
 | U11 | 伤害走正常管线 | **CONFIRMED** —— 同一函数末尾 `min(本帧合计, player+0x47984)` 钳每帧上限、`0x4cccfc` 计分。与主炮 / 青眼同一条路 |
-| U12 | 伤害会被每帧上限钳 | **已知并接受** —— 80 要过 `player+0x47984`（每帧从 `sht+0x28` 复位）：Reimu 90 / Marisa 160 / Sanae 120 吃得下，**Sakuya 只有 60 会被钳**；同帧主炮也在打的话再分掉一部分。零售子机卡共有的规则 |
+| U12 | 伤害会被每帧上限钳 | **已规避（2026-09-06）** —— 一道 120 拆成 4 帧 × 30：单帧 30 + 主炮同帧最多约 31（Sakuya P4 名义 1880/60）≈ 61，只在 Sakuya 满火力时被 60 钳掉 1；其余自机（Reimu 90 / Marisa 160 / Sanae 120）不钳。第一版 80 单帧落地时 Sakuya 会被钳到 60、再被主炮分走，实际只剩约 30 |
 | U13 | 电弧 / 火花 VM 的 pos / rotation / scale 由 C 写不会被脚本盖掉 | **CONFIRMED** —— 见下「U13 证据」 |
 | U14 | replay 安全 | **CONFIRMED** —— 节奏只依赖帧计数，目标只依赖敌人坐标，角度 / 距离是我们自己的确定性 SSE 算术（`bc_atan2f` 多项式、`sqrtss`；`-fno-math-errno` 让它不掉进 libm）。`make dllx87` 仍报 0 |
 | U15 | 不改任何游戏资源 | **CONFIRMED** —— 只多 `ability.anm` 的两个 entry + 三个脚本（本来就在重建）。`pl0X.sht` 不再发（`append_shooterset.py` 的 `APPEND` 为空 → 不产出；`release.py` 目录镜像会把 modkit 里旧的删掉）|
@@ -883,20 +883,20 @@ SDK 的对象布局里 `+0x18`/`+0x1c` 没人用（列表结点占 `0x0c`–`0x1
 `scale(%F0, 随机 %F1)` 抖动，其中 `%F0` = C 写进 `vm+0x4b4`（`float_script_vars`，ExpHP zAnmVmPrefix）的 scale.x。
 script90 的 `scaleTime` 只在火花自己身上。rotation 字段 `vm+0x3c`（自机弹每帧更新 `0x45edb0` 写 `+0x44` = rz）。
 
-**U8 证据**：`ce_damage_rect(center = 目标坐标, angle 0, life 2, dmg 80, 24 × 24)`。判定只罩住目标中心
-±12 px；别的敌人要被打到得和目标叠在一起。这与 Remilia 脉冲（`0x40f4a6`，宽 32 矩形）、
+**U8 证据**：`ce_damage_rect(center = 目标坐标, angle 0, life 2, dmg 30, 32 × 32)` × 连续 4 帧（开火帧 + 后 3 帧，坐标是开火时记下的）。判定只罩住目标中心
+±16 px；别的敌人要被打到得和目标叠在一起。这与 Remilia 脉冲（`0x40f4a6`，宽 32 矩形）、
 Tenshi 要石是同一个原语，只是尺寸小、寿命短。
 
 **U9 证据**：`enm_compute_damage_sources` `0x45f0f0` 在结算前：
 `if (param_7 != 0) { if (src+0x84 == param_7) skip; src+0x84 = param_7; }` —— `param_7` 是被检查的敌人的 tag，
-一个伤害源对**同一个**敌人连续几帧只结算第一帧。所以寿命 2 帧 = 正好一次 80（另一帧被 tag 守卫跳过），
+一个伤害源对**同一个**敌人连续几帧只结算第一帧。所以寿命 2 帧 = 正好一次 30（另一帧被 tag 守卫跳过）；4 个源 = 4 × 30 = 一道 120，
 寿命给 2 只是为「源在 AbilityManager tick 建、EnemyManager tick 结算」留一帧余量。
 
 **实跑要看的**：`_test` 起手卡组已带 71。日志应有
 `sdk: 71 bound (.on_power_level_change = …, .on_tick_2 = …, .on_load = …, .on_run_reset = …)`
-→ 进关 `broken_core: option allocated (ptr …, anm id …)` → 有敌人时每 2 秒一行
+→ 进关 `broken_core: option allocated (ptr …, anm id …)` → 有敌人时每 1 秒一行
 `broken_core: fire #N at frame …, orb (x, y) -> target (x, y) dist … angle …`（只打前 3 发与每第 25 发）。
-画面：自机右侧一颗青白电球（慢转、亮度呼吸）；每 2 秒一道电弧**瞬间**连到最近的敌人、命中点一团火花、
+画面：自机右侧一颗青白电球（慢转、亮度呼吸）；每 1 秒一道电弧**瞬间**连到最近的敌人、命中点一团火花、
 电流噪声，敌人血条掉一小截（boss 血量 ÷100 的 devstage 里看得很清楚）；没有敌人时攒着不发。
 进商店电球收起、出店回来；过关不消失（装备卡）。
 崩溃优先怀疑：U1 的压栈序、U3 的槽认领、`ce_damage_rect` 的栈参（青眼同一个包装，O29b）。
