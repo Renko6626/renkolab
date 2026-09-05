@@ -7,12 +7,18 @@
 旋律照反转牌（id 64）的主题写：一个上行动机 C5–E5–G5–C6，然后**逆行**弹回来
 C6–G5–E5–C5，落在 C 大三和弦上。听起来就是「正着放一遍、倒着放一遍」。
 
+**响度基准**（2026-09-05 实测零售 dat 的 71 个 se_*.wav，见 engine/_shared/th18-sound-table.md §9）：
+零售 wav 一律 peak 归一化（peak 中位 −0.06 dBFS），响度差异全压在 cfg 行的 dB 衰减上；
+而那个字段**只能衰减不能增益**（DirectSound SetVolume 范围 −10000…0），所以响度只能由 wav 承载。
+零售 wav 的 RMS 中位 −13.1 dBFS，最响的 se_release（Tenshi 发动音，与本段同帧一起响）是 −5.1。
+本段目标 TARGET_RMS_DBFS = −10：比 se_release 低 5 dB、比零售中位高 3 dB。
+
 钢琴音色是加法合成：
   · 谐波 1..10，振幅 ~1/n^1.3；高次谐波衰减更快（真钢琴的高频先掉）
   · 轻微非谐性 f_n = n*f0*sqrt(1 + B n²)（钢琴弦的刚度，B≈4e-4），让音色不「电子」
   · 3 ms 升余弦起音 + 指数衰减包络
   · 起音处叠 6 ms 的噪声瞬态当槌击声
-  · 全曲归一化到 −3 dBFS，收尾 20 ms 淡出防 click
+  · peak 归一化到 −0.5 dBFS（照零售规矩）后 tanh 软限幅顶到目标 RMS，收尾 20 ms 淡出防 click
 
 跑：python3 assets/voice/make_test_melody.py   → 同目录 TEST_VOICE.wav
 """
@@ -32,7 +38,9 @@ INHARMONICITY = 4e-4
 HAMMER_MS = 6.0
 ATTACK_MS = 3.0
 FADE_MS = 20.0
-HEADROOM_DB = -3.0
+PEAK_DB = -0.5                     # 照零售的规矩 peak 归一化（它们的 peak 中位是 -0.06）
+TARGET_RMS_DBFS = -10.0            # ★ 响度基准，见文件头
+TAIL_TRIM_DB = -46.0               # 尾巴衰到这个电平就截断，免得一段近似静音把 RMS 拉低
 
 
 def note(name, octave):
@@ -46,21 +54,28 @@ def note(name, octave):
 MOTIF = ["C", "E", "G", "C"]
 OCTS_UP = [5, 5, 5, 6]
 STEP = 0.155
+SUSTAIN = 0.62                     # 延音够长，音符之间不留空；但别太长，否则前一个音盖住后一个
+
 
 def build_score():
     score = []
     t = 0.0
+    # 低八度持续音：把能量铺在整段下面。它峰值不高但一直有，抬 RMS 不抬 peak。
+    score.append((0.0, [note("C", 3), note("C", 4)], 0.30, 1.9))
     # 正行：C5 E5 G5 C6
     for n, o in zip(MOTIF, OCTS_UP):
-        score.append((t, [note(n, o)], 0.85, 0.55))
+        score.append((t, [note(n, o)], 0.85, SUSTAIN))
         t += STEP
     t += STEP * 0.35                                   # 中间一个小停顿，把「转向」听出来
+    score.append((t - STEP * 0.35, [note("G", 3)], 0.26, 1.4))   # 转向处补一个低音
     # 逆行：C6 G5 E5 C5
     for n, o in zip(reversed(MOTIF), reversed(OCTS_UP)):
-        score.append((t, [note(n, o)], 0.80, 0.55))
+        score.append((t, [note(n, o)], 0.80, SUSTAIN))
         t += STEP
-    # 收在 C 大三和弦上，放长一点
-    score.append((t + STEP * 0.15, [note("C", 5), note("E", 5), note("G", 5)], 0.95, 1.25))
+    # 收在 C 大三和弦上（加低八度根音），放长一点
+    score.append((t + STEP * 0.15,
+                  [note("C", 3), note("C", 4), note("C", 5), note("E", 5), note("G", 5)],
+                  0.95, 1.35))
     return score
 
 
@@ -120,15 +135,63 @@ def render():
                 white = (seed / 0x3FFFFFFF) - 1.0
                 buf[idx] += 0.06 * vel * white * (1.0 - i / nh) ** 2
 
-    # 收尾淡出，防 click
+    # 尾巴截断：从后往前找第一处超过阈值的采样，之后只留一小段淡出
+    peak0 = max(abs(x) for x in buf) or 1.0
+    thr = peak0 * 10.0 ** (TAIL_TRIM_DB / 20.0)
+    end = n
+    while end > 1 and abs(buf[end - 1]) < thr:
+        end -= 1
     nf = int(FADE_MS / 1000.0 * RATE)
-    for i in range(nf):
+    end = min(n, end + nf)
+    buf = buf[:end]
+    n = end
+    for i in range(nf):                                # 收尾淡出，防 click
         buf[n - nf + i] *= 1.0 - i / nf
 
-    peak = max(abs(x) for x in buf) or 1.0
-    target = 10.0 ** (HEADROOM_DB / 20.0)
-    g = target / peak
-    return [max(-32768, min(32767, int(x * g * 32767.0))) for x in buf]
+    return limit_to_target(buf)
+
+
+def _rms(x):
+    return math.sqrt(sum(v * v for v in x) / len(x))
+
+
+def limit_to_target(buf):
+    """peak 归一化到 PEAK_DB，再用 tanh 软限幅把 RMS 顶到 TARGET_RMS_DBFS。
+
+    tanh 保持峰值不变、只抬中低电平，等于降低波峰因数 —— 钢琴的 14 dB 波峰因数
+    正是「峰值已经满了但听着还是轻」的原因。驱动量用二分求解，所以目标电平是
+    写死的常量而不是手调出来的魔数。
+    """
+    pk = max(abs(x) for x in buf) or 1.0
+    x = [v / pk for v in buf]
+    want = 10.0 ** (TARGET_RMS_DBFS / 20.0)
+    peak_g = 10.0 ** (PEAK_DB / 20.0)
+
+    def shaped(d):
+        if d < 1e-3:
+            return x
+        t = math.tanh(d)
+        return [math.tanh(d * v) / t for v in x]
+
+    lo, hi = 0.0, 8.0
+    if _rms(shaped(hi)) * peak_g < want:
+        d = hi                                         # 顶到头也够不着：尽力而为
+    else:
+        for _ in range(40):
+            mid = (lo + hi) / 2.0
+            if _rms(shaped(mid)) * peak_g < want:
+                lo = mid
+            else:
+                hi = mid
+        d = hi
+    y = shaped(d)
+    g = peak_g / (max(abs(v) for v in y) or 1.0)
+    out = [max(-32768, min(32767, int(v * g * 32767.0))) for v in y]
+    rms_db = 20.0 * math.log10(_rms(out) / 32768.0)
+    pk_db = 20.0 * math.log10(max(abs(v) for v in out) / 32768.0)
+    print("  软限幅 drive=%.3f → peak %.2f dBFS  rms %.2f dBFS  波峰因数 %.1f dB"
+          % (d, pk_db, rms_db, pk_db - rms_db))
+    return out
 
 
 def write_wav(path, samples):

@@ -180,12 +180,18 @@ static void load_voices(uint8_t *cfg, uint8_t **blobs, char **names)
             ce_log("snd: skip \"%s\": %s is not RIFF/WAVE", key, path); continue;
         }
 
-        json_t *jv = p_json_object_get(obj, "volume");
-        json_t *jp = p_json_object_get(obj, "pan");
-        long long vol = jv ? p_json_integer_value(jv) : 100;
-        long long pan = jp ? p_json_integer_value(jp) : 0;
-        if (vol < 0) vol = 0;
-        else if (vol > 100) vol = 100;
+        /* cfg 行 +8：**低 word = 音量（DirectSound 百分之一 dB，≤ 0 的衰减）**、
+         * **高 word = 优先级 0..100**。消费者 0x477611 取的是 movsx word [行+8]，
+         * 播放音量 = (1 − (1 − 设置/100)³) × (低word + 5000) − 5000；设置拉满时就等于低word。
+         * 声像**不在表里** —— 它由 play_sound 的 x 参数在运行时算（0x4775d9 SetPan）。 */
+        json_t *jv = p_json_object_get(obj, "volume_db");
+        json_t *jr = p_json_object_get(obj, "priority");
+        long long vol = jv ? p_json_integer_value(jv) : 0;      /* 0 = 不衰减 */
+        long long pri = jr ? p_json_integer_value(jr) : 100;
+        if (vol > 0) vol = 0;
+        else if (vol < -5000) vol = -5000;                      /* 公式的下限就是 -5000 */
+        if (pri < 0) pri = 0;
+        else if (pri > 100) pri = 100;
 
         memcpy(s_names[k], path, strlen(path) + 1);
         blobs[CE_SND_NAMES_N + k] = (uint8_t *)buf;
@@ -193,12 +199,12 @@ static void load_voices(uint8_t *cfg, uint8_t **blobs, char **names)
 
         uint8_t *row = cfg_row(cfg, CE_SND_CFG_ROWS + k);
         wr32(row, 0x4,  (uint32_t)(CE_SND_NAMES_N + k));
-        wr32(row, 0x8,  ((uint32_t)(vol & 0xffff) << 16) | (uint32_t)(pan & 0xffff));
+        wr32(row, 0x8,  ((uint32_t)(pri & 0xffff) << 16) | (uint32_t)(vol & 0xffff));
         wr32(row, 0x10, 1);
         taken[k] = 1;
         ++s_voice_count;
-        ce_log("snd: voice id 0x%02llx \"%s\" -> %s (%u bytes, wav slot %d, vol %lld pan %lld)",
-               id, key, path, (unsigned)bytes, CE_SND_NAMES_N + k, vol, pan);
+        ce_log("snd: voice id 0x%02llx \"%s\" -> %s (%u bytes, wav slot %d, %+lld dB/100, pri %lld)",
+               id, key, path, (unsigned)bytes, CE_SND_NAMES_N + k, vol, pri);
     }
     p_json_decref_safe(root);
 }

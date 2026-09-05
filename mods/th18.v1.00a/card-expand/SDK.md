@@ -153,10 +153,12 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 三步：
 
 1. wav 放 `assets/voice/<NAME>.wav`（PCM，建议 16-bit 单声道），`assets/voice/ORDER.txt` 加一行 `NAME`；
-2. `patch/th18/voice.js` 加一条 `{"KEY": {"wav": "NAME", "id": 0x54+行号, "volume": 100, "pan": 0}}`；
+2. `patch/th18/voice.js` 加一条 `{"KEY": {"wav": "NAME", "id": 0x54+行号, "volume_db": 0, "priority": 100}}`；
 3. `make voice`（会与 ORDER.txt 对账，不一致直接停）→ 代码里 `ce_play_voice(NAME, player_x())`。
 
-细则见 [`assets/voice/README.md`](assets/voice/README.md)。引擎侧的表结构与两条不变式见
+细则见 [`assets/voice/README.md`](assets/voice/README.md)。**响度要对齐基准**：
+零售 wav 一律 peak 归一化、响度差异全靠行内 dB 衰减（且只能衰减），所以新音效的
+方均振幅要自己做到位 —— 目标 −10 dBFS，`make voice` 会检查。引擎侧的表结构与两条不变式见
 [`engine/_shared/th18-sound-table.md`](../../../engine/_shared/th18-sound-table.md)，
 站点与审计见 [`AUDIT.md`](AUDIT.md) §Q。
 

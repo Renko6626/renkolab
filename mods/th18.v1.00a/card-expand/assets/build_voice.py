@@ -14,6 +14,7 @@
 """
 import argparse
 import json
+import math
 import os
 import shutil
 import struct
@@ -38,6 +39,43 @@ class VoiceError(Exception):
     pass
 
 
+# ★ 响度基准（2026-09-05 实测零售 dat 的 71 个 se_*.wav，
+#   见 engine/_shared/th18-sound-table.md §9）：
+#   零售 wav 一律 peak 归一化（peak 中位 -0.06 dBFS），响度差异全压在 cfg 行的 dB 衰减上，
+#   而那个字段只能衰减不能增益 —— 所以响度必须由 wav 本身承载。
+RETAIL_PEAK_MEDIAN = -0.06
+RETAIL_RMS_MEDIAN = -13.1        # 零售 wav 的 RMS 中位数
+RETAIL_RMS_LOUDEST = -5.1        # se_release（Tenshi 发动音；与卡牌语音同帧一起响）
+VOICE_RMS_TARGET = -10.0         # 语音目标：比最响的低 5 dB、比中位高 3 dB
+VOICE_RMS_BAND = 4.0             # 超出 ±4 dB 就提醒
+
+
+def loudness(b, ch, bits):
+    """峰值与方均振幅（dBFS）。这是与零售音效对齐响度的唯一口径。"""
+    i = 12
+    data = b""
+    while i + 8 <= len(b):
+        cid, sz = b[i:i + 4], struct.unpack_from("<I", b, i + 4)[0]
+        if cid == b"data":
+            data = b[i + 8:i + 8 + sz]
+            break
+        i += 8 + sz + (sz & 1)
+    if not data:
+        return {"peak_db": -99.0, "rms_db": -99.0}
+    if bits == 16:
+        s = struct.unpack("<%dh" % (len(data) // 2), data[:len(data) // 2 * 2])
+    else:
+        s = [(x - 128) * 256 for x in data]
+    if ch == 2:
+        s = [(s[k] + s[k + 1]) / 2 for k in range(0, len(s) - 1, 2)]
+    if not s:
+        return {"peak_db": -99.0, "rms_db": -99.0}
+    db = lambda v: 20 * math.log10(v) if v > 1e-9 else -99.0
+    peak = max(abs(x) for x in s) / 32768.0
+    rms = math.sqrt(sum(x * x for x in s) / len(s)) / 32768.0
+    return {"peak_db": db(peak), "rms_db": db(rms)}
+
+
 def parse_fmt(path):
     """读 RIFF 的 fmt 块。只接受 PCM —— 别的 tag 引擎那边行为未验。"""
     b = open(path, "rb").read()
@@ -54,7 +92,9 @@ def parse_fmt(path):
             tag, ch, rate, _bps, _align, bits = struct.unpack_from("<HHIIHH", b, i + 8)
             if tag != 1:
                 raise VoiceError("%s：format tag %d，只支持 PCM(1)" % (name, tag))
-            return {"bytes": len(b), "rate": rate, "bits": bits, "channels": ch}
+            info = {"bytes": len(b), "rate": rate, "bits": bits, "channels": ch}
+            info.update(loudness(b, ch, bits))
+            return info
         i += 8 + sz + (sz & 1)
     raise VoiceError("%s：找不到 fmt 块" % name)
 
@@ -110,9 +150,13 @@ def cross_check(v):
         if ent["id"] != want:
             raise VoiceError("voice.js 的 \"%s\"：id 写的是 %s，ORDER.txt 第 %d 行算出来是 %d（0x%02x）"
                              % (key, ent["id"], by_name[wav]["index"], want, want))
-        for f, lo, hi in (("volume", 0, 100), ("pan", -10000, 10000)):
+        for f, lo, hi in (("volume_db", -5000, 0), ("priority", 0, 100)):
             if f in ent and not (isinstance(ent[f], int) and lo <= ent[f] <= hi):
                 raise VoiceError("voice.js 的 \"%s\"：%s 必须是 %d..%d 的整数" % (key, f, lo, hi))
+        for gone, why in (("volume", "改叫 volume_db（DirectSound 百分之一 dB，≤ 0 的衰减）"),
+                          ("pan", "声像不在表里，由 play_sound 的 x 参数在运行时算")):
+            if gone in ent:
+                raise VoiceError("voice.js 的 \"%s\"：%r 已废弃 —— %s" % (key, gone, why))
     missing = [x["name"] for x in v if x["name"] not in seen]
     if missing:
         raise VoiceError("ORDER.txt 里有没被 voice.js 登记的：%s" % ", ".join(missing))
@@ -143,11 +187,15 @@ def main():
     cross_check(v)
     total = sum(x["bytes"] for x in v)
     print("语音 %d 条（上限 %d），共 %.2f MB" % (len(v), MAX_N, total / 1048576.0))
-    print("%-24s %-6s %-5s %s" % ("NAME", "id", "wav", "格式"))
+    print("%-22s %-5s %-4s %-22s %7s %7s" % ("NAME", "id", "wav", "格式", "peak", "rms"))
     for x in v:
-        print("%-24s 0x%02x   %-5d %d Hz %d-bit %dch  %d B"
-              % (x["name"], x["id"], x["wav_index"], x["rate"], x["bits"],
-                 x["channels"], x["bytes"]))
+        fmt = "%d Hz %d-bit %dch %d B" % (x["rate"], x["bits"], x["channels"], x["bytes"])
+        print("%-22s 0x%02x  %-4d %-22s %6.1f  %6.1f"
+              % (x["name"], x["id"], x["wav_index"], fmt, x["peak_db"], x["rms_db"]))
+        d = x["rms_db"] - VOICE_RMS_TARGET
+        if abs(d) > VOICE_RMS_BAND:
+            print("   ⚠ %s 的 rms 偏离基准 %+.1f dB（目标 %.1f，零售中位 %.1f、最响 %.1f）"
+                  % (x["name"], d, VOICE_RMS_TARGET, RETAIL_RMS_MEDIAN, RETAIL_RMS_LOUDEST))
     if a.check:
         return
 

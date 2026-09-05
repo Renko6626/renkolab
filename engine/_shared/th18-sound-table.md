@@ -52,7 +52,7 @@ cfg 行字段（0x14 字节）：
 | --- | --- | --- |
 | `+0x00` | **槽号 = 音效 id** | 是 `0..0x53` 的置换，不等于行号 |
 | `+0x04` | wav 名表下标 | 多行可指同一个（`se_cardget` 等 13 处重复）|
-| `+0x08` | 低 word 声像 / 高 word 音量 | 声像是 DirectSound 单位（用到 `0xfe0c` = −500）|
+| `+0x08` | **低 word = 音量**（DirectSound 百分之一 dB，≤ 0 的衰减）/ **高 word = 优先级**（0..100）| ★ 见 §5.1 的公式。**声像不在表里** —— 它由 `play_sound` 的 x 参数在运行时算 |
 | `+0x0c` | 🟡 循环标志 | **只有两行为 1**：id `0x14` `se_lazer02`（常驻激光音）与 id `0x37` `se_ch03`。两者都是持续音，语义高度自洽但未直接证 |
 | `+0x10` | 🟡 定位/游戏内标志 | 为 0 的六行是 id `0x00` `0x01` `0x07` `0x08` `0x09` `0x0a` —— `se_plst00`×2 / `se_ok00`×2 / `se_cancel00` / `se_select00`，全是菜单音 |
 
@@ -90,7 +90,19 @@ play_sound(id, x)            0x476c70（stdcall(id) + xmm2 声像；0x476be0 是
 消费者 0x476d20：读 slot[i].+0 的 buffer，Play / SetPan / SetVolume
 ```
 
-**两个版本都没有 id 边界检查** —— 越界 id 会拿越界行的字节当音量、并往越界 slot 写，直接烂内存。
+**两个版本都没有 id 边界检查** —— 越界 id 会拿越界行的字节当优先级、并往越界 slot 写，直接烂内存。
+
+消费者 `0x476d20` 里的两件事（`0x4775d9` / `0x47764d`）：
+
+```
+SetPan(vt+0x40)     声像 = 队列里存的世界 x 经 0x477597 的 IDIV 折算；**与表无关**
+SetVolume(vt+0x3c)  设置 s = [0x5704b4] / 100.0                    // SE 音量，0 → 直接 SetVolume(-10000) 静音
+                    vol = (1 − (1 − s)³) × (movsx word [cfg行+8] + 5000) − 5000
+```
+
+（`0x4b9178 = 1.0`、`0x4b9304 = 100.0`，直读 exe 确认。）设置拉满时 `s = 1`，
+**`vol` 就等于 cfg 行 `+8` 的低 word**。DirectSound 的 `SetVolume` 范围是 `−10000..0`，
+所以那个字段**只能衰减、不能增益** —— 零售 84 行全部 ≤ 0，想让一个音更响只能改 wav 本身。
 
 ### 5.2 预加载与建 buffer
 
@@ -126,92 +138,95 @@ play_sound(id, x)            0x476c70（stdcall(id) + xmm2 声像；0x476be0 是
 
 ## 7. 全表（84 行）
 
-| id | wav | 音量 | 声像 | `+0x10` |
-| --- | --- | --- | --- | --- |
-| `0x00` | `se_plst00.wav` | 0 | `0xf894` | 0 |
-| `0x01` | `se_plst00.wav` | 0 | `0xff38` | 0 |
-| `0x02` | `se_pldead00.wav` | 100 | `0xfbb4` | 1 |
-| `0x03` | `se_enep00.wav` | 5 | `0xfb50` | 1 |
-| `0x04` | `se_enep00.wav` | 5 | `0xfa24` | 1 |
-| `0x05` | `se_enep01.wav` | 100 | `0xfc7c` | 1 |
-| `0x06` | `se_enep02.wav` | 100 | `0xfe0c` | 1 |
-| `0x07` | `se_ok00.wav` | 100 | `0xfe0c` | 0 |
-| `0x08` | `se_ok00.wav` | 100 | `0xfed4` | 0 |
-| `0x09` | `se_cancel00.wav` | 100 | `0xfe70` | 0 |
-| `0x0a` | `se_select00.wav` | 10 | `0xfce0` | 0 |
-| `0x0b` | `se_timeout.wav` | 100 | `0xfe0c` | 1 |
-| `0x0c` | `se_timeout2.wav` | 100 | `0xfed4` | 1 |
-| `0x0d` | `se_powerup.wav` | 90 | `0xff9c` | 1 |
-| `0x0e` | `se_pause.wav` | 100 | `0xfce0` | 1 |
-| `0x0f` | `se_cardget.wav` | 100 | `0xfce0` | 1 |
-| `0x10` | `se_invalid.wav` | 100 | `0x0000` | 1 |
-| `0x11` | `se_extend.wav` | 100 | `0xff9c` | 1 |
-| `0x12` | `se_lazer00.wav` | 50 | `0xfaec` | 1 |
-| `0x13` | `se_lazer01.wav` | 50 | `0xfa88` | 1 |
-| `0x14` | `se_lazer02.wav` | 0 | `0xf448` | 1 |
-| `0x15` | `se_tan00.wav` | 50 | `0xf894` | 1 |
-| `0x16` | `se_tan01.wav` | 50 | `0xf768` | 1 |
-| `0x17` | `se_tan02.wav` | 50 | `0xf6a0` | 1 |
-| `0x18` | `se_tan00.wav` | 20 | `0xfed4` | 1 |
-| `0x19` | `se_tan01.wav` | 20 | `0xf8f8` | 1 |
-| `0x1a` | `se_tan02.wav` | 20 | `0xf8f8` | 1 |
-| `0x1b` | `se_tan00.wav` | 50 | `0xfbb4` | 1 |
-| `0x1c` | `se_power0.wav` | 100 | `0xfd44` | 1 |
-| `0x1d` | `se_power1.wav` | 100 | `0xfd44` | 1 |
-| `0x1e` | `se_ch00.wav` | 100 | `0xfed4` | 1 |
-| `0x1f` | `se_ch01.wav` | 100 | `0xfed4` | 1 |
-| `0x20` | `se_gun00.wav` | 10 | `0xfa24` | 1 |
-| `0x21` | `se_cat00.wav` | 100 | `0xfed4` | 1 |
-| `0x22` | `se_damage00.wav` | 0 | `0xfc90` | 1 |
-| `0x23` | `se_damage01.wav` | 0 | `0xfe0c` | 1 |
-| `0x24` | `se_nodamage.wav` | 0 | `0xfc90` | 1 |
-| `0x25` | `se_item00.wav` | 0 | `0xfa24` | 1 |
-| `0x26` | `se_kira00.wav` | 50 | `0xfbb4` | 1 |
-| `0x27` | `se_kira01.wav` | 50 | `0xfaec` | 1 |
-| `0x28` | `se_kira02.wav` | 50 | `0xfa24` | 1 |
-| `0x29` | `se_kira00.wav` | 50 | `0xfe0c` | 1 |
-| `0x2a` | `se_graze.wav` | 20 | `0xfda8` | 1 |
-| `0x2b` | `se_graze.wav` | 20 | `0xfd44` | 1 |
-| `0x2c` | `se_slash.wav` | 100 | `0x0000` | 1 |
-| `0x2d` | `se_slash.wav` | 100 | `0xfda8` | 1 |
-| `0x2e` | `se_cardget.wav` | 100 | `0x0000` | 1 |
-| `0x2f` | `se_bonus.wav` | 100 | `0x0000` | 1 |
-| `0x30` | `se_bonus2.wav` | 100 | `0x0000` | 1 |
-| `0x31` | `se_nep00.wav` | 100 | `0xff38` | 1 |
-| `0x32` | `se_boon00.wav` | 0 | `0xfe0c` | 1 |
-| `0x33` | `se_don00.wav` | 0 | `0x0000` | 1 |
-| `0x34` | `se_boon01.wav` | 0 | `0x0000` | 1 |
-| `0x35` | `se_boon01.wav` | 0 | `0xfed4` | 1 |
-| `0x36` | `se_ch02.wav` | 100 | `0xfed4` | 1 |
-| `0x37` | `se_ch03.wav` | 0 | `0xfa24` | 1 |
-| `0x38` | `se_extend2.wav` | 100 | `0x0000` | 1 |
-| `0x39` | `se_pin00.wav` | 100 | `0xff38` | 1 |
-| `0x3a` | `se_pin01.wav` | 100 | `0xff38` | 1 |
-| `0x3b` | `se_lgods1.wav` | 100 | `0xfe0c` | 1 |
-| `0x3c` | `se_lgods2.wav` | 100 | `0xfe0c` | 1 |
-| `0x3d` | `se_lgods3.wav` | 100 | `0xfe0c` | 1 |
-| `0x3e` | `se_lgods4.wav` | 100 | `0x0000` | 1 |
-| `0x3f` | `se_lgodsget.wav` | 100 | `0x0000` | 1 |
-| `0x40` | `se_msl.wav` | 5 | `0xfc7c` | 1 |
-| `0x41` | `se_msl2.wav` | 5 | `0xfc7c` | 1 |
-| `0x42` | `se_pldead01.wav` | 100 | `0x0000` | 1 |
-| `0x43` | `se_heal.wav` | 100 | `0x0000` | 1 |
-| `0x44` | `se_msl3.wav` | 5 | `0xf63c` | 1 |
-| `0x45` | `se_fault.wav` | 100 | `0xfe0c` | 1 |
-| `0x46` | `se_noise.wav` | 100 | `0x0000` | 1 |
-| `0x47` | `se_etbreak.wav` | 0 | `0xfe70` | 1 |
-| `0x48` | `se_tan03.wav` | 0 | `0xfe0c` | 1 |
-| `0x49` | `se_wolf.wav` | 0 | `0xfe0c` | 1 |
-| `0x4a` | `se_bonus4.wav` | 100 | `0x0000` | 1 |
-| `0x4b` | `se_big.wav` | 100 | `0x0000` | 1 |
-| `0x4c` | `se_item01.wav` | 20 | `0x0000` | 1 |
-| `0x4d` | `se_release.wav` | 100 | `0x0000` | 1 |
-| `0x4e` | `se_changeitem.wav` | 100 | `0x0000` | 1 |
-| `0x4f` | `se_trophy.wav` | 100 | `0x0000` | 1 |
-| `0x50` | `se_warpr.wav` | 100 | `0x0000` | 1 |
-| `0x51` | `se_warpl.wav` | 100 | `0x0000` | 1 |
-| `0x52` | `se_trophy.wav` | 100 | `0xfe0c` | 1 |
-| `0x53` | `se_notice.wav` | 100 | `0x0000` | 1 |
+`音量` = `+8` 低 word ÷ 100（dB，设置拉满时即最终衰减量）；`优先级` = `+8` 高 word；
+`有效` = wav 的方均振幅（dBFS）+ 音量 —— 见 §9。
+
+| id | wav | 音量 dB | 优先级 | `+0xc` | `+0x10` | 有效 dBFS |
+| --- | --- | --- | --- | --- | --- | --- |
+| `0x00` | `se_plst00.wav` | -19 | 0 | 0 | 0 | -34.9 |
+| `0x01` | `se_plst00.wav` | -2 | 0 | 0 | 0 | -17.9 |
+| `0x02` | `se_pldead00.wav` | -11 | 100 | 0 | 1 | -18.8 |
+| `0x03` | `se_enep00.wav` | -12 | 5 | 0 | 1 | -25.9 |
+| `0x04` | `se_enep00.wav` | -15 | 5 | 0 | 1 | -28.9 |
+| `0x05` | `se_enep01.wav` | -9 | 100 | 0 | 1 | -13.5 |
+| `0x06` | `se_enep02.wav` | -5 | 100 | 0 | 1 | -15.5 |
+| `0x07` | `se_ok00.wav` | -5 | 100 | 0 | 0 | -20.6 |
+| `0x08` | `se_ok00.wav` | -3 | 100 | 0 | 0 | -18.6 |
+| `0x09` | `se_cancel00.wav` | -4 | 100 | 0 | 0 | -13.7 |
+| `0x0a` | `se_select00.wav` | -8 | 10 | 0 | 0 | -14.5 |
+| `0x0b` | `se_timeout.wav` | -5 | 100 | 0 | 1 | -19.3 |
+| `0x0c` | `se_timeout2.wav` | -3 | 100 | 0 | 1 | -14.9 |
+| `0x0d` | `se_powerup.wav` | -1 | 90 | 0 | 1 | -14.2 |
+| `0x0e` | `se_pause.wav` | -8 | 100 | 0 | 1 | -25.1 |
+| `0x0f` | `se_cardget.wav` | -8 | 100 | 0 | 1 | -27.1 |
+| `0x10` | `se_invalid.wav` | +0 | 100 | 0 | 1 | -17.3 |
+| `0x11` | `se_extend.wav` | -1 | 100 | 0 | 1 | -14.1 |
+| `0x12` | `se_lazer00.wav` | -13 | 50 | 0 | 1 | -20.5 |
+| `0x13` | `se_lazer01.wav` | -14 | 50 | 0 | 1 | -24.8 |
+| `0x14` | `se_lazer02.wav` | -30 | 0 | 1 | 1 | -39.3 |
+| `0x15` | `se_tan00.wav` | -19 | 50 | 0 | 1 | -25.2 |
+| `0x16` | `se_tan01.wav` | -22 | 50 | 0 | 1 | -32.3 |
+| `0x17` | `se_tan02.wav` | -24 | 50 | 0 | 1 | -32.7 |
+| `0x18` | `se_tan00.wav` | -3 | 20 | 0 | 1 | -9.2 |
+| `0x19` | `se_tan01.wav` | -18 | 20 | 0 | 1 | -28.3 |
+| `0x1a` | `se_tan02.wav` | -18 | 20 | 0 | 1 | -26.7 |
+| `0x1b` | `se_tan00.wav` | -11 | 50 | 0 | 1 | -17.2 |
+| `0x1c` | `se_power0.wav` | -7 | 100 | 0 | 1 | -17.6 |
+| `0x1d` | `se_power1.wav` | -7 | 100 | 0 | 1 | -14.6 |
+| `0x1e` | `se_ch00.wav` | -3 | 100 | 0 | 1 | -15.9 |
+| `0x1f` | `se_ch01.wav` | -3 | 100 | 0 | 1 | -16.9 |
+| `0x20` | `se_gun00.wav` | -15 | 10 | 0 | 1 | -26.7 |
+| `0x21` | `se_cat00.wav` | -3 | 100 | 0 | 1 | -14.1 |
+| `0x22` | `se_damage00.wav` | -9 | 0 | 0 | 1 | -14.3 |
+| `0x23` | `se_damage01.wav` | -5 | 0 | 0 | 1 | -17.4 |
+| `0x24` | `se_nodamage.wav` | -9 | 0 | 0 | 1 | -22.4 |
+| `0x25` | `se_item00.wav` | -15 | 0 | 0 | 1 | -31.6 |
+| `0x26` | `se_kira00.wav` | -11 | 50 | 0 | 1 | -25.4 |
+| `0x27` | `se_kira01.wav` | -13 | 50 | 0 | 1 | -26.1 |
+| `0x28` | `se_kira02.wav` | -15 | 50 | 0 | 1 | -34.2 |
+| `0x29` | `se_kira00.wav` | -5 | 50 | 0 | 1 | -19.4 |
+| `0x2a` | `se_graze.wav` | -6 | 20 | 0 | 1 | -22.8 |
+| `0x2b` | `se_graze.wav` | -7 | 20 | 0 | 1 | -23.8 |
+| `0x2c` | `se_slash.wav` | +0 | 100 | 0 | 1 | -13.8 |
+| `0x2d` | `se_slash.wav` | -6 | 100 | 0 | 1 | -19.8 |
+| `0x2e` | `se_cardget.wav` | +0 | 100 | 0 | 1 | -19.1 |
+| `0x2f` | `se_bonus.wav` | +0 | 100 | 0 | 1 | -17.1 |
+| `0x30` | `se_bonus2.wav` | +0 | 100 | 0 | 1 | -18.3 |
+| `0x31` | `se_nep00.wav` | -2 | 100 | 0 | 1 | -13.7 |
+| `0x32` | `se_boon00.wav` | -5 | 0 | 0 | 1 | -18.9 |
+| `0x33` | `se_don00.wav` | +0 | 0 | 0 | 1 | -13.3 |
+| `0x34` | `se_boon01.wav` | +0 | 0 | 0 | 1 | -10.3 |
+| `0x35` | `se_boon01.wav` | -3 | 0 | 0 | 1 | -13.3 |
+| `0x36` | `se_ch02.wav` | -3 | 100 | 0 | 1 | -15.7 |
+| `0x37` | `se_ch03.wav` | -15 | 0 | 1 | 1 | -22.5 |
+| `0x38` | `se_extend2.wav` | +0 | 100 | 0 | 1 | -10.6 |
+| `0x39` | `se_pin00.wav` | -2 | 100 | 0 | 1 | -13.5 |
+| `0x3a` | `se_pin01.wav` | -2 | 100 | 0 | 1 | -13.8 |
+| `0x3b` | `se_lgods1.wav` | -5 | 100 | 0 | 1 | -24.5 |
+| `0x3c` | `se_lgods2.wav` | -5 | 100 | 0 | 1 | -24.5 |
+| `0x3d` | `se_lgods3.wav` | -5 | 100 | 0 | 1 | -24.5 |
+| `0x3e` | `se_lgods4.wav` | +0 | 100 | 0 | 1 | -18.7 |
+| `0x3f` | `se_lgodsget.wav` | +0 | 100 | 0 | 1 | -11.4 |
+| `0x40` | `se_msl.wav` | -9 | 5 | 0 | 1 | -22.9 |
+| `0x41` | `se_msl2.wav` | -9 | 5 | 0 | 1 | -27.6 |
+| `0x42` | `se_pldead01.wav` | +0 | 100 | 0 | 1 | -8.9 |
+| `0x43` | `se_heal.wav` | +0 | 100 | 0 | 1 | -16.5 |
+| `0x44` | `se_msl3.wav` | -25 | 5 | 0 | 1 | -37.8 |
+| `0x45` | `se_fault.wav` | -5 | 100 | 0 | 1 | -21.5 |
+| `0x46` | `se_noise.wav` | +0 | 100 | 0 | 1 | -14.0 |
+| `0x47` | `se_etbreak.wav` | -4 | 0 | 0 | 1 | -25.2 |
+| `0x48` | `se_tan03.wav` | -5 | 0 | 0 | 1 | -17.7 |
+| `0x49` | `se_wolf.wav` | -5 | 0 | 0 | 1 | -19.3 |
+| `0x4a` | `se_bonus4.wav` | +0 | 100 | 0 | 1 | -19.2 |
+| `0x4b` | `se_big.wav` | +0 | 100 | 0 | 1 | -6.5 |
+| `0x4c` | `se_item01.wav` | +0 | 20 | 0 | 1 | -18.0 |
+| `0x4d` | `se_release.wav` | +0 | 100 | 0 | 1 | -5.1 |
+| `0x4e` | `se_changeitem.wav` | +0 | 100 | 0 | 1 | -16.4 |
+| `0x4f` | `se_trophy.wav` | +0 | 100 | 0 | 1 | -12.7 |
+| `0x50` | `se_warpr.wav` | +0 | 100 | 0 | 1 | -13.1 |
+| `0x51` | `se_warpl.wav` | +0 | 100 | 0 | 1 | -13.1 |
+| `0x52` | `se_trophy.wav` | -5 | 100 | 0 | 1 | -17.7 |
+| `0x53` | `se_notice.wav` | +0 | 100 | 0 | 1 | -14.2 |
 
 ## 8. 怎么再来一遍
 
@@ -222,3 +237,33 @@ play_sound(id, x)            0x476c70（stdcall(id) + xmm2 声像；0x476be0 是
 
 **下游**：card-expand 的音效表扩容把这五张表全搬进 codecave，
 见 `docs/superpowers/specs/2026-09-05-voice-expand-design.md` 与 `mods/th18.v1.00a/card-expand/AUDIT.md` §Q。
+
+## 9. 音量基准（2026-09-05 实测）
+
+把 `local/th18.v1.00a/dat/` 里 71 个 `se_*.wav` 全量测了一遍（方均振幅口径）：
+
+| 量 | 值 |
+| --- | --- |
+| wav 的 peak，中位 | **-0.06 dBFS** —— 零售**一律 peak 归一化** |
+| wav 的 RMS，中位 / 平均 | **-13.1** / -13.0 dBFS |
+| wav 的 RMS，范围 | -21.2 … **-4.5** dBFS（最响 `se_enep01`，敌机死亡；`se_release` 是 -5.1）|
+| 有效电平（RMS + 行内 dB），中位 | -18.2 dBFS |
+| 有效电平，范围 | -39.3 … -5.1 dBFS |
+
+**结论：响度只能由 wav 承载。** 零售把所有 wav 都推到 peak 0 dBFS，响度差异全压在
+cfg 行 `+8` 低 word 的 dB 衰减上；而那个字段只能衰减（§5.1），所以「让某个音更响」
+在表里做不到 —— 只能提高 wav 自身的方均振幅，也就是降低它的波峰因数。
+
+给 mod 新增音效用的基准（`mods/th18.v1.00a/card-expand/assets/build_voice.py` 里同名常量）：
+
+| 常量 | 值 | 依据 |
+| --- | --- | --- |
+| `RETAIL_PEAK_MEDIAN` | -0.06 dBFS | 新 wav 也照做 peak 归一化 |
+| `RETAIL_RMS_MEDIAN` | -13.1 dBFS | 零售 wav 的 RMS 中位 |
+| `RETAIL_RMS_LOUDEST` | -5.1 dBFS | `se_release`，Tenshi 发动音 —— 卡牌语音的直接参照物 |
+| `VOICE_RMS_TARGET` | **−10.0 dBFS** | 卡牌语音与 `se_release` 同帧一起响：比它低 5 dB、比中位高 3 dB |
+
+一个只做 peak 归一化的钢琴旋律波峰因数能到 14 dB，RMS 只有 −17，**峰值已经顶满但听着仍轻**
+—— 这是实测踩到的坑（`assets/voice/make_test_melody.py` 用 tanh 软限幅把波峰因数压到 9.5 dB 解决）。
+
+复算：`build_voice.py` 每次 `make voice` 都会打印每条语音的 peak / rms，偏离基准 ±4 dB 就提醒。

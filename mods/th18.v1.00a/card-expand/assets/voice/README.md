@@ -38,7 +38,7 @@ ce_play_voice(SPADE_10_ACTIVATE, player_x());
 
 ```json
 {
-  "SPADE_10_ACTIVATE": { "wav": "SPADE_10_ACTIVATE", "id": 84, "volume": 100, "pan": 0 }
+  "SPADE_10_ACTIVATE": { "wav": "SPADE_10_ACTIVATE", "id": 84, "volume_db": 0, "priority": 100 }
 }
 ```
 
@@ -47,8 +47,26 @@ ce_play_voice(SPADE_10_ACTIVATE, player_x());
 | key | 给人看的名字，只出现在日志里 |
 | `wav` | **`ORDER.txt` 里的 NAME**，决定用哪个文件 |
 | `id` | **必填**，= `0x54 + ORDER.txt 行号`（十进制写）。`make voice` 会与 ORDER.txt 对账，不一致直接报错 |
-| `volume` | 0–100，缺省 100 |
-| `pan` | DirectSound 声像单位（−10000..10000），缺省 0；零售用到 `0xfe0c` = −500 一档 |
+| `volume_db` | cfg 行 `+8` 的低 word：DirectSound 的**百分之一 dB 衰减**，`-5000..0`，缺省 `0`（不衰减）。**只能衰减不能增益** |
+| `priority` | cfg 行 `+8` 的高 word，`0..100`，缺省 100 |
+
+⚠️ **没有 `pan`**：声像不在表里，由 `ce_play_voice(NAME, x)` 的 x 参数在运行时算
+（消费者 `0x4775d9` 的 `SetPan`）。旧字段 `volume` / `pan` 现在会直接报错。
+
+## 响度
+
+零售 71 个 wav **一律 peak 归一化**（peak 中位 −0.06 dBFS），响度差异全压在 `volume_db` 上，
+而它只能衰减 —— **所以想让一个音更响，只能改 wav 本身**。基准（`engine/_shared/th18-sound-table.md` §9）：
+
+| | dBFS |
+| --- | --- |
+| 零售 wav 的 RMS 中位 | −13.1 |
+| 最响的 `se_release`（Tenshi 发动音，与卡牌语音同帧一起响）| −5.1 |
+| **语音目标 `VOICE_RMS_TARGET`** | **−10.0**（peak ≤ −0.5）|
+
+`make voice` 会打印每条语音的 peak / rms，偏离基准 ±4 dB 就提醒。
+**只做 peak 归一化是不够的** —— 钢琴那种波峰因数 14 dB 的素材，峰值顶满了 RMS 还是只有 −17，
+听着就是轻。`make_test_melody.py` 用 tanh 软限幅把波峰因数压到 9.5 dB 才够。
 
 ★ **id 显式写死、不靠顺序**：thcrap 会把栈里每个 patch 的 `voice.js` **深合并**成一个对象，
 合并后的迭代顺序不由我们决定，所以 DLL 是按 `id` 定位 cfg 行的。`make voice` 负责保证

@@ -625,6 +625,8 @@ M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未�
 | Q11 | `voice.js` 的 id 不靠迭代顺序 | **CONFIRMED** —— 见下「Q11 证据」 |
 | Q12 | replay 决定性 | **CONFIRMED** —— `play_sound` 只碰队列与 buffer，不动任何 RNG、不改游戏状态；门只跑一次 |
 | Q13 | `+0xc` / `+0x10` 的语义 | 🟡 **未验** —— 见下「Q13」 |
+| Q14 | cfg 行 `+8` 的语义（**订正**）| **CONFIRMED** —— 见下「Q14 证据」 |
+| Q15 | 新音效的响度基准 | **CONFIRMED（实测）** —— 见下「Q15」 |
 
 **Q1 证据**：`mod_call_type` 是 cdecl 一参、调用方清栈（`plugin.h:71`），所以结尾是裸 `ret` 不是 `ret 4`；
 `pushad`/`popad` 覆盖被调方须保留的 ebx/esi/ebp/edi；`cld` 显式保证 `rep movsd` 的 DF=0。
@@ -669,6 +671,28 @@ binhack 换成 `<codecave:th18_snd_slots+1e0>`（`20 × 0x18`），`test_sound_e
 **Q11 证据**：thcrap 把栈里每个 patch 的 `voice.js` **深合并**成一个对象，合并后的迭代顺序不由我们决定。
 所以 id 显式写在 JSON 里，DLL 按 id 定位 cfg 行并查重；`assets/build_voice.py` 在构建期与
 `ORDER.txt` 的行号对账，不一致直接 FAIL（同 `assets/README.md` 对 `cards.js` / ORDER 的既有做法）。
+
+**Q14 证据（订正）**：`+8` **低 word = 音量**（DirectSound 百分之一 dB，≤ 0 的衰减）、
+**高 word = 优先级**（0..100）—— 与本节初稿及 2026-09-04 版文档写反了。消费者 `0x477611`
+取 `movsx word [cfg行+8]`（低 word），`0x47764d` `SetVolume(vt+0x3c)`：
+
+```
+s = [0x5704b4]/100.0        // SE 音量设置；为 0 时直接 SetVolume(-10000) 静音
+vol = (1 − (1 − s)³) × (低word + 5000) − 5000
+```
+
+（`0x4b9178 = 1.0`、`0x4b9304 = 100.0`，直读 exe。）设置拉满时 `vol` 就等于低 word。
+**声像不在表里** —— `0x4775d9 SetPan` 用的是队列里存的世界 x（`play_sound` 的 xmm2 参数）。
+影响：`sound.c` 一度按「高 word = 音量、低 word = 声像」写，`voice.js` 的 `volume`/`pan`
+两个字段语义都是错的（凑巧 `volume:100 / pan:0` 落成「优先级 100 / 0 dB 不衰减」才没暴露）。
+已改成 `volume_db`（−5000..0）+ `priority`（0..100），旧字段出现即报错。
+
+**Q15**：`SetVolume` 范围是 `−10000..0`，零售 84 行的低 word 也全部 ≤ 0 ——
+**那个字段只能衰减不能增益，所以响度只能由 wav 承载**。实测零售 71 个 wav：
+peak 中位 `−0.06` dBFS（一律 peak 归一化）、RMS 中位 `−13.1`、最响 `se_enep01` `−4.5`
+（`se_release` `−5.1`）。语音基准定 `VOICE_RMS_TARGET = −10.0` dBFS、peak ≤ `−0.5`，
+记在 `engine/_shared/th18-sound-table.md` §9 与 `assets/build_voice.py` 的同名常量，
+`make voice` 每次打印实测值、偏离 ±4 dB 提醒。
 
 **Q13**：`+0xc == 1` 只有 id `0x14`（`se_lazer02`）与 `0x37`（`se_ch03`）两个持续音，推测是循环标志；
 `+0x10 == 0` 的六个是 `0x00` `0x01` `0x07` `0x08` `0x09` `0x0a`（全是菜单音）。
