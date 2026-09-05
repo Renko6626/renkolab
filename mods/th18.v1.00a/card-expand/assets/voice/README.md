@@ -87,11 +87,31 @@ python3 ../assets/build_voice.py --check    # 只校验
 - 引擎的 RIFF 解析不挑格式（零售 71 个就是 44.1k/22.05k × 8/16 bit × 单/双声道混用），
   但 `build_voice.py` 只放行 PCM —— 别的 tag 我们没验过。
 - wav 文件随 `_255` patch 分发（`patch/th18/voice/`），`files.js` 收它们的 crc。
-- 现有曲目：`ROYAL_FANFARE.wav` —— 皇家同花顺（`cards/royal.c`）的演出音乐，3.68 s。
-  I–IV–V–I 号角，与 `ability.anm` script70 的 194 帧时间线对齐：五个上行音落在五张牌
-  弹出的帧 0/10/20/30/40，帧 60 的 C 大和弦重击正好是金色横幅那一下，收在宽和弦上
-  随 170–194 帧的淡出一起消。由 [`make_melodies.py`](make_melodies.py) 合成 ——
-  **我们自己的内容，入库**。放零售 wav 当素材的话记得单独 gitignore 它。
+现有曲目（`make_melodies.py` 的 `MELODIES`，一首一条，可单独出 `make_melodies.py NAME`）：
+
+| NAME | 状态 | 形状 |
+| --- | --- | --- |
+| `ROYAL_FANFARE` | **已登记**（ORDER.txt / voice.js）| 4.41 s。I–IV–V–I 号角 + 结尾洗牌琶音，与 `ability.anm` script70 的 194 帧时间线对齐 |
+| `ROYAL_RAGTIME` | 候选，**未登记** | 4.80 s。拉格泰姆：左手八分 oom-pah、右手 3+3+2 切分、C7→F 与 G7→C。「赌场里一把梭哈赢了」的味道 |
+
+`ROYAL_FANFARE` 的对齐（帧号 = 60 fps，对应 script70）：
+
+| 帧 | 演出 | 音乐 |
+| --- | --- | --- |
+| 0/10/20/30/40 | 五张黑桃逐张弹出 | 五个上行音 C4 E4 G4 C5 E5 |
+| 50–58 | — | G5 A5 B5 D6 四音带起 |
+| **60** | 金色横幅 + trophy 音效 | **C 大和弦重击** |
+| 90 / 105 | +888 GOLD | F → G7 |
+| 125 | — | 宽 C 大和弦 |
+| 148–170 | — | **洗牌琶音**（高音区五声上下一趟，收在淡出开始前）|
+| 170–194 | 一起淡出上浮 | 号角同步衰减 |
+
+★ **拉格泰姆用的是风格不是曲子** —— 左手 oom-pah、3+3+2 切分、副属/属七都是通用手法，
+不涉及任何人的版权。（《骗中骗》拿 Scott Joplin 配老千牌局之后，这个风格就等于「牌桌」了；
+Joplin 1917 年去世，作品本身也早已进入公有领域。）
+
+要换成拉格泰姆：`ORDER.txt` 与 `voice.js` 各把 `ROYAL_FANFARE` 改成 `ROYAL_RAGTIME`，
+`royal.c` 里的 `ce_play_voice(ROYAL_FANFARE, …)` 同改，`make voice && make dll`。
 
 ## `files.js` 与分发
 
