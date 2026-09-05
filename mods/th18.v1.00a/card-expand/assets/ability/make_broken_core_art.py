@@ -94,19 +94,13 @@ def orb(size=128) -> Image.Image:
 # ---------------------------------------------------------------- 电弧（程序生成）
 
 def bolt(w=256, h=64) -> Image.Image:
-    """黄白色闪电链：一条主干 + 一条错开半拍的副干互相缠绕（链的感觉），再挂几条短分叉。"""
+    """黄白色细闪电：一条主干 + 一条更细更暗的副干（2026-09-06 用户：要细、只 1–2 条，与 10 px 的电球相称）。
+    线心 1.2 px，辉光收得很窄；不挂分叉。贴图仍 256×64，但线只占中间约 ±8 px。"""
     rng = np.random.default_rng(SEED + 1)
-    main = jagged(rng, 0.0, h / 2, float(w), h / 2, 13, h * 0.24)            # 主干贯穿整幅（要耐横向拉伸）
-    twin = [(x, h - y) for x, y in main]                                    # 副干：主干上下镜像 → 两股交缠
-    twin = [(x, y + rng.uniform(-3, 3)) for x, y in twin]
-    core = np.maximum(polyline_mask(h, w, main, 1.9), polyline_mask(h, w, twin, 1.3) * 0.8)
-    branches = np.zeros((h, w))
-    for i in (2, 5, 8, 11):                                                 # 四条短分叉
-        bx, by = main[i]
-        branches = np.maximum(branches, polyline_mask(
-            h, w, jagged(rng, bx, by, bx + rng.uniform(12, 26), by + rng.uniform(-18, 18), 3, 5.0), 1.1))
-    line = np.clip(core + branches * 0.6, 0.0, 1.0)
-    inten = np.clip(line + glow(line, 2.0) * 1.1 + glow(line, 7.0) * 0.85, 0.0, 1.5)
+    main = jagged(rng, 0.0, h / 2, float(w), h / 2, 15, h * 0.11)            # 主干贯穿整幅（要耐横向拉伸）
+    twin = [(x, h - y + rng.uniform(-1.5, 1.5)) for x, y in main]           # 副干：镜像 → 两股轻微交缠
+    line = np.clip(polyline_mask(h, w, main, 1.2) + polyline_mask(h, w, twin, 0.8) * 0.45, 0.0, 1.0)
+    inten = np.clip(line + glow(line, 1.2) * 0.9 + glow(line, 3.0) * 0.5, 0.0, 1.4)
 
     x = np.mgrid[0:h, 0:w][1].astype(np.float64)
     inten *= np.clip(x / 12.0, 0.0, 1.0)                                    # 只在左端（电球那头）收一点

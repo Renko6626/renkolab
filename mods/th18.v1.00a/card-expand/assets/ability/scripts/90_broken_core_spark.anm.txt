@@ -8,9 +8,9 @@ script script90 {
     blendMode(1);
     zWriteDisable(1);
     alpha(255);
-    scale(0.34f, 0.34f);
+    scale(0.12f, 0.12f);                 // 约 13 px → 24 px（电球只有 10 px，火花别抢戏）
 0:
-    scaleTime(8, 4, 0.62f, 0.62f);
+    scaleTime(8, 4, 0.22f, 0.22f);
     alphaTime(8, 0, 0);
 +8: // 8
     delete();
