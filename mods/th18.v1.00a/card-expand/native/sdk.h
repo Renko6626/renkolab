@@ -44,6 +44,7 @@ typedef struct {
     void (*on_item_score)(ce_card_t *, int32_t *value);          /* 道具身价算完、显示与计分之前 */
     void (*on_item_money)(ce_card_t *, int32_t *bonus);          /* 金钱道具入账（MONEY += 1）之前：*bonus 是额外要加的钱，MONEY 与 MONEY_TOTAL 一起加 */
     void (*on_enemy_drop_pre)(ce_card_t *, int32_t *counts);     /* 敌人撒道具**之前**：counts 是 CE_ENEMY_DROP_TYPES 个 int32，改它就改掉落数 */
+    void (*on_bomb_spent)(ce_card_t *);                          /* 炸弹刚扣完（consume_bomb 返回那一条）：改 CURRENT/MAX_BOMBS 的时机，同帧生效不闪 */
     /* 主动卡（SDK §9）：active_recharge != 0 就是主动卡（C 键 / 充能 / HUD 由 SDK 与引擎处理）*/
     uint32_t active_recharge;                                    /* 充能帧数（×mgr+0xc58 倍率后装填）*/
     int  (*on_activate)(ce_card_t *);                            /* C 键发动：返回 0 = 瞬发（直接收尾），1 = 进入持续态，CE_ACTIVATE_REFUSED = 条件不满足（充能退回、不算发动）*/
@@ -96,6 +97,15 @@ static inline void ce_play_sound(uint32_t id, float x)
  * 没登记语音时 voice_ids.h 是空的，用到不存在的 NAME 会在编译期报错 —— 这是想要的。 */
 #include "voice_ids.h"
 #define ce_play_voice(NAME, x)  ce_play_sound(CE_VOICE_##NAME, (x))
+
+/* HUD 炸弹行刷新（Gui 0x4420e0：thiscall(gui; bombs, fragments, max) ret 0xc，与残机那个完全对称）。
+ * 改 CURRENT_BOMBS / MAX_BOMBS 后必须调，零售在 consume_bomb 与每关开场都这么做。AUDIT §T。 */
+typedef void (__attribute__((thiscall)) *ce_fn_gui_bombs_t)(void *gui, int bombs, int fragments, int max);
+static inline void ce_gui_update_bombs(void)
+{
+    void *gui = CE_GUI();
+    if (gui) ((ce_fn_gui_bombs_t)CE_FN_GUI_UPDATE_BOMBS)(gui, CE_CURRENT_BOMBS(), CE_BOMB_FRAGMENTS(), CE_MAX_BOMBS());
+}
 
 /* 炸弹：直接调引擎自己的 do_bomb（无参 cdecl）。返回 0 = 放出去了，-1 = 被它自己的守卫拦下
  * （已经在放 / +0xa0 非零）——**失败是安全的，什么都不会发生**。扣炸弹数由它内部做且钳 0，

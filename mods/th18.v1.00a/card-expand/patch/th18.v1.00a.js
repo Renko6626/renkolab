@@ -1322,6 +1322,12 @@
       "expected": "ff0530cd4c00",
       "title": "行为 SDK → BP_ce_item_money：collect_money_item：inc [MONEY_TOTAL]（下一条 inc [MONEY]）；沿卡链表调 on_item_money(&bonus)，两个全局一起 += bonus"
     },
+    "ce_bomb_spent": {
+      "addr": "0x4203bc",
+      "cavesize": 5,
+      "expected": "a1c0f24c00",
+      "title": "行为 SDK → BP_ce_bomb_spent：do_bomb 里 consume_bomb(0x4574d0) **刚返回**那一条：mov eax,ds:0x4cf2c0，5 字节绝对寻址无相对量。0x4574d0 全库只有 0x4203b7 一个调用方，所以这里不多不少覆盖每一次炸弹消耗；沿卡链表调 on_bomb_spent()"
+    },
     "ce_enemy_drop": {
       "addr": "0x430510",
       "cavesize": 6,

@@ -798,6 +798,47 @@ Miss 一次 → 残机一次少 **2**，日志
 残机 1 时 Miss → 直接 game over（不该出现残机 −1 还能玩）。
 `sdk:` 那行应报 `ce_enemy_drop` 断点已应用，否则门会 `FAIL`。
 
+## T. 腐化（id 70）—— 放炸弹消耗上限而不是当前数
+
+**没有手写机器码**：一个新断点（放行原指令）+ 两个虚表槽。
+
+| # | claim | 结论 |
+| --- | --- | --- |
+| T1 | `0x4203bc` 不多不少覆盖每一次炸弹消耗 | **CONFIRMED** —— 见下「T1 证据」 |
+| T2 | 断点落点可用（5 字节、无相对寻址）| **CONFIRMED** —— `a1 c0 f2 4c 00` = `mov eax, ds:0x4cf2c0`，绝对 moffs，整条可搬进 cave |
+| T3 | `CURRENT_BOMBS += 1` 是**精确**还原 | **CONFIRMED** —— 见下「T3 证据」 |
+| T4 | 每关开场会把当前数压回 `min(3, 上限)`，需要抵消 | **CONFIRMED** —— 见下「T4 证据」 |
+| T5 | 上限只减不增、下限 0 | **CONFIRMED** —— `if (MAX > 0) MAX -= 1`；上限 0 时 consume 的 `min(cur,max)` 会把当前数也钳成 0，`can_bomb`（`0x420420` 查 `CURRENT > 0`）随即拒绝，炸弹彻底用完 |
+| T6 | HUD 刷新用对了函数 | **CONFIRMED** —— `0x4420e0` thiscall(gui; bombs, fragments, max) `ret 0xc`，与残机的 `0x441f10` 完全对称；零售在 consume（`0x457501`）与每关开场（`0x442798`）都这么调 |
+| T7 | 与黄昏（68）同时携带不会打架 | **CONFIRMED** —— 见下「T7」 |
+| T8 | 上限顶到 7 不会越界 | **CONFIRMED** —— 7 就是零售开局值（`0x4428ed` / `0x442920` / `0x442957` 三处 `mov [0x4ccd64],7`），也是 `CardBomb` 加上限的钳位值，HUD 画得下 |
+
+**T1 证据**：全 `.text` 扫 `E8` 相对调用，目标为 `consume_bomb` `0x4574d0` 的**只有 `0x4203b7`
+一处**，而它就在 `do_bomb` 里。所以挂在它返回后的 `0x4203bc`，覆盖面 = 每一次炸弹消耗，
+且不会被别的路径误触发。同帧改完，玩家看不到 HUD 闪动（用 `on_tick_2` 的边沿要等下一帧）。
+
+**T3 证据**：`consume_bomb` `0x4574d0` 做三件事：`add [edx+0x7c],-1`；`js → mov [edx+0x7c],0`
+（钳 0）；`cmovg` 钳 MAX。进 `do_bomb` 之前 `Bomb__can_bomb_and_deathbomb_check` `0x420420`
+已保证 `CURRENT > 0`，而不变式 `CURRENT <= MAX` 恒成立，所以**两次钳位都不会触发** ——
+扣完必然正好是 `CURRENT-1`，`+= 1` 精确还原。
+
+**T4 证据**：`GameThread__thread_start` 在 `0x442745`–`0x44278f`：
+`eax = 3; cmp [MAX],eax; cmovl eax,[MAX]; … mov [CURRENT],eax` = **`CURRENT = min(3, MAX)`**，
+**不碰 MAX**（那三处 `MAX = 7` 在 `cmp edx,2` / `test edx,edx` 的分支链里，是开局初始化，
+同时还设残机 0/2/7）。所以腐化的上限会在一局内持续累积 ✅；但当前数会被压回 3，
+显示出来的"预算"就不对了。卡的 `on_stage_start`（`+0x34`，同一函数 `0x442F98` 广播、
+**在 `0x44278f` 之后**）把当前数拉回 = 上限。**它不加东西，只是不让补给把预算显示改小。**
+
+**T7**：黄昏靠「炸弹结束时 `CURRENT == 0`」判断是不是最后一颗。腐化把当前数还原了，
+所以两张同时在场时，黄昏只在**上限降到 0**（当前数也被钳成 0）那一发才接第二发 ——
+语义自洽：那确实是最后一发。时序上也不打架：腐化在断点里同帧改完，黄昏的 `on_tick_2`
+下一帧读到的已经是改好的值。
+
+**实跑要看的**：`_test` 起手卡组已带 70。开局日志
+`corruption: acquired — bombs 7/7 (…)`；放一发 → **炸弹数 7 → 6**（不是"当前数 3 → 2"），
+日志 `corruption: bomb spent the cap — bombs 6/6 left`；过关后仍是 6/6（**不该**回到 3）；
+放到 0/0 后按炸弹键没反应。`sdk:` 那行要报 `ce_bomb_spent` 断点已应用，否则门会 `FAIL`。
+
 ## G. OPEN —— 还没解决的
 
 | # | 事项 | 说明 |

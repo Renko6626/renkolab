@@ -17,3 +17,4 @@ EXPORTS
 	BP_ce_shop_reopen	@15
 	BP_ce_snd_gate		@16
 	BP_ce_enemy_drop	@17
+	BP_ce_bomb_spent	@18

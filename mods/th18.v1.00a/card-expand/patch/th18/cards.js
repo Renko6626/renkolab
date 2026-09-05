@@ -173,5 +173,19 @@
     "weight": 2,
     "sprite_large": 140,
     "sprite_small": 141
+  },
+  "70": {
+    "name": "腐化",
+    "desc": [
+      "炸弹上限立刻补满，",
+      "但此后放炸弹消耗的是上限，",
+      "不再回复。"
+    ],
+    "internal_name": "CORRUPTION",
+    "initial_unlocked": 1,
+    "price_tier": 6,
+    "weight": 2,
+    "sprite_large": 142,
+    "sprite_small": 143
   }
 }

@@ -17,6 +17,7 @@
 #define CE_ADDR_CURRENT_LIVES      0x4ccd48   /* = GlobalsInner+0x6c */
 #define CE_ADDR_LIVES_MAX          0x4ccd54   /* ExpHP LIVES_STOCK_cardfed_cap7 = GlobalsInner+0x78：残机上限，CardLife 每张 +1 钳 7 */
 #define CE_ADDR_CURRENT_BOMBS      0x4ccd58   /* = GlobalsInner+0x7c */
+#define CE_ADDR_BOMB_FRAGMENTS     0x4ccd5c   /* = GlobalsInner+0x80；HUD 炸弹行的第二个参数 */
 #define CE_ADDR_MAX_BOMBS          0x4ccd64   /* = GlobalsInner+0x88，CardBomb 每张 +1 钳 7 */
 #define CE_ADDR_GAME_THREAD_PTR    0x4cf2e4   /* 非 0 = 在游戏线程（零售即时卡 dtor 的门）*/
 #define CE_ADDR_CARD_PRICE_BY_TIER 0x4b35c4   /* int[15]，price_tier → 金钱（SM §「价格表」一手 dump）*/
@@ -85,6 +86,7 @@
 #define CE_LIVES_MAX()      (*(int32_t *)CE_ADDR_LIVES_MAX)
 #define CE_CURRENT_BOMBS()  (*(int32_t *)CE_ADDR_CURRENT_BOMBS)
 #define CE_MAX_BOMBS()      (*(int32_t *)CE_ADDR_MAX_BOMBS)
+#define CE_BOMB_FRAGMENTS() (*(int32_t *)CE_ADDR_BOMB_FRAGMENTS)
 #define CE_GAME_THREAD()    (*(void **)CE_ADDR_GAME_THREAD_PTR)
 #define CE_SHOP_PTR()       (*(void **)CE_ADDR_SHOP_PTR)
 #define CE_TIME_IN_STAGE()  (*(int32_t *)CE_ADDR_TIME_IN_STAGE)
@@ -177,6 +179,8 @@ typedef struct { int32_t prev; int32_t cur; float cur_f; } ce_timer_t;   /* zTim
 #define CE_SE_TROPHY     0x4f
 #define CE_FN_PLAY_SOUND           0x476c70   /* stdcall(id) + xmm2 = 世界 x（声像）；ret 4 */
 #define CE_FN_ADD_LIFE             0x4575f0   /* thiscall(GlobalsInner*)，无栈参，裸 ret：CURRENT_LIVES+1 钳 LIVES_MAX、清碎片、音效 0x11、起特效、extend 计数 +1。CardLife/Mokou dtor 调它。AUDIT O26 */
+#define CE_FN_GUI_UPDATE_BOMBS     0x4420e0   /* thiscall(gui; bombs, fragments, max) ret 0xc：刷 HUD 炸弹行。
+                                                 * 与残机那个 0x441f10 完全对称；consume_bomb 0x457501 与每关开场 0x442798 都这么调。AUDIT §T */
 #define CE_FN_DO_BOMB              0x420360   /* void do_bomb()：无参 cdecl，plain ret。置 +0x30、扣炸弹（0x4574d0 ★钳 0 不会变负）、
                                                  * se 0x2c（声像取 PLAYER+0x620）、CALL vtable+4 起各自机的炸弹。返回 0 = 放出去了、-1 = +0x30 或 +0xa0 非零被拦。
                                                  * 引擎调用点 Player__on_tick__body 0x45c051（case 1）与 0x45c2c3（决死窗口）。AUDIT §R */

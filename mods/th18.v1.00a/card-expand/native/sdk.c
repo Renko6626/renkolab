@@ -4,6 +4,7 @@
  *                      id 有登记的行为 → 对象虚表换成 DLL 里那份；放行原指令。此时 ctor 槽还没被调。
  *   BP_ce_item_score   0x446cf6  lea eax,[edi+0xc2c]（collect_money_item：esi = 道具身价，已钳 ≥ 10；
  *                      后面 push esi 给弹窗、mul esi 进计分）。沿卡链表调 on_item_score(&esi)。
+ *   BP_ce_bomb_spent   0x4203bc  do_bomb 里 consume_bomb 刚返回。沿卡链表调 on_bomb_spent()。
  *   BP_ce_enemy_drop   0x430510  Enemy__drop_items_and_notify_cards 入口（ecx = 敌人）。撒道具之前
  *                                沿卡链表调 on_enemy_drop_pre(counts)，counts = 敌人 +0x04 起 20 个 int32。
  *   BP_ce_item_money   0x446d28  inc [MONEY_TOTAL]（紧接 inc [MONEY]）。沿卡链表调 on_item_money(&bonus)，
@@ -213,6 +214,28 @@ int __cdecl BP_ce_item_money(x86_reg_t *regs, void *bp_info)
     return BP_EXEC_ORIGINAL;
 }
 
+/* do_bomb 里 consume_bomb 刚返回那一条（0x4203bc）：炸弹已经扣完、HUD 也刷过了。
+ * 想改「这一发花掉什么」就得在这里改 —— 同一帧内，玩家看不到闪动。AUDIT §T。 */
+int __cdecl BP_ce_bomb_spent(x86_reg_t *regs, void *bp_info)
+{
+    (void)regs; (void)bp_info;
+    uint8_t *mgr = CE_ABILITY_MGR();
+    if (!mgr) return BP_EXEC_ORIGINAL;
+    unsigned guard = 0;
+    for (const uint8_t *node = *(const uint8_t *const *)(mgr + CE_MGR_CARD_LIST_FIRST);
+         node && guard < 256;
+         node = *(const uint8_t *const *)(node + CE_NODE_NEXT), ++guard) {
+        uint8_t *card = *(uint8_t *const *)(node + CE_NODE_CARD);
+        if (!card) continue;
+        const ce_hooks_t *h = hooks_of(card);
+        if (h && h->on_bomb_spent) {
+            h->on_bomb_spent((ce_card_t *)card);
+            ce_sdk_trace(ce_card_id(card), 0x60, "on_bomb_spent");
+        }
+    }
+    return BP_EXEC_ORIGINAL;
+}
+
 /* Enemy__drop_items_and_notify_cards 0x430510 入口（thiscall，ecx = 敌人）：在引擎**撒之前**
  * 把掉落数表交给卡改。改完引擎自己按各 type 正确的角度/速度去撒 —— 比自己调
  * ItemManager__spawn_items（8 个栈参、零售调用方还留了没填的槽）稳得多。AUDIT §S。 */
@@ -265,6 +288,7 @@ int ce_sdk_setup(uint8_t *base, int trace)
     if (!bp_applied(base + CE_BP_CARD_BIND_RVA, 6))  { ce_verdict("FAIL: sdk: breakpoint ce_card_bind not applied");  return 0; }
     if (!bp_applied(base + CE_BP_ITEM_SCORE_RVA, 6)) { ce_verdict("FAIL: sdk: breakpoint ce_item_score not applied"); return 0; }
     if (!bp_applied(base + CE_BP_ITEM_MONEY_RVA, 6)) { ce_verdict("FAIL: sdk: breakpoint ce_item_money not applied"); return 0; }
+    if (!bp_applied(base + CE_BP_BOMB_SPENT_RVA, 5)) { ce_verdict("FAIL: sdk: breakpoint ce_bomb_spent not applied"); return 0; }
     if (!bp_applied(base + CE_BP_ENEMY_DROP_RVA, 6)) { ce_verdict("FAIL: sdk: breakpoint ce_enemy_drop not applied"); return 0; }
     /* 3. 对账 */
     uint32_t ids[CE_CARD_MAX_NEW];
