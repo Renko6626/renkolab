@@ -275,6 +275,22 @@ static inline int ce_anm_set_scale(uint32_t id, float sx, float sy)      /* 脚�
 }
 static inline void ce_anm_interrupt(uint32_t id, int n) { if (id) ((ce_fn_anm_interrupt_t)CE_FN_ANM_INTERRUPT_TREE)(id, n); }
 static inline void ce_anm_delete(uint32_t id)           { if (id) ((ce_fn_anm_delete_t)CE_FN_ANM_DELETE_BY_ID)(id); }
+/* 火力（AUDIT §V）：照 CardTsukasa__c_press 0x410e60 的三步——门槛 → spend_power → repopulate。
+ *   spend_power：thiscall(GlobalsInner; amount) ret 4，返回档数是否变了；CURRENT_POWER <= 一档时拒绝不扣，扣完钳到一档。
+ *   repopulate：thiscall(PLAYER+0x620; 哑栈参) ret 4，按新档数重建子机并广播 on_power_level_change。
+ *   Tsukasa 扣完**无条件**调 repopulate；我们照做（扣 2 档时档数必变）。调用方自己先保证 CURRENT_POWER >= 成本 + 一档，
+ *   否则引擎的「永远保留 1.00」会让实际扣的比名义少。*/
+typedef int  (__attribute__((thiscall)) *ce_fn_spend_power_t)(void *globals, int amount);
+typedef void (__attribute__((thiscall)) *ce_fn_repopulate_t)(void *inner, int unused);
+static inline int  ce_spend_power(int amount) { return ((ce_fn_spend_power_t)CE_FN_SPEND_POWER)((void *)CE_ADDR_GLOBALS_INNER, amount) & 0xff; }
+static inline void ce_repopulate_options(void)
+{
+    uint8_t *p = CE_PLAYER();
+    if (p) ((ce_fn_repopulate_t)CE_FN_PLAYER_REPOPULATE_OPTIONS)(p + CE_PLAYER_INNER, 0);
+}
+/* 游戏自己的 replay 安全 RNG（thiscall(zRng*) 无栈参）：gameplay 里的「随机」一律走它，不引入自己的随机源。*/
+typedef uint32_t (__attribute__((thiscall)) *ce_fn_rng_t)(void *rng);
+static inline uint32_t ce_rand(void) { return ((ce_fn_rng_t)CE_FN_RNG_RAND_DWORD)((void *)CE_ADDR_REPLAY_SAFE_RNG); }
 static inline int  ce_owned(uint32_t id) { return id < 255 && CE_OWNED_ARRAY()[id] != 0; }
 /* ctor 不只在获得时调：每关开始引擎会对卡组里每张卡再调一次 +0x00（实跑 2026-09-04：初始携带的卡 on_stage_start 后紧跟 ctor）。
  * 真正的获得路径（道具 mode 0 / 购买 mode 2）里 owned[自己] 要到 ctor 之后才置 1（0x412d42），关卡开始那次早就是 1 了——

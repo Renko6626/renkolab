@@ -22,8 +22,19 @@
 #define CE_ADDR_GAME_THREAD_PTR    0x4cf2e4   /* 非 0 = 在游戏线程（零售即时卡 dtor 的门）*/
 #define CE_ADDR_CARD_PRICE_BY_TIER 0x4b35c4   /* int[15]，price_tier → 金钱（SM §「价格表」一手 dump）*/
 #define CE_ADDR_MONEY_ITEMS        0x4ccd20   /* int，吃到的金钱道具个数（collect_money_item 0x446d22 inc）*/
-#define CE_ADDR_CURRENT_POWER      0x4ccd38   /* OM §7 */
+#define CE_ADDR_CURRENT_POWER      0x4ccd38   /* OM §7；= GlobalsInner+0x5c（spend_power 0x457486 读写）*/
 #define CE_ADDR_MAX_POWER          0x4ccd3c
+#define CE_ADDR_POWER_PER_LEVEL    0x4ccd40   /* int（= 100）：一档火力，= GlobalsInner+0x64（spend_power 0x457489；Tsukasa 0x410e6d 门槛 = 2 档）*/
+#define CE_FN_SPEND_POWER          0x457480   /* GlobalsInner__spend_power：thiscall(GlobalsInner*; amount) ret 4。CURRENT_POWER <= 一档时拒绝（返回 0、不扣）；
+                                                 * 否则扣 amount 并钳到一档（永远保留 1.00），返回「档数是否变了」（0/1）。零售调用点：
+                                                 * CardTsukasa__c_press 0x410f1c（push [0x4ccd40]; ecx = 0x4cccdc; call）、商店 0x418477、死亡 0x45c154。AUDIT §V */
+#define CE_FN_PLAYER_REPOPULATE_OPTIONS 0x45d5e0 /* Player__repopulate_options_and_notify_cards：thiscall(this = PLAYER+0x620; 一个从不读取的栈参) ret 4
+                                                 * （尾 0x45dd0b `ret 4`；Tsukasa 0x410f27 `push ecx; lea ecx,[player+0x620]; call`）。按火力档重建自机子机、
+                                                 * 尾部广播 on_power_level_change。扣火力后必须调（Tsukasa / 商店都这么做）。AUDIT §V */
+#define CE_PLAYER_INNER            0x620      /* zPlayer.inner（repopulate 的 this；首字段就是 pos，所以与 CE_PLAYER_X 同址）*/
+#define CE_FN_RNG_RAND_DWORD       0x402740   /* Rng__rand_dword：thiscall(zRng*)，无栈参，裸 ret，eax = 32 位随机（两步 16 位生成器拼起来；rng+4 计数 += 2）*/
+#define CE_ADDR_REPLAY_SAFE_RNG    0x4cf288   /* zRng REPLAY_SAFE_RNG（ExpHP）：弹幕 / 敌人 / 自机弹 / 零售卡（Suwako、Yachie、Miko）都用它；
+                                                 * 0x4cf280 那个是商店 / UI 的非回放 RNG（pick_weighted_random_offer 0x41717b）。gameplay 随机一律走 0x4cf288。AUDIT §V */
 #define CE_ADDR_PLAYER_PTR         0x4cf410   /* zPlayer*（ExpHP statics；Nitori/Momoyo 都从这读）*/
 #define CE_ENEMY_DROP_COUNTS       0x04       /* 敌人对象里掉落数表的偏移：20 个 int32（type 1..0x13，(type-1)*4）。
                                                  * Enemy__drop_items_and_notify_cards 0x430510 按它逐个 spawn，
@@ -86,6 +97,8 @@
 #define CE_MONEY_TOTAL()  (*(int32_t *)CE_ADDR_MONEY_TOTAL)
 #define CE_CURRENT_LIVES()  (*(int32_t *)CE_ADDR_CURRENT_LIVES)
 #define CE_LIVES_MAX()      (*(int32_t *)CE_ADDR_LIVES_MAX)
+#define CE_CURRENT_POWER()  (*(int32_t *)CE_ADDR_CURRENT_POWER)
+#define CE_POWER_PER_LEVEL() (*(int32_t *)CE_ADDR_POWER_PER_LEVEL)
 #define CE_CURRENT_BOMBS()  (*(int32_t *)CE_ADDR_CURRENT_BOMBS)
 #define CE_MAX_BOMBS()      (*(int32_t *)CE_ADDR_MAX_BOMBS)
 #define CE_BOMB_FRAGMENTS() (*(int32_t *)CE_ADDR_BOMB_FRAGMENTS)

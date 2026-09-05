@@ -54,7 +54,7 @@ make dist         # 把 build/abcard.anm 放进 dist/patch-step3/th18/，files.j
 ## 边界
 
 - 一次重建 = modkit 历史多 20 MB。**只在真的加了新图时**才重建 / 发布，日常改 JSON、DLL 不碰它。
-- 运行时 sprite 数上限**未验**（格式层无上限）；目前加到 135（9 张），C 阶段在 `AnmManager__preload_anm` 坐实。
+- 运行时 sprite 数上限**未验**（格式层无上限）；目前加到 147（15 张），C 阶段在 `AnmManager__preload_anm` 坐实。
 - `ecl/`：开发辅助（独立 patch `th18_card_expand_devstage`，启动器里单独勾）。`st01`–`st06.ecl.txt` 是入库的空壳关卡源（logo → 对话 → boss）；`make_dev_ecl.py` 编它们并现场把零售 boss 血量 ÷100、死时多掉 300 金。
 - `ability.anm`（场上特效）的追加在 [`ability/`](ability/README.md)：卡图副本 entry + 特效脚本，`make anm` 一起重建。`abmenu.anm` 不管。
 - `sht/`：**装备卡子机的弹幕（连射）**。`append_shooterset.py` 往四个零售 `pl0X.sht` 的偏移数组空位里追加 shooterset

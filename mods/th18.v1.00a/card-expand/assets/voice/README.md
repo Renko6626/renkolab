@@ -13,6 +13,7 @@
 | `<NAME>.wav` | PCM（`fmt` tag 1）。**建议 16-bit 单声道** —— 声像对单声道才有意义 |
 | `_src/` | 第三方 / 原始素材（原件 + 出处 README）|
 | `make_melodies.py` | 合成本目录的钢琴曲（纯 stdlib，可复现）。`MELODIES` 里一首一条 |
+| `convert_voice.py` | 把 `_src/NAME.ogg`（用户给的压缩语音）转成上面要的 wav：`ffmpeg` 44.1 kHz 16-bit 单声道，+6 dB 再软限幅到峰值 −0.5 dBFS（把 RMS 从素材常见的 −15 拉到基准 −10 附近）。`python3 convert_voice.py NAME` 或 `--all` |
 
 `NAME` 只能是字母数字下划线 —— 它要变成 C 宏 `CE_VOICE_<NAME>`。
 
@@ -93,6 +94,13 @@ python3 ../assets/build_voice.py --check    # 只校验
 | --- | --- | --- |
 | `ROYAL_RAGTIME` | **已登记**（ORDER.txt / voice.js）| 4.60 s。拉格泰姆：左手八分 oom-pah、右手 3+3+2 切分、C7→F 与 G7→C |
 | `ROYAL_FANFARE` | 备选，未登记 | 4.41 s。I–IV–V–I 号角 + 结尾洗牌琶音 |
+
+用户提供的语音（`_src/*.ogg` → `convert_voice.py`）：
+
+| NAME | id | 用在 | 长度 / 响度 |
+| --- | --- | --- | --- |
+| `FIRELORD_SUMMON` | `0x55` | 炎魔之王（72）召唤成功那帧，叠在发动音 `0x4d` 上 | 4.55 s，RMS −10.7 |
+| `FIRELORD_ATTACK` | `0x56` | 炎魔之王投火球那帧（火球落地仍是零售 `0x2c`）| 4.29 s，RMS −11.2；周期 8 s > 长度，不自叠 |
 
 `ROYAL_RAGTIME` 与 `ability.anm` script70 的对齐（帧号 = 60 fps；四分音符 30 帧 = 120 BPM 的 2/4，一小节 60 帧）：
 

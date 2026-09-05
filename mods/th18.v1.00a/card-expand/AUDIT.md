@@ -902,6 +902,53 @@ Tenshi 要石是同一个原语，只是尺寸小、寿命短。
 崩溃优先怀疑：U1 的压栈序、U3 的槽认领、`ce_damage_rect` 的栈参（青眼同一个包装，O29b）。
 视觉怀疑：电弧方向 / 长度不对 → U10 的角度约定或 `anchor(1, 0)` 的语义（青眼光束用的同一招，O29）。
 
+## V. 炎魔之王拉格纳罗斯（id 72）—— 扣火力的主动召唤物 + 飞行火球（8 个定点伤害源）
+
+**没有手写机器码**：三个新引擎入口（扣火力 / 重建子机 / RNG）都是普通函数指针调用，签名从零售调用点原样抄来；
+挡弹 / 伤害源 / ANM 全是青眼与破损核心用过的包装。**不改任何游戏资源文件**（`ability.anm` 多三个 entry + 四个脚本，
+`abcard.anm` 多一对卡图，两条语音走 §Q 的机制）。设计 `docs/superpowers/specs/2026-09-06-firelord-design.md`。
+零售原型：`CardTsukasa__c_press` `0x410e60`（本作唯一一张按 C 扣火力的卡）。
+
+| # | claim | 结论 |
+| --- | --- | --- |
+| V1 | `GlobalsInner__spend_power` 的调用约定 | **CONFIRMED** —— 见下「V1 证据」 |
+| V2 | 门槛 3.00 而不是 2.00 | **CONFIRMED（设计）** —— 见下「V2 证据」：`spend_power` 永远保留 1.00，零售 Tsukasa 的门槛就是「成本 + 一档」 |
+| V3 | `Player__repopulate_options_and_notify_cards` 的调用约定 | **CONFIRMED** —— 见下「V3 证据」 |
+| V4 | 在我们的 `on_activate`（SDK 桩里）调 repopulate 安全 | **CONFIRMED** —— Tsukasa 就是在 `c_press`（同一条 C 键分派链）里调的；尾部的 `on_power_level_change` 广播让装备卡重申请子机，与火力档变化时的零售行为相同。我们的 `on_power_level_change` 桩不会重入 `on_activate` |
+| V5 | RNG 选对实例、调用约定对 | **CONFIRMED** —— 见下「V5 证据」：`0x402740` thiscall 无栈参；`0x4cf288` 是 gameplay 的 replay 安全流，`0x4cf280` 是商店 / UI 流 |
+| V6 | 多抽 RNG 不破坏 replay | **CONFIRMED（推理）** —— 抽取只发生在确定性的帧（第 480k 帧、到位帧），次数只依赖敌人数与帧号；同输入同种子必然同序列。带 mod 的 replay 本来就只能带 mod 看（任何改行为的卡都如此），与零售卡（Suwako 1/8 爆炸也抽这条流）同一性质 |
+| V7 | 火球爆炸恰好 400 且不被每帧上限钳 | **CONFIRMED** —— 8 帧各起一个**新** `ce_damage_rect`（寿命 2、50、64×64）。tag 守卫（U9：`src+0x84`）让一个源对同一敌人只算一次；8 个源 = 8 次 × min(50, `player+0x47984`)。四个自机的每帧上限最小是 Sakuya 60 ≥ 50 ⇒ 不钳；同帧主炮也在打的话与之分摊（U12 同款、零售子机卡共有）|
+| V8 | 火球非追踪、按开火时坐标落地 | **设计** —— `fl_launch` 记下 `(tx, ty)`，`n = ⌊d/8⌋ + 1` 帧恰好到点（每帧位移 = d / n，不过头）；敌人走开就打空。原地投（d = 0）至少飞 1 帧、不除零（单测覆盖）|
+| V9 | 火球 / 本体 VM 的 pos / rotation 由 C 写不会被脚本盖掉 | **CONFIRMED** —— script92 不碰 `rotate*`（scale 归它的 `scaleTime` 脉动循环，U13 同一分工）；script91 **不碰 pos**（青眼 script78 的 `posTime(30, 4, 0,0,0)` 空转循环这里改成 `nop()`，pos 全归 C）；script93 / 94 一次性、钉在起它那帧的坐标 |
+| V10 | 复用青眼 script86 / 87 做血条 | **CONFIRMED** —— 两个脚本是 `drawRect(1,1)` 根 VM，没有任何卡专属的东西；pos / scale / color 全由 C 每帧写（O29k）。两张卡各起自己的一对 VM，互不干扰 |
+| V11 | 敌人链表遍历 | **CONFIRMED** —— 与 U7 同一套（`+0x18c` 链表、`+0x635c & 0xc000021`、`+0x1270/+0x1274`），两遍都在同一个 `on_active_tick` 里、不缓存 enemy 指针 |
+| V12 | replay 安全的算术 | **CONFIRMED** —— 随机只来自游戏 RNG；smoothstep / 位移 / `bc_atan2f` / `sqrtss` 全是确定性 SSE；`make dllx87` = 0 |
+| V13 | 私有状态放得下 | **CONFIRMED** —— `sizeof(fl_state_t)` = 112 ≤ `CE_STATE_BYTES − CE_STATE_RESERVED` = 240 |
+| V14 | 语音登记与响度 | **CONFIRMED** —— ORDER 第 1、2 行 → id `0x55` / `0x56`（`make voice` 与 `voice.js` 对账）；转换后 RMS −10.7 / −11.2，在 −10 ± 4 dB 带内；攻击语音 4.3 s < 8 s 周期，不自叠 |
+| V15 | HUD 火力显示不用手动刷 | **CONFIRMED** —— Tsukasa / 商店 / 死亡三处扣火力都没调任何 HUD 刷新函数（对比残机 / 炸弹行要调 `0x441f10` / `0x4420e0`）；火力条每帧读 `CURRENT_POWER` |
+
+**V1 证据**：`0x457480`：`mov eax, ecx`（this = GlobalsInner `0x4cccdc`）、`mov edi, [eax+0x5c]`（CURRENT_POWER）、`mov ecx, [eax+0x64]`
+（POWER_PER_LEVEL）、`cmp edi, ecx; jg` 否则 `xor eax, eax; ret 4`；`mov edx, [ebp+8]`（amount）、`sub edi, edx`、写回、`< ecx` 则钳回 ecx；
+`(旧值+amount)/档 != 新值/档` → `setnz cl; mov eax, ecx`；两个出口都 **`ret 4`**。零售调用点 `0x410f1c` `push [0x4ccd40]; call`（ecx 早已 = `0x4cccdc`）。
+⇒ `thiscall(GlobalsInner*; int amount) ret 4`，返回 0/1。`sdk.h` 的 `ce_spend_power` 照此。
+
+**V2 证据**：`spend_power` 在 `CURRENT_POWER <= 一档` 时拒绝不扣（`0x45748c..0x457494`），扣完 `< 一档` 钳回一档（`0x45749f..0x4574a6`）：
+**永远保留 1.00**。零售 Tsukasa 成本 1 档、门槛 2 档（`0x410e6d`：`eax = [0x4ccd40]*2; cmp [0x4ccd38], eax; jl → 0x476be0(0x10)`）——
+「成本 + 一档」是零售自己的规矩；我们成本 200、门槛 300。只要求 ≥ 200 的话 250 时实际只扣 150。
+
+**V5 证据**：`Rng__rand_dword` `0x402740`：`mov esi, ecx`（this = zRng*）、无栈参、裸 `ret`、`eax = (hi16 << 16) | lo16`（两步 16 位生成器，`rng+4 += 2`）。
+`0x4cf288` = ExpHP `REPLAY_SAFE_RNG`，xref 全是 gameplay：`Bullet__run_ex`、`Enemy__drop_items_and_notify_cards`、`PlayerBullet__create`、
+`CardSuwako` / `CardYachie` / `CardMiko`、`BombSanae`。`0x4cf280` 的 xref 是 `CardShop__pick_weighted_random_offer`、`ItemManager`、UI（非回放流）。
+⇒ gameplay 随机走 `0x4cf288`；`sdk.h` 的 `ce_rand` 就是 `thiscall(0x4cf288)`。
+
+**V3 证据**：`0x45d5e0` 入口 `mov [esp+0x18], ecx`（this），全程读 `ecx+0x471dc` / `ecx+0x50`… 即 `PLAYER+0x620+…`；尾 `0x45dd0b` **`ret 4`**。
+调用点 Tsukasa `0x410f27`：`push ecx; mov ecx, [0x4cf410]; lea ecx, [ecx+0x620]; call 0x45d5e0`，调用后不动 esp ——
+压的那个 `ecx` 就是被 `ret 4` 清掉的哑栈参（函数体不读 `[ebp+8]`）。⇒ `thiscall(PLAYER+0x620; 一个未读栈参) ret 4`。
+`sdk.h` 的 `ce_repopulate_options` 传 `p + CE_PLAYER_INNER` 与一个 0。
+
+**实跑要看的**：见 [`NEXT.md`](NEXT.md) §1i。崩溃优先怀疑 V1 / V3（两个 `ret 4` 抄错就是栈飞）、V5（`ce_rand` 的 thiscall）；
+视觉怀疑 V9（火球方向 = `vm+0x44`，贴图朝 +x）。
+
 ## G. OPEN —— 还没解决的
 
 | # | 事项 | 说明 |

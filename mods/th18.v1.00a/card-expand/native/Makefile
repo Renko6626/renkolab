@@ -116,6 +116,8 @@ test-host:
 	./tests/build/test_blue_eyes_core
 	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_broken_core_core tests/test_broken_core_core.c cards/broken_core_core.c -lm
 	./tests/build/test_broken_core_core
+	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_firelord_core tests/test_firelord_core.c cards/firelord_core.c -lm
+	./tests/build/test_firelord_core
 
 ## x87 自检 —— 只看我们自己的目标文件
 dllx87: $(OBJS)

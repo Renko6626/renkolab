@@ -1,0 +1,28 @@
+script script92 {
+    // 拉格纳罗斯的火球本体：飞行物，不是瞬发。C 每帧写 pos（沿直线飞向开火时记下的敌人坐标）与
+    // rotation.z（飞行方向），到点由 C ce_anm_delete 收掉、同帧起 script94 爆炸。
+    // 脚本只管长相：加色混合、沿 +x 拉长成彗星形（贴图朝 +x，C 的 rotation.z 把它转到飞行方向）、
+    // 脉动缩放。★ 脚本里不许碰 rotate（会盖掉 C 写的方向）；scale 归脚本、pos / rotation 归 C。
+    // 伤害不在这里：落点由 C 连续 8 帧各放一个 ce_damage_rect（每帧一个新源才能累加，AUDIT V）。
+-1:
+    layer(13);
+    sprite(@FIRELORD_FIREBALL);
+    type(1);
+    blendMode(1);
+    zWriteDisable(1);
+    alpha(255);
+    scale(1.3f, 1.0f);                    // 64 px 贴图 → 约 83 × 64
+0:
+pulse:
+    scaleTime(6, 4, 1.45f, 0.9f);
++6: // 6
+    scaleTime(6, 4, 1.3f, 1.0f);
++6: // 12
+    jmp(pulse, 0);
+    stop();
+    interruptLabel(1);
+    scaleTime(4, 4, 0.0f, 0.0f);
+    alphaTime(4, 0, 0);
++4:
+    delete();
+}

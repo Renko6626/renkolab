@@ -1,0 +1,18 @@
+script script93 {
+    // 火球拖尾：C 每 2 帧在火球身后起一个，钉在当时的火球坐标（不动）。借火球贴图，染橙红、缩小淡出后自删。
+-1:
+    layer(13);
+    sprite(@FIRELORD_FIREBALL);
+    type(1);
+    blendMode(1);
+    zWriteDisable(1);
+    color(255, 150, 60);
+    alpha(200);
+    scale(0.8f, 0.8f);
+0:
+    scaleTime(14, 0, 0.15f, 0.15f);
+    alphaTime(14, 0, 0);
+    colorTime(14, 0, 200, 40, 10);
++14: // 14
+    delete();
+}

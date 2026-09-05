@@ -1,0 +1,25 @@
+script script91 {
+    // 炎魔之王拉格纳罗斯（id 72）的本体：C 每帧写 pos（不跟随自机，每 8 s 滑到一个随机落点）。
+    // 骨架照青眼 script78：出场放大到 0.5（256 px 贴图 → 场上约 128 px 高，挡弹半径 56 与之相称），
+    // 之后原地待命（脚本不碰 pos：由 C 写）；interruptLabel(1) = 死亡：放大 + 淡出后 delete。
+    // 挡到弹那帧的染色由 C 写 color1（青眼同款做法），脚本不碰 color。
+    layer(13);
+    blendMode(0);
+    type(1);
+    alpha(255);
+    zWriteDisable(1);
+    sprite(@FIRELORD_BODY);
+    scale(0.0f, 0.0f);
+    scaleTime(20, 4, 0.5f, 0.5f);
+idle:
+    nop();
++30: // 30
+    jmp(idle, 0);
+    stop();
+    interruptLabel(1);
+    blendMode(1);
+    scaleTime(14, 4, 0.9f, 0.9f);
+    alphaTime(14, 0, 0);
++14: // 44
+    delete();
+}

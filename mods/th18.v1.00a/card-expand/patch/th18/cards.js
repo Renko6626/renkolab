@@ -202,5 +202,21 @@
     "weight": 2,
     "sprite_large": 144,
     "sprite_small": 145
+  },
+  "72": {
+    "name": "炎魔之王拉格纳罗斯",
+    "desc": [
+      "主动（C 键）：消耗 2.00 火力召唤炎魔之王。",
+      "它替你挡下 800 发子弹，每 8 秒随机移动，",
+      "并向场上随机一个敌人投掷火球。",
+      "火力不足 3.00 时无法召唤。致敬・炉石传说。"
+    ],
+    "internal_name": "FIRELORD",
+    "initial_unlocked": 1,
+    "category": 0,
+    "price_tier": 14,
+    "weight": 2,
+    "sprite_large": 146,
+    "sprite_small": 147
   }
 }

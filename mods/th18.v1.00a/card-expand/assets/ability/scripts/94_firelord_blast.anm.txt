@@ -1,0 +1,18 @@
+script script94 {
+    // 火球爆炸：C 在火球到点那帧起它、钉在落点（纯特效，没有判定——伤害是 C 连续 8 帧放的定点伤害源）。
+    // 贴图自带内圈闪光 + 外圈光环；16 帧从 0.3 放大到 1.5（128 px 贴图 → 约 190 px，罩住 64×64 的判定有余）并淡出。
+-1:
+    layer(13);
+    sprite(@FIRELORD_BLAST);
+    type(1);
+    blendMode(1);
+    zWriteDisable(1);
+    alpha(255);
+    scale(0.3f, 0.3f);
+0:
+    scaleTime(16, 5, 1.5f, 1.5f);
++4: // 4
+    alphaTime(12, 0, 0);
++12: // 16
+    delete();
+}
