@@ -90,6 +90,12 @@
 #define CE_ANM_VM_FVARS            0x4b4      /* float[4] 脚本变量 %F0–%F3（ExpHP zAnmVmPrefix float_script_vars）；C 写、脚本 scale(%F0, …) 读 */
 #define CE_ANM_VM_ROTATION         0x3c       /* zFloat3 rx/ry/rz（zAnmVmPrefix；自机弹每帧更新 `0x45edb0` 写 +0x44 = rz = 弹的实时角度）*/
 #define CE_ANM_VM_SCALE            0x54       /* zFloat2 scale x/y：HUD 充能条 0x408a53 写 +0x58 = fill 比例（thpages drawRect：动态尺寸就改 scale）；ExpHP zAnmVmPrefix（AUDIT O29k）*/
+#define CE_FN_SCREEN_EFFECT_NEW    0x476060   /* ScreenEffect 工厂：★fastcall(ecx = type, edx = time; start, end, p5, draw_prio) ret 0x10（尾 0x4760a8）。
+                                                 * new(0x40) + ScreenEffect__operator_new 0x4760b0：type 1 = 震屏（on_tick 0x475c70：强度按 time 从 start 线性到 end，
+                                                 * 每帧用 UI RNG 0x4cf280 在 {0, +I, −I} 里抽 camera_1/camera_3 的 x / y 偏移；到时返回 7 自删，不进 replay 流）。
+                                                 * ECL 517 setScreenShake(time, start, end) 的 case 0x434d8d 就是 `ecx=1; edx=time; push 0x5b; push 0; push end; push start; call`。AUDIT §V17 */
+#define CE_SCREEN_EFFECT_SHAKE     1
+#define CE_SCREEN_EFFECT_DRAW_PRIO 0x5b       /* ECL 517 传的最后一参（type 1 不注册 on_draw，用不到，照传）*/
 #define CE_FN_LASER_CANCEL_ALL     0x449090   /* (mode, unused) 两个栈参 ret 8，ecx 不用（函数自己读 LASER_MANAGER 0x4cf3f4）；ECL 消弹 case 紧跟 cancel_all 调 (1,0) / (0,0)，玩家死亡 0x45c3cc 调 (1, 垃圾)；对每条激光调 vtable+0x28(mode, 0)（AUDIT O28h）*/
 
 #define CE_SCORE()        (*(int32_t *)CE_ADDR_SCORE)

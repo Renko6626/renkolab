@@ -1,0 +1,26 @@
+script script95 {
+    // 火球飞行中的橙白粒子：C 每帧起 FL_PARTICLES 颗、钉在火球当前坐标；每颗在这里用 ANM 自己的随机（UI RNG 流，与 replay 无关）
+    // 抽一个飘散方向，18 帧内飘 ±14 px、从白热缩小淡成橙红。借火球贴图（白芯 + 橙边，缩小后就是一颗火星）。
+-1:
+    layer(13);
+    sprite(@FIRELORD_FIREBALL);
+    type(1);
+    blendMode(1);
+    zWriteDisable(1);
+0:
+    fsetMul(%F0, %RANDF, 28.0f);
+    fadd(%F0, -14.0f);
+    fsetMul(%F1, %RANDF, 28.0f);
+    fadd(%F1, -14.0f);
+    fsetMul(%F2, %RANDF, 0.12f);
+    fadd(%F2, 0.16f);
+    color(255, 250, 230);
+    alpha(230);
+    scale(%F2, %F2);
+    posTime(18, 0, %F0, %F1, 0.0f);
+    scaleTime(18, 0, 0.03f, 0.03f);
+    colorTime(18, 0, 255, 120, 40);
+    alphaTime(18, 0, 0);
++18: // 18
+    delete();
+}

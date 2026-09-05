@@ -125,7 +125,7 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 
 主动卡：火力 ≥ 3.00 时按 C → 火力 −2.00（HUD 火力条掉两档、子机重建）→ 自机上方出现炎魔（用户正面像，约 64 px 高，待命时上下轻微浮动）+ 血条；
 弹碰到它变点道具、它闪一下橙色、血条缩短。第 480 帧起每 8 s：滑到弹幕区**下 1/3** 的一个随机点（60 帧、先慢后快再慢），到位那帧向场上随机一个敌人
-投火球（橙红彗星、身后拖尾），落到敌人**当时所在的位置**爆炸（光环 + `0x2c`），那一片的敌人掉 400 血（devstage ÷100 一发就死）。
+投火球（橙红彗星、身后拖尾 + 撒橙白粒子，4 px/帧慢慢飞），落到敌人**当时所在的位置**爆炸（大光环 + 一圈火星 + 画面小震一下 + `0x2c`），那一片（96×96）的敌人掉 600 血（devstage ÷100 一发就死）。
 800 发后放大淡出。火力 < 3.00 按 C → 无效音、充能不动。过关消失。设计 `docs/superpowers/specs/2026-09-06-firelord-design.md`，
 审计 AUDIT §V。`cards_dev.js` 起手卡组 2026-09-06 起是 **71/70/68/72/67**（顶掉了 69 加倍——要试 69 就临时换回）。
 
@@ -137,7 +137,7 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 （没敌人则 `firelord: no target …`）→ `firelord: hp N (blocked …)`（有挡弹的整秒）→ `firelord: died after …` 或过关 `firelord: dismissed (stage start) …`；
 火力不够 → `firelord: refused (power too low)`。
 崩溃优先怀疑：V1 / V3 的两个 `ret 4`（照 Tsukasa 抄的，但我们是从 SDK 桩里调）、V4 repopulate 在我们的 `on_activate` 里重入广播
-`on_power_level_change`（破损核心会在此重申请子机——零售装备卡同款）、`ce_rand` 的 thiscall。
+`on_power_level_change`（破损核心会在此重申请子机——零售装备卡同款）、`ce_rand` 的 thiscall、V17 震屏工厂的 fastcall + `ret 0x10`（第一颗火球落地那帧崩就是它）。
 视觉怀疑：火球方向（script92 不碰 rotate，C 写 `vm+0x44`；贴图朝 +x）、本体是否被 script91 拉回原点（脚本不碰 pos，应不会）、
 拖尾是否堆在火球身后而不是身前（起在当前帧坐标、火球下一帧才前进）。
 

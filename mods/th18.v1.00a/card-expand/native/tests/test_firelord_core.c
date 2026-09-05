@@ -76,21 +76,24 @@ static void test_fireball(void)
 {
     fl_state_t s;
     fl_summon(&s, 0.0f, 400.0f, 0.0f);                  /* 本体在 (0, 336) */
-    fl_launch(&s, 0.0f, 336.0f + 80.0f);                /* 正下方 80 px → 10 帧 + 1 */
+    fl_launch(&s, 0.0f, 336.0f + 80.0f);                /* 正下方 80 px → ⌊80 / 速度⌋ + 1 帧 */
+    const uint32_t want_n = (uint32_t)(80.0f / FL_BALL_SPEED) + 1u;
+    int want_trails = 0;
+    for (uint32_t f = 1; f < want_n; f++) if (f % FL_TRAIL_EVERY == 0) want_trails++;
     CHECK(s.ball_active && s.shots == 1, "launch");
-    CHECK(s.ball_left == 11, "ball_left=%u", s.ball_left);
+    CHECK(s.ball_left == want_n, "ball_left=%u ≠ %u", s.ball_left, want_n);
     CHECK(fabsf(s.bang - 1.5707964f) < 1e-3f, "朝下 = +π/2，得 %.4f", s.bang);
     int arrived = -1, trails = 0, dmg_frames = 0;
-    for (int i = 1; i <= 40; i++) {
+    for (int i = 1; i <= (int)want_n + FL_BLAST_FRAMES + 5; i++) {
         fl_step_t st = fl_step(&s, 0);
         if (st.trail) trails++;
         if (st.ball_arrived) { arrived = i; CHECK(fabsf(s.bx) < 1e-4f && fabsf(s.by - 416.0f) < 1e-3f, "落点 (%.3f, %.3f)", s.bx, s.by); }
         if (st.blast_dmg) { CHECK(st.blast_dmg == FL_BLAST_DMG, "dmg=%d", st.blast_dmg); dmg_frames++; }
-        if (i < 11) CHECK(s.ball_active, "帧 %d 火球提前没了", i);
+        if (i < (int)want_n) CHECK(s.ball_active, "帧 %d 火球提前没了", i);
     }
-    CHECK(arrived == 11, "arrived at %d", arrived);
+    CHECK(arrived == (int)want_n, "arrived at %d ≠ %u", arrived, want_n);
     CHECK(dmg_frames == FL_BLAST_FRAMES, "爆炸伤害帧 %d ≠ %d", dmg_frames, FL_BLAST_FRAMES);
-    CHECK(trails == 5, "拖尾 %d（10 帧飞行、每 2 帧一个）", trails);
+    CHECK(trails == want_trails, "拖尾 %d ≠ %d（%u 帧飞行、每 %d 帧一个）", trails, want_trails, want_n - 1, FL_TRAIL_EVERY);
     CHECK(!s.ball_active && s.blast_left == 0, "结束后状态没清");
     /* 爆炸从到点那帧的**下一帧**开始（到点帧 blast_left 刚置上、本帧不结算） */
     fl_summon(&s, 0.0f, 400.0f, 0.0f);

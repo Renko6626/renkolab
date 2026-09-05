@@ -1,0 +1,26 @@
+script script96 {
+    // 落地火星：C 在爆炸那帧起 FL_BURST 颗、钉在落点；各自随机方向飞出 ±56 px（先快后慢），22 帧从黄白缩小淡成暗红。
+-1:
+    layer(13);
+    sprite(@FIRELORD_FIREBALL);
+    type(1);
+    blendMode(1);
+    zWriteDisable(1);
+0:
+    fsetMul(%F0, %RANDF, 112.0f);
+    fadd(%F0, -56.0f);
+    fsetMul(%F1, %RANDF, 112.0f);
+    fadd(%F1, -56.0f);
+    fsetMul(%F2, %RANDF, 0.2f);
+    fadd(%F2, 0.3f);
+    color(255, 240, 180);
+    alpha(255);
+    scale(%F2, %F2);
+    posTime(22, 5, %F0, %F1, 0.0f);
+    scaleTime(22, 0, 0.05f, 0.05f);
+    colorTime(22, 0, 200, 50, 20);
++6: // 6
+    alphaTime(16, 0, 0);
++16: // 22
+    delete();
+}

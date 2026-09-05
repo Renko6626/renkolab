@@ -161,10 +161,21 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
         uint32_t t = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_TRAIL, 13);
         if (t) ce_anm_set_pos(t, s->bx, s->by, pz);
     }
-    if (st.ball_arrived) {
+    if (s->ball_active) {                                  /* 橙白粒子：每帧几颗，钉在火球当前坐标，各自在脚本里用 ANM 自己的随机飘开（UI RNG，不动 replay 流）*/
+        for (int i = 0; i < FL_PARTICLES; i++) {
+            uint32_t q = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_PARTICLE, 13);
+            if (q) ce_anm_set_pos(q, s->bx, s->by, pz);
+        }
+    }
+    if (st.ball_arrived) {                                 /* 打击感：爆炸光环 + 一圈火星 + 小震屏 + 0x2c */
         ce_anm_delete(s->ball_id); s->ball_id = 0;
         uint32_t b = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_BLAST, 13);
         if (b) ce_anm_set_pos(b, s->ex, s->ey, pz);
+        for (int i = 0; i < FL_BURST; i++) {
+            uint32_t q = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_EMBER, 13);
+            if (q) ce_anm_set_pos(q, s->ex, s->ey, pz);
+        }
+        ce_screen_shake(FL_SHAKE_TIME, FL_SHAKE_START, FL_SHAKE_END);
         ce_play_sound(FL_SE_BLAST, s->ex);
     }
     if (st.blast_dmg) {                                    /* 每帧一个**新**源：一个源对同一敌人只结算一次（AUDIT U9）*/

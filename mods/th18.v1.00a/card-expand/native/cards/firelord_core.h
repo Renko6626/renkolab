@@ -18,11 +18,16 @@
 #define FL_Y_MAX          410.0f    /* 离底边留 38 px：本体半高 32 + 血条 */
 #define FL_BOB_PERIOD     96        /* 帧：待命时上下呼吸浮动一个来回 */
 #define FL_BOB_AMP        4.0f      /* px：浮动半幅（本体 64 px 高）*/
-#define FL_BALL_SPEED     8.0f     /* px / 帧：满场 ~600 px 也在 75 帧内到，远小于 480 的周期 ⇒ 场上最多一颗 */
-#define FL_BLAST_FRAMES   8        /* 爆炸持续帧：每帧一个新伤害源（一个源对同一敌人只结算一次）*/
-#define FL_BLAST_DMG      50       /* 每帧；8 × 50 = 400。50 ≤ 四个自机的每帧上限最小值（Sakuya 60）⇒ 不被钳 */
-#define FL_BLAST_W        64.0f
-#define FL_BLAST_H        64.0f
+#define FL_BALL_SPEED     4.0f     /* px / 帧（2026-09-06 用户：放慢）：满场 ~600 px 也在 150 帧内到，仍远小于 480 的周期 ⇒ 场上最多一颗 */
+#define FL_BLAST_FRAMES   12       /* 爆炸持续帧：每帧一个新伤害源（一个源对同一敌人只结算一次）。2026-09-06 用户：伤害加大 → 8 → 12 帧 */
+#define FL_BLAST_DMG      50       /* 每帧；12 × 50 = 600。50 ≤ 四个自机的每帧上限最小值（Sakuya 60）⇒ 不被钳；加帧数而不是加单帧值就是为了这个 */
+#define FL_BLAST_W        96.0f    /* 杀伤范围 64 → 96（2026-09-06 用户）*/
+#define FL_BLAST_H        96.0f
+#define FL_PARTICLES      2        /* 飞行中每帧撒几颗橙白粒子（script95，各自随机飘散）*/
+#define FL_BURST          10       /* 落地那帧撒几颗火星（script96）*/
+#define FL_SHAKE_TIME     14       /* 震屏帧数（ECL setScreenShake 同款机制；零售 boss 死亡量级更大）*/
+#define FL_SHAKE_START    5        /* 起始强度（相机像素偏移）*/
+#define FL_SHAKE_END      0
 #define FL_TRAIL_EVERY    2        /* 飞行中每 2 帧留一个拖尾 */
 #define FL_BAR_DY         40.0f    /* 血条中心相对本体中心的 y（本体下端约 +32）*/
 #define FL_BAR_W          40.0f

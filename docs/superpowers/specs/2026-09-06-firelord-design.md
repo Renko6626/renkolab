@@ -22,7 +22,7 @@
 | --- | --- | --- |
 | 代价 | 1 残机 | **2.00 火力**（门槛 3.00，§2.1）|
 | 位置 | 跟随自机上方 80 px | **不跟随**：每 480 帧在弹幕区**下 1/3** 抽一个随机落点，60 帧 quintic ease-in-out 滑过去；待命时上下呼吸浮动（±4 px、96 帧）|
-| 攻击 | 每 5 s 向上一道 45 帧光束（矩形伤害源每帧一个）| 到位那帧向**随机一个**敌人投火球：直线飞向开火时记下的坐标（8 px/帧），落地连续 8 帧、每帧一个 64×64 伤害源 × 50 |
+| 攻击 | 每 5 s 向上一道 45 帧光束（矩形伤害源每帧一个）| 到位那帧向**随机一个**敌人投火球：直线飞向开火时记下的坐标（4 px/帧，飞行中撒橙白粒子），落地连续 12 帧、每帧一个 96×96 伤害源 × 50，加火星 + 小震屏 |
 | 生命 / 挡弹 | 1500 / 半径 48 | 800 / 半径 28（本体约 64 px 高；2026-09-06 用户：体积与半径减半）|
 | 随机 | 无 | 游戏 `REPLAY_SAFE_RNG`（落点 + 目标）|
 | 语音 | 无 | 召唤 `FIRELORD_SUMMON`（叠在 `0x4d` 上）、投球 `FIRELORD_ATTACK` |
@@ -54,12 +54,14 @@
 
 - **选目标**：两遍走 `EnemyManager+0x18c` 链表（与破损核心同一套过滤 `+0x635c & 0xc000021`）：先数 n，`ce_rand() % n` 取下标，再取那一个的 `+0x1270/+0x1274`。
   没敌人就不投（只移动）。**不缓存 enemy 指针**。
-- **飞行**：直线飞向开火时记下的坐标，`n = ⌊d / 8⌋ + 1` 帧恰好到点（每帧位移 = d / n，不会飞过头）；方向角 `bc_atan2f`（确定性 SSE 多项式）。
-  非追踪：敌人走开就打空，这是设计（火球是「砸向一个地方」）。
-- **爆炸**：到点那帧起 script94、放 `0x2c`；**下一帧起连续 8 帧**每帧 `ce_damage_rect((ex, ey), 0, 寿命 2, 50, 64×64)`。
-  之所以拆成 8 个源而不是一个 400 的源：`enm_compute_damage_sources` `0x45f0f0` 的 tag 守卫让**一个源对同一敌人只结算一次**，且本帧合计钳
-  `player+0x47984`（Sakuya 60）。50 × 8 在四个自机下都吃满 = 400；范围内多个敌人各吃一份。
-- 周期 480 ≫ 最长飞行（满场 ~600 px / 8 = 75 帧）⇒ 场上最多一颗，状态里只留一个槽。
+- **飞行**：直线飞向开火时记下的坐标，`n = ⌊d / 4⌋ + 1` 帧恰好到点（每帧位移 = d / n，不会飞过头；2026-09-06 用户：速度 8 → 4）；方向角 `bc_atan2f`（确定性 SSE 多项式）。
+  非追踪：敌人走开就打空，这是设计（火球是「砸向一个地方」）。飞行中每帧起 2 颗 script95 粒子钉在火球坐标，粒子在 ANM 里用 `%RANDF`（UI RNG 流）抽飘散方向，白热缩小淡成橙红——视觉随机不进 replay 流。
+- **爆炸**：到点那帧起 script94 光环（0.4 → 2.4）、10 颗 script96 火星、`ce_screen_shake(14, 5, 0)`、放 `0x2c`；**下一帧起连续 12 帧**每帧 `ce_damage_rect((ex, ey), 0, 寿命 2, 50, 96×96)`。
+  之所以拆成 12 个源而不是一个 600 的源：`enm_compute_damage_sources` `0x45f0f0` 的 tag 守卫让**一个源对同一敌人只结算一次**，且本帧合计钳
+  `player+0x47984`（Sakuya 60）。50 × 12 在四个自机下都吃满 = 600（2026-09-06 用户：加伤害 → 加帧数不加单帧值）；范围内多个敌人各吃一份。
+- **震屏**：照 ECL 517 `setScreenShake(time, start, end)` 的 case `0x434d8d` 调 `ScreenEffect` 工厂 `0x476060`（fastcall：ecx = type 1、edx = time；栈 start / end / 0 / 0x5b，`ret 0x10`）。
+  on_tick `0x475c70` 把强度从 start 线性降到 end，每帧用 UI RNG 抽相机偏移 —— 不进 replay 流。14 帧、5 px 起，是「小震」。
+- 周期 480 ≫ 最长飞行（满场 ~600 px / 4 = 150 帧）⇒ 场上最多一颗，状态里只留一个槽。
 
 ### 2.4 生命 / 挡弹 / 血条 / 收尾
 
@@ -75,7 +77,7 @@ C 写 pos / scale / color），满宽 40、>50％ 橙 / >20％ 黄 / 红。归�
 | 成本 / 门槛 / 充能 | 200 / 300 / 600 帧 |
 | HP / 挡弹半径 | 800 / 28 |
 | 周期 / 滑动 / 落点范围 / 呼吸 | 480 帧 / 60 帧 quintic / x [−160, 160) × y [300, 410) / ±4 px、96 帧 |
-| 火球速度 / 爆炸 | 8 px/帧 / 8 帧 × 50 × 64×64（名义 400）|
+| 火球速度 / 爆炸 / 震屏 | 4 px/帧 / 12 帧 × 50 × 96×96（名义 600）/ 14 帧、5 → 0 |
 | 音效 | 召唤 `0x4d` + 语音 `0x55`；投球语音 `0x56`；爆炸 `0x2c`；死亡 `0x29` |
 
 ## 4. 美术
@@ -88,7 +90,7 @@ C 写 pos / scale / color），满宽 40、>50％ 橙 / >20％ 黄 / 红。归�
 | 爆炸 `FIRELORD_BLAST`（sprite125）| 程序生成 128×128：内圈闪光 + 外圈光环 | `BLAST.png` |
 
 脚本：91 本体（出场放大、待命、`interruptLabel(1)` 死亡；**不碰 pos**，pos 全归 C）；92 火球（加色、沿 +x 拉成彗星、脉动缩放；
-**不碰 rotate**：方向由 C 写 `rotation.z`）；93 拖尾（每 2 帧一个，缩小淡出染红）；94 爆炸（0.3 → 1.5 放大淡出）。
+**不碰 rotate**：方向由 C 写 `rotation.z`）；93 拖尾（每 2 帧一个，缩小淡出染红）；94 爆炸（0.4 → 2.4 放大淡出）；95 飞行粒子（每帧 2 颗，`%RANDF` 飘散 ±14 px，白 → 橙红）；96 落地火星（10 颗，飘 ±56 px 先快后慢）。
 
 语音：`_src/*.ogg` → `convert_voice.py`（ffmpeg，+6 dB + 软限幅，44.1 kHz 16-bit 单声道）→ RMS −10.7 / −11.2（基准 −10 ± 4）。
 
@@ -97,8 +99,8 @@ C 写 pos / scale / color），满宽 40、>50％ 橙 / >20％ 黄 / 红。归�
 - `native/cards/firelord.c`：`on_activate`（门槛 → 起 VM → spend_power → repopulate → 音效 / 语音）、`on_active_tick`（挡弹 → `fl_step` → 移动 / 开火 / 火球位姿 / 拖尾 / 爆炸 / 死亡）、
   `on_stage_start` / `on_run_reset` 删 VM。
 - `native/cards/firelord_core.c/.h`：状态机（不产随机数，随机 dword 由调用方喂）。主机单测 `tests/test_firelord_core.c`。
-- 新 SDK 包装（`sdk.h`）：`ce_spend_power`、`ce_repopulate_options`、`ce_rand`；`engine.h` 新增 `CE_FN_SPEND_POWER` / `CE_FN_PLAYER_REPOPULATE_OPTIONS` /
-  `CE_FN_RNG_RAND_DWORD` / `CE_ADDR_REPLAY_SAFE_RNG` / `CE_ADDR_POWER_PER_LEVEL` / `CE_PLAYER_INNER`。
+- 新 SDK 包装（`sdk.h`）：`ce_spend_power`、`ce_repopulate_options`、`ce_rand`、`ce_screen_shake`；`engine.h` 新增 `CE_FN_SPEND_POWER` / `CE_FN_PLAYER_REPOPULATE_OPTIONS` /
+  `CE_FN_RNG_RAND_DWORD` / `CE_ADDR_REPLAY_SAFE_RNG` / `CE_ADDR_POWER_PER_LEVEL` / `CE_PLAYER_INNER` / `CE_FN_SCREEN_EFFECT_NEW`。
 
 ## 6. 审计
 

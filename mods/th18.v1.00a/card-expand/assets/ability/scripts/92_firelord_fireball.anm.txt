@@ -3,7 +3,7 @@ script script92 {
     // rotation.z（飞行方向），到点由 C ce_anm_delete 收掉、同帧起 script94 爆炸。
     // 脚本只管长相：加色混合、沿 +x 拉长成彗星形（贴图朝 +x，C 的 rotation.z 把它转到飞行方向）、
     // 脉动缩放。★ 脚本里不许碰 rotate（会盖掉 C 写的方向）；scale 归脚本、pos / rotation 归 C。
-    // 伤害不在这里：落点由 C 连续 8 帧各放一个 ce_damage_rect（每帧一个新源才能累加，AUDIT V）。
+    // 伤害不在这里：落点由 C 连续 12 帧各放一个 ce_damage_rect（每帧一个新源才能累加，AUDIT V）。
 -1:
     layer(13);
     sprite(@FIRELORD_FIREBALL);

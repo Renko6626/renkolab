@@ -291,6 +291,13 @@ static inline void ce_repopulate_options(void)
 /* 游戏自己的 replay 安全 RNG（thiscall(zRng*) 无栈参）：gameplay 里的「随机」一律走它，不引入自己的随机源。*/
 typedef uint32_t (__attribute__((thiscall)) *ce_fn_rng_t)(void *rng);
 static inline uint32_t ce_rand(void) { return ((ce_fn_rng_t)CE_FN_RNG_RAND_DWORD)((void *)CE_ADDR_REPLAY_SAFE_RNG); }
+/* 震屏（AUDIT V17）：照 ECL 517 setScreenShake 的 case 0x434d8d 调 ScreenEffect 工厂 0x476060。fastcall：ecx = type、edx = time，
+ * 栈上 start / end / 0 / 0x5b，被调方 ret 0x10。强度是相机像素偏移，time 帧内从 start 线性到 end。UI RNG，不动 replay 流。*/
+typedef void *(__attribute__((fastcall)) *ce_fn_screen_effect_t)(int type, int time, int start, int end, int p5, int draw_prio);
+static inline void ce_screen_shake(int time, int start, int end)
+{
+    ((ce_fn_screen_effect_t)CE_FN_SCREEN_EFFECT_NEW)(CE_SCREEN_EFFECT_SHAKE, time, start, end, 0, CE_SCREEN_EFFECT_DRAW_PRIO);
+}
 static inline int  ce_owned(uint32_t id) { return id < 255 && CE_OWNED_ARRAY()[id] != 0; }
 /* ctor 不只在获得时调：每关开始引擎会对卡组里每张卡再调一次 +0x00（实跑 2026-09-04：初始携带的卡 on_stage_start 后紧跟 ctor）。
  * 真正的获得路径（道具 mode 0 / 购买 mode 2）里 owned[自己] 要到 ctor 之后才置 1（0x412d42），关卡开始那次早就是 1 了——
