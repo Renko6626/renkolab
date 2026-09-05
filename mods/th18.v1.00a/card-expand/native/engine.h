@@ -125,6 +125,8 @@
 #define CE_CARD_ID                 0x04
 #define CE_CARD_ARRAY_INDEX        0x08
 #define CE_CARD_LIST_NODE          0x0c
+#define CE_CARD_OPTION_ANM_ID      0x1c       /* 装备卡子机的 anm vm id —— Player__allocate_option `0x40a790` 顺手写这里；
+                                                 零售 `CardReimu1__operator_delete` `0x40ab20` 在析构时按它删 VM（ExpHP anm_id_for_ingame_effect）*/
 #define CE_CARD_ELAPSED_TIMER      0x20       /* zTimer：激活经过帧（每帧 Timer__increment；OM §3 订正）*/
 #define CE_CARD_RECHARGE_TIMER     0x34       /* zTimer：充能倒计时（空闲时 Timer__decrement；c_press 门控 +0x38 <= 0）*/
 #define CE_CARD_RECHARGE_TIME      0x48
@@ -188,6 +190,31 @@ typedef struct { int32_t prev; int32_t cur; float cur_f; } ce_timer_t;   /* zTim
 #define CE_FN_ANM_INSTANTIATE_WORLD_BACK 0x405bf0 /* AnmLoaded__instantiate_vm_to_world_list_back：thiscall(AnmLoaded*; int* out_id, int script, int layer, void** out_vm) ret 0x10。建 VM、实体坐标 (0,0,0)、layer<0x18 时写 vm+0x18、AnmVm__run 一帧、挂 world 列表尾；内部自己进临界区。AUDIT O24 */
 #define CE_FN_ANM_SET_SPRITE       0x477b00   /* AnmLoaded__set_sprite：thiscall(AnmLoaded*; vm, sprite_idx) ret 8（备查，特效脚本自己 sprite() 就不用）*/
 #define CE_FN_ANM_DELETE_BY_ID     0x488cf0   /* stdcall(anm_id) ret 4：按 id 标记删除 VM 及其子树（Tenshi 收尾用；一次性脚本自 delete() 就不用）*/
+/* ---- 装备卡：子机（option）与 SHT（engine/sht/th18/，engine/card/th18/03-hooks.md §5）---- */
+#define CE_FN_PLAYER_ALLOCATE_OPTION 0x40a790 /* ★thiscall(card; card, off_x, card, off_y, ability_script) ret 0x14
+                                                 —— 五个栈参里第 1、3 个是 card 自己（`CardReimu1__on_power_level_change` 0x40aae0
+                                                 的压栈序：push script / push off / push ecx / push off / push ecx）。
+                                                 从 PLAYER->inner.equipment 的 12 个槽找空位；最后一参是 **ability.anm** 的脚本号。
+                                                 返回 zPlayerOption*（满了返回 NULL）；顺手把子机的 anm vm id 写进 card+0x1c。AUDIT U1 */
+#define CE_FN_TICK_SHOOTERS_FOR_CARD 0x40a9c0 /* stdcall(option, short_timer, long_timer, sht_set_index) ret 0x10：
+                                                 取 *(int*)(PLAYER+0x47940)+0xe0+idx*4 那组 shooter，逐条判
+                                                 `timer % fire_rate == start_delay` 就发；弹从 option+0x5c/+0x60 出膛。
+                                                 ★ fire_rate == 0 会整数除零（这条路径没有零分支）。
+                                                 开火期间把 player+0x10 换成 ability.anm，所以 shooter 的 anm 字段按 ability.anm 解释 */
+#define CE_OPT_IN_USE              0x00       /* zPlayerOption：非 0 = 占用中（allocate 找空位看它）*/
+#define CE_OPT_POS_X               0x5c       /* 定点数，× 1/128 = 像素（`0x40a9c0` 出膛坐标就取这两个）*/
+#define CE_OPT_POS_Y               0x60
+#define CE_OPT_ANM_ID              0xb0       /* 子机的 anm vm id */
+#define CE_OPT_OWNER_INDEX         0xd0       /* = 建它那张卡的 card+0x08（array_index）；用来认领「这个槽还是我的吗」*/
+#define CE_SUBPIXEL_TO_PIXEL       (1.0f / 128.0f)   /* `0x4b908c` */
+#define CE_PLAYER_AIM_ANGLE        0x479cc    /* float：卡把瞄准角写这里，shooter 的 func_on_init = 5（`0x4612d0`）
+                                                 在建弹时用它覆写 bullet+0x64。CardAlice `0x40b5fa` 同款用法 */
+/* ---- zEnemy（`CardAlice__on_shoot` 0x40b4e0 与最近敌人搜索 0x438cb0 一手）---- */
+#define CE_ENEMY_POS_X             0x1270     /* = data(+0x122c).final_pos(+0x44).pos */
+#define CE_ENEMY_POS_Y             0x1274
+#define CE_ENEMY_FLAGS             0x635c
+#define CE_ENEMY_FLAG_NO_LOCK      0x0c000021 /* 任一位置起 = 不可锁定（死亡 / 无敌 / 未登场…）*/
+
 #define CE_MODE_ITEM    0
 #define CE_MODE_SAVE    1
 #define CE_MODE_SHOP    2

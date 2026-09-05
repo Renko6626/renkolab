@@ -190,6 +190,42 @@ static inline int ce_damage_rect(const float *center, float angle, int life, int
     return idx;
 }
 
+/* 装备卡子机（AUDIT §U）。两个函数的调用约定都从零售调用点原样抄来，**别照反编译的形参名改**：
+ *
+ *   Player__allocate_option —— thiscall + 五个栈参，其中第 1、3 个是 card 自己（`CardReimu1__on_power_level_change`
+ *     `0x40aae0`：push script / push off / push ecx / push off / push ecx；调用后调用方不动 esp ⇒ callee ret 0x14）。
+ *     返回 zPlayerOption*（12 个槽满了返回 NULL）。最后一参是 **ability.anm** 的脚本号（子机长什么样）。
+ *   Player__tick_shooters_for_ability_card —— stdcall(option, short_timer, long_timer, sht_set_index) ret 0x10。
+ *     ★ 那组 shooter 的 fire_rate 必须 >= 1：这条路径没有除零保护。
+ */
+static inline void *ce_allocate_option(void *card, int off, int anm_script)
+{
+    void *ret;
+    __asm__ volatile ("pushl %[script]\n\t"
+                      "pushl %[off]\n\t"
+                      "pushl %[card]\n\t"
+                      "pushl %[off]\n\t"
+                      "pushl %[card]\n\t"
+                      "movl %[card], %%ecx\n\t"
+                      "call *%[fn]"
+                      : "=a"(ret)
+                      : [script] "ri"(anm_script), [off] "ri"(off), [card] "r"(card),
+                        [fn] "r"((uintptr_t)CE_FN_PLAYER_ALLOCATE_OPTION)
+                      : "ecx", "edx", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "cc");
+    return ret;
+}
+static inline void ce_tick_shooters_for_card(void *option, int short_timer, int long_timer, int sht_set)
+{
+    __asm__ volatile ("pushl %[set]\n\t"
+                      "pushl %[lt]\n\t"
+                      "pushl %[st]\n\t"
+                      "pushl %[opt]\n\t"
+                      "call *%[fn]"
+                      : : [set] "ri"(sht_set), [lt] "ri"(long_timer), [st] "ri"(short_timer), [opt] "r"(option),
+                          [fn] "r"((uintptr_t)CE_FN_TICK_SHOOTERS_FOR_CARD)
+                      : "eax", "ecx", "edx", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "cc");
+}
+
 /* ANM VM：按 id 找（thiscall(ANM_MANAGER; id) ret 4）、写实体坐标 / 颜色、发中断（stdcall(id, n) ret 8）、删除（stdcall(id) ret 4）。AUDIT O29c。*/
 typedef uint8_t *(__attribute__((thiscall)) *ce_fn_anm_get_vm_t)(void *mgr, uint32_t id);
 typedef void (__attribute__((stdcall)) *ce_fn_anm_interrupt_t)(uint32_t id, int n);

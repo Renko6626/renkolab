@@ -69,8 +69,8 @@ return 1;   /* 放行原指令 */
 | +0x0c | `on_death_after_deathbomb` | `int (ce_card_t*, uint32_t)` | 返回非 0 = 救下了 |
 | +0x10 | `on_death_before_deathbomb` | `int (ce_card_t*)` | |
 | +0x14 | `on_death_frame2` | `int (ce_card_t*)` | 死亡结算之后（扣钱扣火力已发生）|
-| +0x18 | `on_power_level_change` | `int (ce_card_t*)` | |
-| +0x1c | `on_tick_shooters` | `int (ce_card_t*, uint32_t, uint32_t)` | 每射击帧 |
+| +0x18 | `on_power_level_change` | `int (ce_card_t*)` | 火力档变 / 开局 / 关店后广播；**装备卡在这里生成子机**（§12）|
+| +0x1c | `on_tick_shooters` | `int (ce_card_t*, uint32_t, uint32_t)` | 每射击帧（**只在按住射击键时**广播）|
 | +0x20 | `on_load` | `int (ce_card_t*)` | 返回值 OR 累加 |
 | +0x24 | `on_tick` | `int (ce_card_t*)` | 玩家侧每帧 |
 | +0x28 | `on_bullet_created` | `int (ce_card_t*, void *bullet)` | 每颗自机弹 |
@@ -249,8 +249,44 @@ native/
 ├── engine.h         一手地址 / 偏移（每条带出处）
 ├── sdk_core.h/.c    注册表 / 对账 / 状态槽（纯逻辑，make test-host）
 ├── sdk.c            断点 ce_card_bind、ce_item_score；门里的守卫与对账；trace
+├── anm_ids.h        生成物：ability.anm 里我们追加的 sprite / 脚本号（make anm）
+├── sht_ids.h        生成物：pl0X.sht 里我们追加的 shooterset 索引（make sht，§12）
 └── cards/           每张卡一个 .c（Makefile 通配）
     ├── s10.c  sj.c  sq.c  sk.c  sa.c
+    └── 带纯逻辑的还有一个 <名>_core.c/.h（主机单测），如 blue_eyes_core、broken_core_core
 ```
 
 审计：[`AUDIT.md`](AUDIT.md) §O。
+
+## 12. 装备卡（子机 + 自己的弹幕）
+
+零售的「子机会开火」那类卡（各角色 `*_OP`）是两个槽的事，本 mod 现在能照着写——第一张是
+**破损核心（71）**（`cards/broken_core.c`）。引擎一手在
+[`engine/sht/th18/`](../../../engine/sht/th18/README.md) 与
+[`engine/card/th18/03-hooks.md`](../../../engine/card/th18/03-hooks.md) §5，审计 AUDIT §U。
+
+```c
+/* ① 生成子机：脚本号是 ability.anm 的（子机长什么样由我们画）*/
+static int on_power_level_change(ce_card_t *c) {
+    bc_card_t *s = ce_state(c, bc_card_t);
+    s->option = ce_allocate_option(c, 0x18 /* 横向偏移 */, CE_ANM_ABILITY_SCRIPT_BROKEN_CORE_ORB);
+    return 0;
+}
+/* ② 开火：给一组 shooter 的索引；弹从子机位出膛 */
+ce_tick_shooters_for_card(option, short_timer, long_timer, CE_SHT_SET_BROKEN_CORE);
+```
+
+四条要点：
+
+- **子机指针别存 `card+0x54`**（零售存那儿）：新卡对象只有 `0x54` 字节，那已经在对象外。用 `ce_state()`。
+  槽是 12 个的公共池，每次用前认领一次：`option+0x00 != 0 && option+0xd0 == card+0x08`。
+- **弹幕数据**要往四个 `pl0X.sht` 里加一组 shooterset：`assets/sht/append_shooterset.py` 的 `APPEND` 表加一项，
+  `make sht` 生成 `build/sht/*.sht` 与 `sht_ids.h`（`CE_SHT_SET_<NAME>`）。零售用了 23 项、总共 40 项，
+  **还剩 16 个空位**。脚本每次都回读校验解析不变式（AUDIT U5）。
+- **弹的贴图也在 `ability.anm`**：引擎开火期间把 `player+0x10` 换成它，所以 shooter 的 anm 字段填
+  `CE_ANM_ABILITY_SCRIPT_*`。不用碰四个 `pl0X.anm`。
+- **想瞄准**：把角度写 `player+0x479cc`，该组 shooter 的 `func_on_init` 填 `5`（`CardAlice` 同款，
+  出膛定向、不追踪）；贴图朝向在脚本里写 `rotateAuto(1)` 就够，引擎每帧跟着弹的实时角度转。
+- **想不按射击键也打**：`on_tick_shooters`（`+0x1c`）只在按住射击键时广播。改挂 `on_tick_2`，
+  shooter 的 `fire_rate` 填 1、调用时 timer 传 0（`0 % 1 == 0` 必发），节奏交给自己的计数器。
+  ⚠️ `fire_rate` **不能填 0**：这条路径上是裸取模，会除零。

@@ -2,7 +2,7 @@
 ROWS ?= 255
 PATCH := ../patch/th18.v1.00a.js
 
-.PHONY: all check gen verify files clean test-host anm anm-verify ecl snd-check voice
+.PHONY: all check gen verify files clean test-host anm anm-verify sht sht-verify ecl snd-check voice
 
 all: gen verify test-host voice dll
 
@@ -11,11 +11,11 @@ step1:
 	$(MAKE) ROWS=58 gen verify voice dll dllx87 files
 
 ## step3 —— 战线 B 验证态：255 行 + 分配器搬迁 + patch-test（空槽→id 58 + 追踪断点）
-step3: anm
+step3: anm sht
 	$(MAKE) ROWS=255 gen verify test-host voice dll dllx87 files
 
-## check  —— 只扫描 + 校验两条不变式，不产出（顺带 anm-verify / snd-check）
-check: anm-verify snd-check
+## check  —— 只扫描 + 校验两条不变式，不产出（顺带 anm-verify / sht-verify / snd-check）
+check: anm-verify sht-verify snd-check
 	python3 sites.py check
 
 ## snd-check —— 音效表 51 处站点的扫描 + 完整性审计（只读，不产出）
@@ -41,6 +41,18 @@ anm:
 ## ecl    —— 开发辅助：st01–st06 空壳（道中删除、boss 血量 ÷100、死时多掉钱）→ build/ecl/，单独一个可勾选的 patch（_devstage）
 ecl:
 	python3 ../assets/ecl/make_dev_ecl.py
+
+## sht    —— 往零售 pl00–03.sht 追加新卡子机的 shooterset → build/sht/；生成 sht_ids.h
+sht:
+	python3 ../assets/sht/append_shooterset.py
+
+## sht_ids.h 是生成物（依赖 anm_ids.h：shooter 的 anm 字段指 ability.anm 的脚本）
+sht_ids.h: anm_ids.h ../assets/sht/append_shooterset.py
+	python3 ../assets/sht/append_shooterset.py
+
+## sht-verify —— 只校验 build/sht/*.sht：解析不变式 + 前 23 组逐字节不变
+sht-verify:
+	python3 ../assets/sht/append_shooterset.py --verify-only
 
 ## anm-verify —— 只校验（build/abcard.anm 已存在）：entry 数 / 原贴图逐张一致 / 新 entry 字段 / JSON 索引
 anm-verify:
@@ -83,7 +95,7 @@ LDFLAGS   := -shared -static-libgcc -s -lkernel32 -Wl,--no-insert-timestamp
 dll: $(DLL)
 SRCS      := dll_main.c selfcheck.c unlocked.c text.c cards_def.c cards.c menu.c bp_trace.c sdk_core.c sdk.c shop_core.c shop.c sound.c $(wildcard cards/*.c)
 OBJS      := $(SRCS:.c=.o)
-%.o: %.c card_expand.h sites_gen.h thcrap_bp.h cards_def.h sdk.h sdk_core.h engine.h shop_core.h sound.h voice_ids.h
+%.o: %.c card_expand.h sites_gen.h thcrap_bp.h cards_def.h sdk.h sdk_core.h engine.h shop_core.h sound.h voice_ids.h sht_ids.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(DLL): $(OBJS) th18_card_expand.def
 	$(CC) $(CFLAGS) -o $@ $(OBJS) th18_card_expand.def $(LDFLAGS)
@@ -100,6 +112,8 @@ test-host:
 	./tests/build/test_shop_core
 	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_blue_eyes_core tests/test_blue_eyes_core.c cards/blue_eyes_core.c -lm
 	./tests/build/test_blue_eyes_core
+	$(HOSTCC) -std=c11 -Wall -Wextra -Werror -o tests/build/test_broken_core_core tests/test_broken_core_core.c cards/broken_core_core.c -lm
+	./tests/build/test_broken_core_core
 
 ## x87 自检 —— 只看我们自己的目标文件
 dllx87: $(OBJS)
@@ -116,13 +130,13 @@ dllverify: $(DLL)
 ## dist —— 在 ../dist/ 摆出可直接安装的整套：一个 DLL + patch-step1 / patch-step3 / patch-test
 ##         （dist/ 已 gitignore：DLL 是构建产物，不入库；随时 make dist 重建）
 DIST := ../dist
-dist: anm ecl
+dist: anm sht ecl
 	rm -rf $(DIST) && mkdir -p $(DIST)/bin $(DIST)/patch-step1 $(DIST)/patch-step3 $(DIST)/patch-test $(DIST)/patch-devstage/th18
 	$(MAKE) -s ROWS=58  gen dll files >/dev/null
 	cp $(DLL) $(DIST)/bin/ && cp ../patch/*.js $(DIST)/patch-step1/ && cp -r ../patch-test/. $(DIST)/patch-test/
 	$(MAKE) -s ROWS=255 gen files >/dev/null
 	cp -r ../patch/. $(DIST)/patch-step3/
-	cp build/abcard.anm build/ability.anm $(DIST)/patch-step3/th18/ && python3 mkfiles.py $(DIST)/patch-step3 >/dev/null
+	cp build/abcard.anm build/ability.anm build/sht/pl0[0-3].sht $(DIST)/patch-step3/th18/ && python3 mkfiles.py $(DIST)/patch-step3 >/dev/null
 	cp ../patch-devstage/patch.js $(DIST)/patch-devstage/ && cp build/ecl/st0[1-6].ecl build/ecl/st0[1-6]bs.ecl $(DIST)/patch-devstage/th18/ && python3 mkfiles.py $(DIST)/patch-devstage >/dev/null
 	cp ../DIST-README.txt $(DIST)/README.txt
 	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test patch-devstage README.txt
