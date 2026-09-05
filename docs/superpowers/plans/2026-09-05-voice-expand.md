@@ -1,5 +1,7 @@
 # TH18 音效表扩容（card-expand 语音）实施计划
 
+> **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 把 TH18 写死 84 槽的音效表整体搬到 thcrap codecave 并加长到 116 槽，让 card-expand 能注册 32 个自定义音效 id（`0x54`–`0x73`），第一批装角色语音。

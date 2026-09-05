@@ -136,12 +136,32 @@ CE_CARD(id, .回调 = 函数, ...);      /* 一张卡一条，放在 native/card
 | `ce_table_entry(id)` / `ce_entry_id(e)` | 表行（ctor 里 `card+0x4c` 还没写，用这个）| `TableCardData__get` `0x407d70` fastcall(ecx=id) |
 | `ce_log(fmt, …)` | 一行进 `th18_card_expand.log` | — |
 | `ce_play_sound(id, x)` | 音效，x = 世界 x（声像）| `0x476c70` stdcall(id) + xmm2 `ret 4` |
+| `ce_play_voice(NAME, x)` | 语音（扩展 id `0x54`–`0x73`）| 同上；`NAME` 来自 `assets/voice/ORDER.txt`，见 §5.1 |
 | （SDK 内部）`Timer__decrement / increment` | 充能 / 经过帧 | `0x409750` / `0x405990` thiscall(zTimer*, 未用栈参) **`ret 4`** |
 | `CE_BULLET_MGR()` + `CE_BM_*` / `CE_BULLET_*` | 子弹池：2000 张，起点 `+0xec`，stride `0xfa0`，状态 `+0xf68`，`velocity/speed/angle` `+0x644/+0x650/+0x654` | `cancel_all` `0x4297a0` 的扫法 + ExpHP 结构 |
 | `ce_cancel_radius(pos, r, max, mode)` | 半径消弹（弹 → 点道具），返回消掉的弹数；max 消满即停 | `0x429370` stdcall(pos, mode, max, tag) + XMM2 半径 `ret 0x10`；计数器 `mgr+0x7a41e8`（AUDIT O29a）|
 | `ce_damage_rect(center, angle, life, dmg, w, h)` | 自机侧矩形伤害源：敌人自己判重叠扣血，每帧总量钳 `player+0x47984` | `0x45dfa0` stdcall + XMM2 宽 / XMM3 高 `ret 0x10`（O29b）|
 | `ce_anm_get_vm / set_pos / set_color` | 按 id 找 VM、写 `vm+0x5f0` 坐标 / `vm+0x524` 颜色 | `0x488b40` thiscall(mgr; id) `ret 4`（O29c）|
 | `ce_anm_interrupt(id, n)` / `ce_anm_delete(id)` | 触发脚本 `interruptLabel(n)`（Tenshi 用 1 收场）/ 标记删除 | `0x488be0` stdcall `ret 8` / `0x488cf0` stdcall `ret 4` |
+
+### 5.1 语音
+
+**语音就是 SE**，只是 id 落在扩容出来的 `0x54`–`0x73`（32 个槽）。可叠加、跟随游戏的 SE 音量、
+不做独占通道、不打断、过关不停 —— 设计决定见
+[`docs/superpowers/specs/2026-09-05-voice-expand-design.md`](../../../docs/superpowers/specs/2026-09-05-voice-expand-design.md) §4。
+
+三步：
+
+1. wav 放 `assets/voice/<NAME>.wav`（PCM，建议 16-bit 单声道），`assets/voice/ORDER.txt` 加一行 `NAME`；
+2. `patch/th18/voice.js` 加一条 `{"KEY": {"wav": "NAME", "id": 0x54+行号, "volume": 100, "pan": 0}}`；
+3. `make voice`（会与 ORDER.txt 对账，不一致直接停）→ 代码里 `ce_play_voice(NAME, player_x())`。
+
+细则见 [`assets/voice/README.md`](assets/voice/README.md)。引擎侧的表结构与两条不变式见
+[`engine/_shared/th18-sound-table.md`](../../../engine/_shared/th18-sound-table.md)，
+站点与审计见 [`AUDIT.md`](AUDIT.md) §Q。
+
+**别用裸数字**：`0x00`–`0x53` 是零售音（一个空闲 id 都没有），`0x54` 起才是我们的。
+`ce_play_voice` 走 `voice_ids.h` 的宏，写错 NAME 编译期就报错。
 
 ## 6. SDK 事件（虚表之外）
 

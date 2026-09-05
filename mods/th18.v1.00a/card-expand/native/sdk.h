@@ -88,6 +88,14 @@ static inline void ce_play_sound(uint32_t id, float x)
                       : "eax", "ecx", "edx", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "cc");
 }
 
+/* 语音：与 SE 完全同构 —— 可叠加、跟随游戏的 SE 音量、不做独占通道、不打断。
+ * 只是 id 落在扩展区 0x54..0x73（音效表扩容，AUDIT §Q）。
+ * NAME 来自 assets/voice/ORDER.txt，由 assets/build_voice.py 生成 voice_ids.h。
+ *   ce_play_voice(SPADE_10_ACTIVATE, player_x());
+ * 没登记语音时 voice_ids.h 是空的，用到不存在的 NAME 会在编译期报错 —— 这是想要的。 */
+#include "voice_ids.h"
+#define ce_play_voice(NAME, x)  ce_play_sound(CE_VOICE_##NAME, (x))
+
 /* ANM：从一个已装载的 anm（CE_ABILITY_ANM() / 取 CE_MGR_ABCARD_ANM）起脚本，挂 world 列表，实体坐标 (0,0,0)
  * = 场地正中（脚本里 originMode(1)）。返回 anm id（0 = 失败）。脚本自己 delete() 的一次性特效不用记 id。
  * 只能在主线程（桩 / 断点里）调；引擎函数 thiscall + ret 0x10，四个栈参由被调方清（AUDIT O24）。*/

@@ -28,6 +28,11 @@ static int on_activate(ce_card_t *c)
     }
     uint8_t *p = CE_PLAYER();
     ce_play_sound(0x4d, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);   /* 0x4d = Tenshi 发动音 */
+#ifdef CE_VOICE_TEST_VOICE
+    /* 音效表扩容的实跑验证：与上面那声 SE **同帧叠加**播放（语音不做独占通道，AUDIT §Q）。
+     * TEST_VOICE 是本地验证用的零售 wav（gitignored），没有它时这段不编译。 */
+    ce_play_voice(TEST_VOICE, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);
+#endif
     /* 亮牌：ability.anm 追加的 script68（assets/ability/scripts/68_reverse_flash.anm.txt），卡图副本 sprite109，
      * 场地中央（脚本 pos(0,224,0)：ECL y 从区域顶部起算）绕 Y 轴转一圈后自灭。层 20：type(8) 走 D3D WORLD 矩阵，不加相机 2 的区域原点偏移，放世界层会偏位；
      * 零售的 type(8) 全在层 20 / 2 / 6（engine/anm/th18/01-vm-instantiate.md §3）。脚本里的 layer() 会覆盖这个参数。*/

@@ -69,3 +69,11 @@ python3 ../assets/build_voice.py --check    # 只校验
   但 `build_voice.py` 只放行 PCM —— 别的 tag 我们没验过。
 - wav 文件随 `_255` patch 分发（`patch/th18/voice/`），`files.js` 收它们的 crc。
 - `TEST_VOICE.wav` 是本地链路验证用的零售 wav，**gitignored，不入库**。
+
+## `files.js` 与分发
+
+`patch/th18/voice/*.wav` 在**本仓**是 gitignored 的（renkolab 不留任何版权/大二进制字节，
+同 `abcard.anm` 的政策），所以入库的 `patch/files.js` **不会**列出语音 wav。
+`make dist` / `make release` 会对 `dist/patch-step3/` 重新生成 files.js，那份**会**列出它们
+—— 语音随 modkit 发布。thcrap 本地解析文件不看 files.js（那是更新/下载机制用的），
+所以本地开发时 wav 不在 files.js 里也照样能播。

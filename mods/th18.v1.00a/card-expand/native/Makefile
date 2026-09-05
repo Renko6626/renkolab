@@ -4,15 +4,15 @@ PATCH := ../patch/th18.v1.00a.js
 
 .PHONY: all check gen verify files clean test-host anm anm-verify ecl snd-check voice
 
-all: gen verify test-host dll
+all: gen verify test-host voice dll
 
 ## step1 —— 第 1 步交付态：58 行，行为零变化（只进 dist/patch-step1；仓库里 patch/ 提交的是 255 行 = step3）
 step1:
-	$(MAKE) ROWS=58 gen verify dll dllx87 files
+	$(MAKE) ROWS=58 gen verify voice dll dllx87 files
 
 ## step3 —— 战线 B 验证态：255 行 + 分配器搬迁 + patch-test（空槽→id 58 + 追踪断点）
 step3: anm
-	$(MAKE) ROWS=255 gen verify test-host dll dllx87 files
+	$(MAKE) ROWS=255 gen verify test-host voice dll dllx87 files
 
 ## check  —— 只扫描 + 校验两条不变式，不产出（顺带 anm-verify / snd-check）
 check: anm-verify snd-check
@@ -79,7 +79,7 @@ LDFLAGS   := -shared -static-libgcc -s -lkernel32 -Wl,--no-insert-timestamp
 dll: $(DLL)
 SRCS      := dll_main.c selfcheck.c unlocked.c text.c cards_def.c cards.c menu.c bp_trace.c sdk_core.c sdk.c shop_core.c shop.c sound.c $(wildcard cards/*.c)
 OBJS      := $(SRCS:.c=.o)
-%.o: %.c card_expand.h sites_gen.h thcrap_bp.h cards_def.h sdk.h sdk_core.h engine.h shop_core.h sound.h
+%.o: %.c card_expand.h sites_gen.h thcrap_bp.h cards_def.h sdk.h sdk_core.h engine.h shop_core.h sound.h voice_ids.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(DLL): $(OBJS) th18_card_expand.def
 	$(CC) $(CFLAGS) -o $@ $(OBJS) th18_card_expand.def $(LDFLAGS)
