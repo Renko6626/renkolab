@@ -29,6 +29,10 @@ snd-check:
 voice:
 	python3 ../assets/build_voice.py
 
+## voice_ids.h 是生成物：裸 make dll 也要能把它做出来（否则新 clone 缺文件直接停）
+voice_ids.h: ../assets/voice/ORDER.txt $(wildcard ../assets/voice/*.wav) ../patch/th18/voice.js
+	python3 ../assets/build_voice.py
+
 ## anm    —— abcard.anm（../assets/cards/ 新卡图）+ ability.anm（../assets/ability/ 贴图副本 + 特效脚本）→ build/；生成 anm_ids.h
 anm:
 	python3 ../assets/build_abcard.py

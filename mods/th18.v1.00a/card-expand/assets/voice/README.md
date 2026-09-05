@@ -12,6 +12,7 @@
 | `ORDER.txt` | 一行一个 `NAME`，**只追加**。行号 k → 音效 id `0x54+k`、wav 下标 `72+k`。`#` 开头是注释 |
 | `<NAME>.wav` | PCM（`fmt` tag 1）。**建议 16-bit 单声道** —— 声像对单声道才有意义 |
 | `_src/` | 第三方 / 原始素材（原件 + 出处 README）|
+| `make_test_melody.py` | 合成 `TEST_VOICE.wav` 的脚本（实跑素材，可复现）|
 
 `NAME` 只能是字母数字下划线 —— 它要变成 C 宏 `CE_VOICE_<NAME>`。
 
@@ -68,12 +69,15 @@ python3 ../assets/build_voice.py --check    # 只校验
 - 引擎的 RIFF 解析不挑格式（零售 71 个就是 44.1k/22.05k × 8/16 bit × 单/双声道混用），
   但 `build_voice.py` 只放行 PCM —— 别的 tag 我们没验过。
 - wav 文件随 `_255` patch 分发（`patch/th18/voice/`），`files.js` 收它们的 crc。
-- `TEST_VOICE.wav` 是本地链路验证用的零售 wav，**gitignored，不入库**。
+- `TEST_VOICE.wav` 由 [`make_test_melody.py`](make_test_melody.py) 合成（纯 stdlib，2.9 s 钢琴旋律：
+  上行动机 C5–E5–G5–C6 再逆行弹回，照反转牌的主题）。**我们自己的内容，入库** ——
+  实跑不需要先从 dat 里翻零售 wav。放零售 wav 当素材的话记得单独 gitignore 它。
 
 ## `files.js` 与分发
 
-`patch/th18/voice/*.wav` 在**本仓**是 gitignored 的（renkolab 不留任何版权/大二进制字节，
-同 `abcard.anm` 的政策），所以入库的 `patch/files.js` **不会**列出语音 wav。
+`patch/th18/voice/*.wav` 是构建产物（`make voice` 从 `assets/voice/` 拷过去），在**本仓**
+gitignored，所以入库的 `patch/files.js` **不会**列出语音 wav。素材本身（`assets/voice/*.wav`）入库
+—— 除非是零售 wav，那种要单独 gitignore（renkolab 不留版权字节，同 `abcard.anm` 的政策）。
 `make dist` / `make release` 会对 `dist/patch-step3/` 重新生成 files.js，那份**会**列出它们
 —— 语音随 modkit 发布。thcrap 本地解析文件不看 files.js（那是更新/下载机制用的），
 所以本地开发时 wav 不在 files.js 里也照样能播。

@@ -25,7 +25,7 @@ mods/**/native/*.bin
 mods/**/native/__pycache__/
 mods/**/dist/
 
-# card-expand 语音：本地验证用的零售 wav（ZUN 版权字节），以及构建产物
-mods/th18.v1.00a/card-expand/assets/voice/TEST_VOICE.wav
+# card-expand 语音：构建产物。assets/voice/*.wav 本身入库（合成的是我们自己的内容；
+# 若放零售 wav 请单独在这里加一行忽略它）
 mods/th18.v1.00a/card-expand/patch/th18/voice/*.wav
 mods/th18.v1.00a/card-expand/native/voice_ids.h

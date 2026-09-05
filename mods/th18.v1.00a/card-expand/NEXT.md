@@ -125,9 +125,10 @@ Alt-Tab 切出切回再按 C，语音仍在。退出游戏不崩。
 **玩家激光没声音** → 槽 20 指错（Q5）；`snd: FAIL R8` → `0x401139` 的字节界没改对；
 `snd: FAIL I1` → `patch_init` 的骨架循环没跑或跑错（Q2）。
 
-⚠️ `assets/voice/TEST_VOICE.wav` 是本地验证用的**零售 wav，gitignored** —— Windows 那边要么
-自己从 `local/<版本>/dat/se_release.wav` 复制一份再跑 `make voice`，要么等 `make release`
-把它随 modkit 带过去。真语音就位后把它换掉。
+`TEST_VOICE` 是**合成的钢琴旋律**（`assets/voice/make_test_melody.py`，2.9 s，纯 stdlib 可复现）：
+上行动机 C5–E5–G5–C6 再**逆行**弹回来，落在 C 大三和弦——照反转牌的主题写的。
+它是我们自己的内容，所以**入库**，`git pull` 就有；`make voice` 会把它拷进 patch。
+真语音就位后换掉它即可（`ORDER.txt` 与 `voice.js` 各改一行）。
 
 通过后：MAP 第 11 段 🔧 → ✅；AUDIT §Q 顶部记一行「实跑通过」。
 
