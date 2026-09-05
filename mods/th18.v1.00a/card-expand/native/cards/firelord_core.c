@@ -10,6 +10,7 @@ void fl_summon(fl_state_t *s, float px, float py, float pz)
 {
     memset(s, 0, sizeof *s);
     s->hp = FL_HP;
+    s->intro_left = FL_INTRO_FRAMES;
     s->x = clampf(px, FL_X_MIN, FL_X_MAX);
     s->y = clampf(py + FL_SUMMON_DY, FL_Y_MIN, FL_Y_MAX);
     s->z = pz;
@@ -50,7 +51,24 @@ void fl_launch(fl_state_t *s, float tx, float ty)
 
 fl_step_t fl_step(fl_state_t *s, int blocked)
 {
-    fl_step_t r = { 0, 0, 0, 0, 0, 0 };
+    fl_step_t r = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+    /* 登场：intro_left 帧聚气（本体还不在、不挡弹、不计帧），归零那帧本体出现 + 第一圈；之后每 FL_RING_GAP 帧再一圈 */
+    if (s->intro_left > 0) {
+        s->intro_left--;
+        r.gather = 1;
+        if (s->intro_left == 0) {
+            r.appear = 1;
+            s->rings_left = FL_INTRO_RINGS - 1;
+            s->ring_timer = FL_RING_GAP - 1;             /* 出现后第 FL_RING_GAP 帧放第 2 圈 */
+        }
+        return r;
+    }
+    if (s->rings_left > 0) {
+        if (s->ring_timer == 0) { r.ring = 1; s->rings_left--; s->ring_timer = FL_RING_GAP - 1; }
+        else s->ring_timer--;
+    }
+
     if (blocked > 0) { s->hp -= blocked; s->blocked += (uint32_t)blocked; }
     s->frames++;
 

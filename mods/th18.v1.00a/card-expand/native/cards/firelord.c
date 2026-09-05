@@ -63,14 +63,14 @@ static void dismiss(ce_card_t *c, const char *why)
 {
     fl_state_t *s = ce_state(c, fl_state_t);
     if (!s) return;
-    if (s->anm_id || s->ball_id || s->bar_id) {
+    if (s->anm_id || s->ball_id || s->bar_id || s->intro_left) {
         ce_anm_delete(s->anm_id);
         ce_anm_delete(s->ball_id);
         bar_destroy(s, 0);
         ce_log("firelord: dismissed (%s) hp %d after %u frames, %u moves, %u shots, %u blocked",
                why, s->hp, s->frames, s->moves, s->shots, s->blocked);
     }
-    s->anm_id = 0; s->ball_id = 0; s->hp = 0; s->ball_active = 0; s->blast_left = 0;
+    s->anm_id = 0; s->ball_id = 0; s->hp = 0; s->ball_active = 0; s->blast_left = 0; s->intro_left = 0; s->rings_left = 0;
 }
 
 /* 场上随机一个可锁定的敌人（与破损核心同一套过滤：EnemyManager+0x18c 链表、跳过 +0x635c & 0xc000021）。
@@ -109,22 +109,14 @@ static int on_activate(ce_card_t *c)
     if (!s) return refuse("no state slot");
 
     const float *pp = (const float *)(p + CE_PLAYER_X);
-    fl_summon(s, pp[0], pp[1], pp[2]);
-    s->anm_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_BODY, 13);
-    if (!s->anm_id) return refuse("body anm failed");
-    ce_anm_set_pos(s->anm_id, s->x, s->y + fl_bob_dy(s), s->z);
-    s->bar_bg_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR_BG, 13);
-    s->bar_id    = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR, 13);
-    bar_update(s);
-    impact_fx(s->x, s->y + fl_bob_dy(s), s->z);            /* 登场：从火里冒出来（复用火球落地的光环 / 火星 / 震屏）*/
+    fl_summon(s, pp[0], pp[1], pp[2]);                     /* 本体这帧还不出现：先 FL_INTRO_FRAMES 帧聚气（on_active_tick 的登场分支）*/
 
     /* 照 Tsukasa：spend_power → 无条件 repopulate（扣 2 档时档数必变；repopulate 顺手广播 on_power_level_change）*/
     int level_changed = ce_spend_power(FL_POWER_COST);
     ce_repopulate_options();
-    ce_play_sound(FL_SE_SUMMON, pp[0]);
-    ce_play_voice(FIRELORD_SUMMON, pp[0]);
-    ce_log("firelord: summoned, power %d -> %d (level changed %d), hp %d, anm id %08x, pos (%.1f, %.1f)",
-           power, CE_CURRENT_POWER(), level_changed, s->hp, s->anm_id, s->x, s->y);
+    ce_play_voice(FIRELORD_SUMMON, pp[0]);                 /* 语音先起；发动音 0x4d 留到本体出现那帧 */
+    ce_log("firelord: summoning, power %d -> %d (level changed %d), hp %d, target (%.1f, %.1f), intro %u frames",
+           power, CE_CURRENT_POWER(), level_changed, s->hp, s->x, s->y, s->intro_left);
     return 1;
 }
 
@@ -133,6 +125,28 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
     fl_state_t *s = ce_state(c, fl_state_t);
     uint8_t *p = CE_PLAYER();
     if (!s || !p) return 0;
+    if (s->intro_left > 0) {                               /* 登场聚气：目标位置每帧几颗向中心汇聚的粒子；本体、判定、血条都还没有 */
+        fl_step_t st = fl_step(s, 0);
+        float pz = ((const float *)(p + CE_PLAYER_X))[2];
+        if (st.gather) {
+            for (int i = 0; i < FL_GATHER; i++) {
+                uint32_t q = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_GATHER, 13);
+                if (q) ce_anm_set_pos(q, s->x, s->y, pz);
+            }
+        }
+        if (st.appear) {                                   /* 本体出现 + 第一圈爆炸（光环 / 火星 / 震屏）+ 发动音 */
+            s->anm_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_BODY, 13);
+            if (!s->anm_id) { ce_log("firelord: body anm failed at appear"); s->hp = 0; return 0; }
+            ce_anm_set_pos(s->anm_id, s->x, s->y + fl_bob_dy(s), s->z);
+            s->bar_bg_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR_BG, 13);
+            s->bar_id    = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR, 13);
+            bar_update(s);
+            impact_fx(s->x, s->y + fl_bob_dy(s), s->z);
+            ce_play_sound(FL_SE_SUMMON, s->x);
+            ce_log("firelord: appeared at elapsed %u, anm id %08x, pos (%.1f, %.1f)", elapsed, s->anm_id, s->x, s->y);
+        }
+        return 1;
+    }
     if (!ce_anm_get_vm(s->anm_id)) {                       /* 引擎把 VM 收掉了（O29h 同款）：本体没了就结束 */
         ce_log("firelord: body vm gone at frame %u", s->frames);
         s->anm_id = 0;
@@ -148,6 +162,11 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
     fl_step_t st = fl_step(s, blocked);
     ce_anm_set_pos(s->anm_id, s->x, s->y + fl_bob_dy(s), s->z);   /* 逻辑位置 (x, y) + 呼吸浮动 */
     bar_update(s);
+    if (st.ring) {                                         /* 登场第 2、3 圈：只有光环 + 轻震，火星只撒第一圈 */
+        uint32_t b = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_BLAST, 13);
+        if (b) ce_anm_set_pos(b, s->x, s->y + fl_bob_dy(s), s->z);
+        ce_screen_shake(FL_SHAKE_TIME / 2, FL_SHAKE_START - 2, FL_SHAKE_END);
+    }
     for (int i = 0; i < FL_AURA; i++) {                    /* 常态身体火焰：脚本自己在身体范围内抽起点、向上飘（UI RNG，不动 replay 流）*/
         uint32_t q = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_AURA, 13);
         if (q) ce_anm_set_pos(q, s->x, s->y + fl_bob_dy(s), s->z);

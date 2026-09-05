@@ -1,0 +1,29 @@
+script script98 {
+    // 登场聚气粒子：C 在语音起后的 FL_INTRO_FRAMES 帧里每帧起 FL_GATHER 颗、钉在本体将要出现的位置；
+    // 每颗在这里用 ANM 自己的随机（UI RNG 流）抽一个 ±64 px 内的起点，20 帧内加速汇聚到中心、从橙红变白热并缩小，
+    // 到中心时消失——像火焰被吸进一个点。
+-1:
+    layer(13);
+    sprite(@FIRELORD_FIREBALL);
+    type(1);
+    blendMode(1);
+    zWriteDisable(1);
+0:
+    fsetMul(%F0, %RANDF, 128.0f);
+    fadd(%F0, -64.0f);
+    fsetMul(%F1, %RANDF, 128.0f);
+    fadd(%F1, -64.0f);
+    fsetMul(%F2, %RANDF, 0.14f);
+    fadd(%F2, 0.18f);
+    pos(%F0, %F1, 0.0f);
+    color(255, 130, 40);
+    alpha(220);
+    scale(%F2, %F2);
+    posTime(20, 1, 0.0f, 0.0f, 0.0f);
+    colorTime(20, 0, 255, 250, 230);
+    scaleTime(20, 0, 0.08f, 0.08f);
++14: // 14
+    alphaTime(6, 0, 0);
++6: // 20
+    delete();
+}

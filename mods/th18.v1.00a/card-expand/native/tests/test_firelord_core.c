@@ -10,6 +10,41 @@ static int fails;
 #define CHECK(cond, ...) do { if (!(cond)) { printf("FAIL %s:%d ", __FILE__, __LINE__); \
     printf(__VA_ARGS__); printf("\n"); fails++; } } while (0)
 
+/* 走完登场：FL_INTRO_FRAMES 帧聚气、最后一帧 appear；返回 appear 那帧的结果。之后 frames 仍为 0。*/
+static fl_step_t run_intro(fl_state_t *s)
+{
+    fl_step_t st = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    for (int i = 0; i < FL_INTRO_FRAMES; i++) {
+        st = fl_step(s, 0);
+        CHECK(st.gather, "登场第 %d 帧该聚气", i + 1);
+        CHECK(!st.need_move && !st.fire && !st.died, "登场第 %d 帧不该动 / 开火 / 死", i + 1);
+        if (i + 1 < FL_INTRO_FRAMES) CHECK(!st.appear, "第 %d 帧就出现了", i + 1);
+    }
+    CHECK(st.appear, "第 %d 帧该出现", FL_INTRO_FRAMES);
+    CHECK(s->frames == 0 && s->intro_left == 0, "登场后 frames=%u intro_left=%u", s->frames, s->intro_left);
+    return st;
+}
+
+static void test_intro(void)
+{
+    fl_state_t s;
+    fl_summon(&s, 0.0f, 400.0f, 0.0f);
+    CHECK(s.intro_left == FL_INTRO_FRAMES, "intro_left=%u", s.intro_left);
+    fl_step_t st = fl_step(&s, 500);                     /* 聚气中挡弹数被忽略（C 也不会调消弹）*/
+    CHECK(s.hp == FL_HP && st.gather && !st.appear, "聚气第 1 帧 hp=%d", s.hp);
+    fl_summon(&s, 0.0f, 400.0f, 0.0f);
+    run_intro(&s);
+    CHECK(s.rings_left == FL_INTRO_RINGS - 1, "rings_left=%u", s.rings_left);
+    int rings = 0, first = -1, last = -1;
+    for (int i = 1; i <= FL_RING_GAP * FL_INTRO_RINGS + 5; i++) {
+        st = fl_step(&s, 0);
+        if (st.ring) { rings++; if (first < 0) first = i; last = i; }
+    }
+    CHECK(rings == FL_INTRO_RINGS - 1, "补圈 %d ≠ %d", rings, FL_INTRO_RINGS - 1);
+    CHECK(first == FL_RING_GAP && last == 2 * FL_RING_GAP, "补圈时刻 %d / %d（应为 %d / %d）", first, last, FL_RING_GAP, 2 * FL_RING_GAP);
+    CHECK(s.rings_left == 0, "rings_left=%u", s.rings_left);
+}
+
 static void test_summon(void)
 {
     fl_state_t s;
@@ -42,6 +77,7 @@ static void test_period_and_move(void)
 {
     fl_state_t s;
     fl_summon(&s, 0.0f, 400.0f, 0.0f);
+    run_intro(&s);
     fl_step_t st;
     for (int i = 1; i < FL_PERIOD; i++) {
         st = fl_step(&s, 0);
@@ -76,6 +112,7 @@ static void test_fireball(void)
 {
     fl_state_t s;
     fl_summon(&s, 0.0f, 400.0f, 0.0f);                  /* 本体在 (0, 336) */
+    run_intro(&s);
     fl_launch(&s, 0.0f, 336.0f + 80.0f);                /* 正下方 80 px → ⌊80 / 速度⌋ + 1 帧 */
     const uint32_t want_n = (uint32_t)(80.0f / FL_BALL_SPEED) + 1u;
     int want_trails = 0;
@@ -97,6 +134,7 @@ static void test_fireball(void)
     CHECK(!s.ball_active && s.blast_left == 0, "结束后状态没清");
     /* 爆炸从到点那帧的**下一帧**开始（到点帧 blast_left 刚置上、本帧不结算） */
     fl_summon(&s, 0.0f, 400.0f, 0.0f);
+    run_intro(&s);
     fl_launch(&s, 100.0f, 336.0f);                      /* 正右方：角度 0 */
     CHECK(fabsf(s.bang) < 1e-3f, "朝右 = 0，得 %.4f", s.bang);
     fl_step_t st = fl_step(&s, 0);
@@ -112,6 +150,7 @@ static void test_bob(void)
 {
     fl_state_t s;
     fl_summon(&s, 0.0f, 400.0f, 0.0f);
+    run_intro(&s);
     float prev = fl_bob_dy(&s), lo = prev, hi = prev, maxstep = 0.0f;
     CHECK(prev == -FL_BOB_AMP, "第 0 帧该在最低点，得 %.3f", prev);
     for (int i = 1; i <= 3 * FL_BOB_PERIOD; i++) {
@@ -128,6 +167,7 @@ static void test_bob(void)
     CHECK(maxstep < 2.0f * FL_BOB_AMP * 1.5f / (FL_BOB_PERIOD / 2) + 1e-3f, "最大单帧位移 %.3f 过大（不平滑）", maxstep);
     /* 周期：整周期后回到起点 */
     fl_summon(&s, 0.0f, 400.0f, 0.0f);
+    run_intro(&s);
     for (int i = 0; i < FL_BOB_PERIOD; i++) fl_step(&s, 0);
     CHECK(fabsf(fl_bob_dy(&s) + FL_BOB_AMP) < 1e-4f, "一个周期后不在起点：%.3f", fl_bob_dy(&s));
 }
@@ -136,6 +176,7 @@ static void test_hp(void)
 {
     fl_state_t s;
     fl_summon(&s, 0.0f, 400.0f, 0.0f);
+    run_intro(&s);
     fl_step_t st = fl_step(&s, 300);
     CHECK(s.hp == FL_HP - 300 && s.blocked == 300 && !st.died, "hp=%d", s.hp);
     st = fl_step(&s, FL_HP);                            /* 一帧挡了超过剩余（引擎按 max_count = hp 会截断，这里测下限）*/
@@ -147,6 +188,7 @@ static void test_hp(void)
 int main(void)
 {
     test_summon();
+    test_intro();
     test_spot_range();
     test_period_and_move();
     test_fireball();

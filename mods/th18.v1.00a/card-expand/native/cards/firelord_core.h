@@ -8,8 +8,12 @@
 #define FL_POWER_COST     200      /* 2.00 火力 */
 #define FL_POWER_GATE     300      /* 门槛 3.00：引擎 spend_power 永远保留 1.00，成本 + 一档才扣得实（零售 Tsukasa 同款：成本 1 档、门槛 2 档）*/
 #define FL_RECHARGE       600      /* 10 s，与青眼同 */
-#define FL_RADIUS         28.0f    /* 挡弹半径：本体约 64 px 高（2026-09-06 用户：体积与半径都减半）*/
-#define FL_PERIOD         480      /* 帧：每 8 s 一个周期（移动 → 到位开火）*/
+#define FL_RADIUS         33.6f    /* 挡弹半径：本体约 64 px 高；2026-09-06 用户：先减半到 28，再 +20％ */
+#define FL_PERIOD         420      /* 帧：每 7 s 一个周期（移动 → 到位开火）；2026-09-06 用户：8 s → 7 s */
+#define FL_INTRO_FRAMES   60       /* 登场：语音起、目标位置聚 1 s 粒子，然后本体 + 第一圈爆炸 */
+#define FL_INTRO_RINGS    3        /* 登场爆炸环次数 */
+#define FL_RING_GAP       8        /* 帧：相邻两圈的间隔 */
+#define FL_GATHER         6        /* 登场聚气：每帧几颗向中心汇聚的粒子（script98）*/
 #define FL_MOVE_FRAMES    60       /* 一次移动滑 60 帧（quintic ease-in-out：起步慢、中段快、落定慢）*/
 #define FL_SUMMON_DY      (-64.0f) /* 召唤在自机上方（再钳进落点范围）*/
 #define FL_X_MIN          (-160.0f) /* 随机落点范围：弹幕区**下 1/3**（实体坐标：x 居中、y 从顶边起算，区高 448 ⇒ 下 1/3 从 299 起）*/
@@ -53,11 +57,18 @@ typedef struct {
     uint32_t ball_left;     /* 剩余飞行帧 */
     float    ex, ey;        /* 落点 = 开火时记下的敌人坐标 */
     uint32_t blast_left;    /* 爆炸剩余帧 */
+    /* 登场 */
+    uint32_t intro_left;    /* 聚气剩余帧；> 0 时本体还没出现，fl_step 只走登场分支 */
+    uint32_t rings_left;    /* 还要放几圈爆炸环 */
+    uint32_t ring_timer;    /* 距下一圈的帧数 */
     /* ANM ids（引擎侧，core 不碰）*/
     uint32_t anm_id, ball_id, bar_bg_id, bar_id;
 } fl_state_t;
 
 typedef struct {
+    int gather;         /* 登场聚气中：本帧在 (x, y) 起 FL_GATHER 颗汇聚粒子 */
+    int appear;         /* 本帧本体出现：起本体 VM / 血条 + 第一圈爆炸（含火星、震屏）*/
+    int ring;           /* 本帧再放一圈爆炸环（第 2、3 圈）*/
     int need_move;      /* 该抽随机落点了：调用方 fl_begin_move(s, ce_rand()) */
     int fire;           /* 到位了：调用方选目标 → fl_launch(s, tx, ty)（没目标就不调）*/
     int trail;          /* 本帧在 (bx, by) 留一个拖尾 */
@@ -66,8 +77,8 @@ typedef struct {
     int died;
 } fl_step_t;
 
-void      fl_summon(fl_state_t *s, float px, float py, float pz);     /* 清零、hp = FL_HP、坐标 = (px, py + FL_SUMMON_DY) 钳进落点范围 */
-fl_step_t fl_step(fl_state_t *s, int blocked);                          /* 每帧：扣血、计帧、移动插值、火球推进、爆炸计数 */
+void      fl_summon(fl_state_t *s, float px, float py, float pz);     /* 清零、hp = FL_HP、坐标 = (px, py + FL_SUMMON_DY) 钳进落点范围、intro_left = FL_INTRO_FRAMES */
+fl_step_t fl_step(fl_state_t *s, int blocked);                          /* 每帧：登场分支（聚气 → 出现 → 三圈）；之后扣血、计帧、移动插值、火球推进、爆炸计数 */
 void      fl_begin_move(fl_state_t *s, uint32_t rnd);                   /* 用一个随机 dword 抽落点、开始滑动、到位后开火 */
 void      fl_launch(fl_state_t *s, float tx, float ty);                 /* 朝 (tx, ty) 投火球：直线、FL_BALL_SPEED、到点即爆 */
 void      fl_spot_from_rand(uint32_t rnd, float *x, float *y);          /* 低 16 位 → x、高 16 位 → y，均匀落在范围内 */
