@@ -25,6 +25,32 @@
       "export": true,
       "access": "RX",
       "title": "开机把零售表（与跳转表）拷进 codecave；DLL 的 post_init 是权威，这里是保险"
+    },
+    "th18_snd_cfg": {
+      "size": "0x910",
+      "access": "RW",
+      "title": "音效 cfg 表搬迁目标（116 行 × 0x14）"
+    },
+    "th18_snd_names": {
+      "size": "0x1a4",
+      "access": "RW",
+      "title": "wav 名表搬迁目标（104 项 + NULL）"
+    },
+    "th18_snd_slots": {
+      "size": "0xae0",
+      "access": "RW",
+      "title": "slot 数组搬迁目标（116 × 0x18）"
+    },
+    "th18_snd_blobs": {
+      "size": "0x1a0",
+      "access": "RW",
+      "title": "blob 指针数组搬迁目标（104 项；72.. 由 DLL 填语音）"
+    },
+    "th18_snd_patch_init": {
+      "code": "fc60bf<codecave:th18_snd_cfg>be<Rxc9b80>b9a4010000f3a5b854000000bb20000000ab83c710404b75f8bf<codecave:th18_snd_names>be<Rxb47a0>b949000000f3a561c3",
+      "export": true,
+      "access": "RX",
+      "title": "开机把零售 84 行 cfg 与 72 个 wav 名从用户的 exe 拷进 codecave，并给 32 个新行写 +0 = 槽号 的骨架（不变式 I1 / I2）"
     }
   },
   "binhacks": {
@@ -927,6 +953,312 @@
       "code": "8d87fc130000",
       "expected": "8d8704030000",
       "title": "zAbilityMenu 扩容 / __card_ids → +0x13fc"
+    },
+    "snd_40111a": {
+      "addr": "0x40111a",
+      "code": "b8<codecave:th18_snd_cfg>",
+      "expected": "b8809b4c00",
+      "title": "音效表扩容：pre-main 扫描起点"
+    },
+    "snd_476457": {
+      "addr": "0x476457",
+      "code": "b8<codecave:th18_snd_cfg>",
+      "expected": "b8809b4c00",
+      "title": "音效表扩容：init 循环1 扫描起点"
+    },
+    "snd_4766bd": {
+      "addr": "0x4766bd",
+      "code": "be<codecave:th18_snd_cfg+4>",
+      "expected": "be849b4c00",
+      "title": "音效表扩容：init 循环2 游标（行+4）"
+    },
+    "snd_476716": {
+      "addr": "0x476716",
+      "code": "8b0485<codecave:th18_snd_cfg+4>",
+      "expected": "8b0485849b4c00",
+      "title": "音效表扩容：init 错误路径取 wav 名下标"
+    },
+    "snd_476bea": {
+      "addr": "0x476bea",
+      "code": "0fbf3485<codecave:th18_snd_cfg+a>",
+      "expected": "0fbf34858a9b4c00",
+      "title": "音效表扩容：play_sound 两参版取音量"
+    },
+    "snd_476c8d": {
+      "addr": "0x476c8d",
+      "code": "0fbf3c85<codecave:th18_snd_cfg+a>",
+      "expected": "0fbf3c858a9b4c00",
+      "title": "音效表扩容：play_sound 三参版取音量"
+    },
+    "snd_4766ef": {
+      "addr": "0x4766ef",
+      "code": "81fe<codecave:th18_snd_cfg+914>",
+      "expected": "81fe14a24c00",
+      "title": "音效表扩容：init 循环2 尾界（★ 游标是行+4）"
+    },
+    "snd_401110": {
+      "addr": "0x401110",
+      "code": "c782<codecave:th18_snd_slots+4>ffffffff",
+      "expected": "c78208c85600ffffffff",
+      "title": "音效表扩容：pre-main 写 +4 = -1"
+    },
+    "snd_401129": {
+      "addr": "0x401129",
+      "code": "898a<codecave:th18_snd_slots+c>",
+      "expected": "898a10c85600",
+      "title": "音效表扩容：pre-main 写 +0xc = 槽号"
+    },
+    "snd_401130": {
+      "addr": "0x401130",
+      "code": "8982<codecave:th18_snd_slots+8>",
+      "expected": "89820cc85600",
+      "title": "音效表扩容：pre-main 写 +8 = &cfg 行"
+    },
+    "snd_444d8f": {
+      "addr": "0x444d8f",
+      "code": "be<codecave:th18_snd_slots>",
+      "expected": "be04c85600",
+      "title": "音效表扩容：stop-all 起点"
+    },
+    "snd_45a4a1": {
+      "addr": "0x45a4a1",
+      "code": "be<codecave:th18_snd_slots+8>",
+      "expected": "be0cc85600",
+      "title": "音效表扩容：设备恢复重播循环起点（+8 游标）"
+    },
+    "snd_45ff38": {
+      "addr": "0x45ff38",
+      "code": "8b0d<codecave:th18_snd_slots+1e0>",
+      "expected": "8b0de4c95600",
+      "title": "音效表扩容：★ 硬编码槽 20（se_lazer02 常驻激光音）"
+    },
+    "snd_471393": {
+      "addr": "0x471393",
+      "code": "be<codecave:th18_snd_slots>",
+      "expected": "be04c85600",
+      "title": "音效表扩容：WinMain 释放起点"
+    },
+    "snd_4766b8": {
+      "addr": "0x4766b8",
+      "code": "bf<codecave:th18_snd_slots>",
+      "expected": "bf04c85600",
+      "title": "音效表扩容：init 循环2 起点"
+    },
+    "snd_476c60": {
+      "addr": "0x476c60",
+      "code": "8934c5<codecave:th18_snd_slots+4>",
+      "expected": "8934c508c85600",
+      "title": "音效表扩容：play_sound 两参版写音量"
+    },
+    "snd_476d06": {
+      "addr": "0x476d06",
+      "code": "893cc5<codecave:th18_snd_slots+4>",
+      "expected": "893cc508c85600",
+      "title": "音效表扩容：play_sound 三参版写音量"
+    },
+    "snd_477533": {
+      "addr": "0x477533",
+      "code": "8b14f5<codecave:th18_snd_slots>",
+      "expected": "8b14f504c85600",
+      "title": "音效表扩容：消费者读 buffer"
+    },
+    "snd_477562": {
+      "addr": "0x477562",
+      "code": "8b04f5<codecave:th18_snd_slots>",
+      "expected": "8b04f504c85600",
+      "title": "音效表扩容：消费者读 buffer"
+    },
+    "snd_4775aa": {
+      "addr": "0x4775aa",
+      "code": "8b14fd<codecave:th18_snd_slots>",
+      "expected": "8b14fd04c85600",
+      "title": "音效表扩容：消费者读 buffer"
+    },
+    "snd_4775bf": {
+      "addr": "0x4775bf",
+      "code": "8b04fd<codecave:th18_snd_slots>",
+      "expected": "8b04fd04c85600",
+      "title": "音效表扩容：消费者读 buffer"
+    },
+    "snd_4775ce": {
+      "addr": "0x4775ce",
+      "code": "8b04fd<codecave:th18_snd_slots>",
+      "expected": "8b04fd04c85600",
+      "title": "音效表扩容：消费者读 buffer"
+    },
+    "snd_4775fa": {
+      "addr": "0x4775fa",
+      "code": "8b0cfd<codecave:th18_snd_slots>",
+      "expected": "8b0cfd04c85600",
+      "title": "音效表扩容：消费者读 buffer"
+    },
+    "snd_477652": {
+      "addr": "0x477652",
+      "code": "8b04fd<codecave:th18_snd_slots>",
+      "expected": "8b04fd04c85600",
+      "title": "音效表扩容：消费者读 buffer"
+    },
+    "snd_47766b": {
+      "addr": "0x47766b",
+      "code": "8b0cfd<codecave:th18_snd_slots>",
+      "expected": "8b0cfd04c85600",
+      "title": "音效表扩容：消费者读 buffer"
+    },
+    "snd_4777c0": {
+      "addr": "0x4777c0",
+      "code": "ff34c5<codecave:th18_snd_slots>",
+      "expected": "ff34c504c85600",
+      "title": "音效表扩容：DuplicateSoundBuffer 源"
+    },
+    "snd_4775f3": {
+      "addr": "0x4775f3",
+      "code": "8b04fd<codecave:th18_snd_slots+8>",
+      "expected": "8b04fd0cc85600",
+      "title": "音效表扩容：消费者读 &cfg 行"
+    },
+    "snd_477664": {
+      "addr": "0x477664",
+      "code": "8b04fd<codecave:th18_snd_slots+8>",
+      "expected": "8b04fd0cc85600",
+      "title": "音效表扩容：消费者读 &cfg 行"
+    },
+    "snd_477736": {
+      "addr": "0x477736",
+      "code": "b9<codecave:th18_snd_slots+8>",
+      "expected": "b90cc85600",
+      "title": "音效表扩容：0x4776f0 去重扫描起点"
+    },
+    "snd_4775dc": {
+      "addr": "0x4775dc",
+      "code": "8934fd<codecave:th18_snd_slots+10>",
+      "expected": "8934fd14c85600",
+      "title": "音效表扩容：消费者写播放态"
+    },
+    "snd_47753a": {
+      "addr": "0x47753a",
+      "code": "c704f5<codecave:th18_snd_slots+14>00000000",
+      "expected": "c704f518c8560000000000",
+      "title": "音效表扩容：消费者清播放位"
+    },
+    "snd_47755b": {
+      "addr": "0x47755b",
+      "code": "8904f5<codecave:th18_snd_slots+14>",
+      "expected": "8904f518c85600",
+      "title": "音效表扩容：消费者写播放位"
+    },
+    "snd_444dbf": {
+      "addr": "0x444dbf",
+      "code": "81fe<codecave:th18_snd_slots+ae0>",
+      "expected": "81fee4cf5600",
+      "title": "音效表扩容：stop-all 尾界"
+    },
+    "snd_4713ad": {
+      "addr": "0x4713ad",
+      "code": "81fe<codecave:th18_snd_slots+ae0>",
+      "expected": "81fee4cf5600",
+      "title": "音效表扩容：WinMain 释放尾界"
+    },
+    "snd_45a4c5": {
+      "addr": "0x45a4c5",
+      "code": "81fe<codecave:th18_snd_slots+ae8>",
+      "expected": "81feeccf5600",
+      "title": "音效表扩容：重播循环尾界（+8 游标）"
+    },
+    "snd_4713b5": {
+      "addr": "0x4713b5",
+      "code": "be<codecave:th18_snd_blobs>",
+      "expected": "bee4cf5600",
+      "title": "音效表扩容：WinMain 释放起点"
+    },
+    "snd_4767cc": {
+      "addr": "0x4767cc",
+      "code": "8904b5<codecave:th18_snd_blobs>",
+      "expected": "8904b5e4cf5600",
+      "title": "音效表扩容：预加载线程写 blob"
+    },
+    "snd_477758": {
+      "addr": "0x477758",
+      "code": "833c85<codecave:th18_snd_blobs>00",
+      "expected": "833c85e4cf560000",
+      "title": "音效表扩容：0x4776f0 判空"
+    },
+    "snd_47777b": {
+      "addr": "0x47777b",
+      "code": "833c85<codecave:th18_snd_blobs>00",
+      "expected": "833c85e4cf560000",
+      "title": "音效表扩容：0x4776f0 判空（等待中）"
+    },
+    "snd_477788": {
+      "addr": "0x477788",
+      "code": "8b3c85<codecave:th18_snd_blobs>",
+      "expected": "8b3c85e4cf5600",
+      "title": "音效表扩容：0x4776f0 取 blob"
+    },
+    "snd_477905": {
+      "addr": "0x477905",
+      "code": "8b0485<codecave:th18_snd_blobs>",
+      "expected": "8b0485e4cf5600",
+      "title": "音效表扩容：0x4776f0 取 blob"
+    },
+    "snd_47791f": {
+      "addr": "0x47791f",
+      "code": "c70485<codecave:th18_snd_blobs>00000000",
+      "expected": "c70485e4cf560000000000",
+      "title": "音效表扩容：0x4776f0 清 blob"
+    },
+    "snd_477956": {
+      "addr": "0x477956",
+      "code": "8b0485<codecave:th18_snd_blobs>",
+      "expected": "8b0485e4cf5600",
+      "title": "音效表扩容：0x4776f0 取 blob"
+    },
+    "snd_477970": {
+      "addr": "0x477970",
+      "code": "c70485<codecave:th18_snd_blobs>00000000",
+      "expected": "c70485e4cf560000000000",
+      "title": "音效表扩容：0x4776f0 清 blob"
+    },
+    "snd_4713d8": {
+      "addr": "0x4713d8",
+      "code": "81fe<codecave:th18_snd_blobs+120>",
+      "expected": "81fe04d15600",
+      "title": "音效表扩容：WinMain 释放尾界（★ 只到零售 72）"
+    },
+    "snd_4766d3": {
+      "addr": "0x4766d3",
+      "code": "ff3485<codecave:th18_snd_names>",
+      "expected": "ff3485a0474b00",
+      "title": "音效表扩容：init 加载取名"
+    },
+    "snd_47671d": {
+      "addr": "0x47671d",
+      "code": "ff3485<codecave:th18_snd_names>",
+      "expected": "ff3485a0474b00",
+      "title": "音效表扩容：init 错误路径取名"
+    },
+    "snd_4767bc": {
+      "addr": "0x4767bc",
+      "code": "8b0cb5<codecave:th18_snd_names>",
+      "expected": "8b0cb5a0474b00",
+      "title": "音效表扩容：预加载取名"
+    },
+    "snd_476803": {
+      "addr": "0x476803",
+      "code": "ff34b5<codecave:th18_snd_names>",
+      "expected": "ff34b5a0474b00",
+      "title": "音效表扩容：预加载错误路径取名"
+    },
+    "snd_401139": {
+      "addr": "0x401139",
+      "code": "81fae00a0000",
+      "expected": "81fae0070000",
+      "title": "音效表扩容：pre-main slot 初始化字节界"
+    },
+    "snd_476472": {
+      "addr": "0x476472",
+      "code": "83fa74",
+      "expected": "83fa54",
+      "title": "音效表扩容：init 循环1 槽数界"
     }
   },
   "breakpoints": {
@@ -1001,6 +1333,12 @@
       "cavesize": 5,
       "expected": "a900000200",
       "title": "商店走两遍 → BP_ce_shop_reopen：GameThread__on_tick：test eax,0x20000（eax = GameThread+0xb0，esi = this）；店刚关且成交过且有名额 → eax |= 0x20000 再开一家"
+    },
+    "ce_snd_gate": {
+      "addr": "0x476410",
+      "cavesize": 5,
+      "expected": "558bec6aff",
+      "title": "音效表门：SoundManager::init 入口 → BP_ce_snd_gate（填语音 blob 与新行配置 + I1/I2 自检，然后放行让引擎建 buffer）"
     }
   }
 }

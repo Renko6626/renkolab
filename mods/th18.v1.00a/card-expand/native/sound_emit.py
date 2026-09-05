@@ -104,3 +104,75 @@ def emit_sound_binhacks(text, text_va):
         }
     assert len(B) == 51, "应生成 51 条 binhack，实际 %d" % len(B)
     return B
+
+
+SND_GATE = 0x476410          # SoundManager::init 入口
+SND_GATE_BYTES = "558bec6aff"   # push ebp; mov ebp,esp; push -1 —— 5 字节，无相对寻址
+
+
+def emit_sound_breakpoints(text, text_va):
+    """自检门：0x476410 = SoundManager::init 入口。
+
+    语音 blob 必须在引擎建 buffer 之前就位，这里正好在循环 1 / 循环 2 之前。
+    入口形状与 ce_gate 用的 0x4637d0 同款（55 8b ec 6a ff），可整段搬进 cave。
+    """
+    raw = text[SND_GATE - text_va:SND_GATE - text_va + 5]
+    if raw.hex() != SND_GATE_BYTES:
+        raise S.ShapeError("0x%06x 入口是 %s，应为 %s" % (SND_GATE, raw.hex(), SND_GATE_BYTES))
+    return {"ce_snd_gate": {
+        "addr": "0x%06x" % SND_GATE, "cavesize": 5, "expected": SND_GATE_BYTES,
+        "title": "音效表门：SoundManager::init 入口 → BP_ce_snd_gate"
+                 "（填语音 blob 与新行配置 + I1/I2 自检，然后放行让引擎建 buffer）"}}
+
+
+def verify_sound_binhack(name, bh, text, text_va):
+    """对账一条：expected 与 exe 逐字节一致；code 只换常量、长度不变、不碰 opcode。
+
+    音效表这批比卡表那批多两种形状，通用分支认不了：
+      · 常量后面还有字节（`mov r/m32, imm32` 的 disp32 后跟 imm32）
+      · 纯立即数、没有 <…> 表达式（两处计数界）
+    """
+    bad = []
+    va = int(bh["addr"], 16)
+    off = va - text_va
+    exp = bytes.fromhex(bh["expected"])
+    if text[off:off + len(exp)] != exp:
+        bad.append("%s：exe 里是 %s，expected 写的是 %s"
+                   % (name, text[off:off + len(exp)].hex(), bh["expected"]))
+        return bad
+
+    code = bh["code"]
+    n_expr = code.count("<")
+    if n_expr != code.count(">") or n_expr > 1:
+        bad.append("%s：code 里的表达式不是 0 或 1 个" % name)
+        return bad
+
+    if n_expr == 1:
+        i, j = code.index("<"), code.index(">")
+        pre, post = code[:i], code[j + 1:]
+        if len(pre) % 2 or len(post) % 2:
+            bad.append("%s：code 的前后缀不是整字节" % name)
+            return bad
+        if len(pre) // 2 + 4 + len(post) // 2 != len(exp):
+            bad.append("%s：code 渲染 %d 字节 != expected %d 字节（thcrap 会静默跳过校验）"
+                       % (name, len(pre) // 2 + 4 + len(post) // 2, len(exp)))
+            return bad
+        if bytes.fromhex(pre) != exp[:len(pre) // 2]:
+            bad.append("%s：code 换掉了 opcode 而不只是常量" % name)
+        if post and bytes.fromhex(post) != exp[len(exp) - len(post) // 2:]:
+            bad.append("%s：code 改了常量之后的字节" % name)
+        return bad
+
+    # 纯立即数：差异必须是一段位于末尾的 1 或 4 字节，前面一个字节都不许动
+    new = bytes.fromhex(code)
+    if len(new) != len(exp):
+        bad.append("%s：code %d 字节 != expected %d 字节" % (name, len(new), len(exp)))
+        return bad
+    # 差异必须全部落在末尾那 1 或 4 个字节里。注意 imm32 的高位字节常常相同
+    # （0x7e0 → 0xae0 只差第 1 字节），所以不能要求「最后一个字节变了」。
+    for w in (1, 4):
+        if len(exp) >= w and new[:len(exp) - w] == exp[:len(exp) - w] and new != exp:
+            return bad
+    bad.append("%s：差异不止末尾的 1 或 4 字节（exp %s / code %s）"
+               % (name, exp.hex(), new.hex()))
+    return bad

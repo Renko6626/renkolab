@@ -23,6 +23,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from shape import find_all, find_walks, ShapeError             # noqa: E402
 from x86imm import classify, UnknownEncoding, Ambiguous       # noqa: E402
+from sound_emit import (emit_sound_codecaves, emit_sound_binhacks,   # noqa: E402
+                        emit_sound_breakpoints, verify_sound_binhack)
 
 REPO    = os.path.abspath(os.path.join(HERE, "..", "..", "..", ".."))
 VERSION = "th18.v1.00a"
@@ -776,6 +778,10 @@ def verify_patch(path, text, text_va):
         if name.startswith("unlock_"):
             bad += verify_unlock_binhack(name, bh, text, text_va)
             continue
+        if name.startswith("snd_"):
+            # 音效表这批有「常量后还有字节」与「纯立即数」两种形状，通用分支认不了
+            bad += verify_sound_binhack(name, bh, text, text_va)
+            continue
         if name.startswith(("alloc_", "grow_", "menu_")):
             va = int(bh["addr"], 16); off = va - text_va
             exp = bytes.fromhex(bh["expected"])
@@ -1029,7 +1035,7 @@ def main():
         path = a.out or os.path.join(HERE, "..", "patch", "%s.js" % VERSION)
         n, bad = verify_patch(path, text, text_va)
         print("对账 %s：%d 条 binhack" % (os.path.relpath(path, REPO), n))
-        n_alloc = sum(1 for k in json.load(open(path, encoding="utf-8"))["binhacks"] if k.startswith(("alloc_", "grow_", "unlock_", "order_", "menu_")))
+        n_alloc = sum(1 for k in json.load(open(path, encoding="utf-8"))["binhacks"] if k.startswith(("alloc_", "grow_", "unlock_", "order_", "menu_", "snd_")))
         if n - n_alloc != len(sites):
             bad.append("patch 里 %d 条搬表 binhack，扫描器认为应有 %d 条" % (n - n_alloc, len(sites)))
         for b in bad:
@@ -1111,6 +1117,11 @@ def main():
         doc["breakpoints"].update(emit_text_breakpoints(text, text_va))
         doc["breakpoints"].update(emit_sdk_breakpoints(text, text_va))
         doc["breakpoints"].update(emit_shop_breakpoints(text, text_va))
+        # ---- 音效表扩容（sound_sites.py / sound_emit.py）----
+        # 与卡表行数无关，但同门控在 alloc 下：step1（58 行）保持「行为零变化」的保守回退态。
+        doc["codecaves"].update(emit_sound_codecaves())
+        doc["binhacks"].update(emit_sound_binhacks(text, text_va))
+        doc["breakpoints"].update(emit_sound_breakpoints(text, text_va))
     txt = json.dumps(doc, indent=2, ensure_ascii=False)
     if a.out:
         out = a.out if os.path.isabs(a.out) else os.path.join(HERE, a.out)
