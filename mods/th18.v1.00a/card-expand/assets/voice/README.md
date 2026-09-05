@@ -12,7 +12,7 @@
 | `ORDER.txt` | 一行一个 `NAME`，**只追加**。行号 k → 音效 id `0x54+k`、wav 下标 `72+k`。`#` 开头是注释 |
 | `<NAME>.wav` | PCM（`fmt` tag 1）。**建议 16-bit 单声道** —— 声像对单声道才有意义 |
 | `_src/` | 第三方 / 原始素材（原件 + 出处 README）|
-| `make_test_melody.py` | 合成 `TEST_VOICE.wav` 的脚本（实跑素材，可复现）|
+| `make_melodies.py` | 合成本目录的钢琴曲（纯 stdlib，可复现）。`MELODIES` 里一首一条 |
 
 `NAME` 只能是字母数字下划线 —— 它要变成 C 宏 `CE_VOICE_<NAME>`。
 
@@ -66,7 +66,7 @@ ce_play_voice(SPADE_10_ACTIVATE, player_x());
 
 `make voice` 会打印每条语音的 peak / rms，偏离基准 ±4 dB 就提醒。
 **只做 peak 归一化是不够的** —— 钢琴那种波峰因数 14 dB 的素材，峰值顶满了 RMS 还是只有 −17，
-听着就是轻。`make_test_melody.py` 用 tanh 软限幅把波峰因数压到 9.5 dB 才够。
+听着就是轻。`make_melodies.py` 用 tanh 软限幅把波峰因数压到 9.5 dB 才够（驱动量二分求解到目标 RMS）。
 
 ★ **id 显式写死、不靠顺序**：thcrap 会把栈里每个 patch 的 `voice.js` **深合并**成一个对象，
 合并后的迭代顺序不由我们决定，所以 DLL 是按 `id` 定位 cfg 行的。`make voice` 负责保证
@@ -87,9 +87,11 @@ python3 ../assets/build_voice.py --check    # 只校验
 - 引擎的 RIFF 解析不挑格式（零售 71 个就是 44.1k/22.05k × 8/16 bit × 单/双声道混用），
   但 `build_voice.py` 只放行 PCM —— 别的 tag 我们没验过。
 - wav 文件随 `_255` patch 分发（`patch/th18/voice/`），`files.js` 收它们的 crc。
-- `TEST_VOICE.wav` 由 [`make_test_melody.py`](make_test_melody.py) 合成（纯 stdlib，2.9 s 钢琴旋律：
-  上行动机 C5–E5–G5–C6 再逆行弹回，照反转牌的主题）。**我们自己的内容，入库** ——
-  实跑不需要先从 dat 里翻零售 wav。放零售 wav 当素材的话记得单独 gitignore 它。
+- 现有曲目：`ROYAL_FANFARE.wav` —— 皇家同花顺（`cards/royal.c`）的演出音乐，3.68 s。
+  I–IV–V–I 号角，与 `ability.anm` script70 的 194 帧时间线对齐：五个上行音落在五张牌
+  弹出的帧 0/10/20/30/40，帧 60 的 C 大和弦重击正好是金色横幅那一下，收在宽和弦上
+  随 170–194 帧的淡出一起消。由 [`make_melodies.py`](make_melodies.py) 合成 ——
+  **我们自己的内容，入库**。放零售 wav 当素材的话记得单独 gitignore 它。
 
 ## `files.js` 与分发
 

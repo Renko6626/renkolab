@@ -108,27 +108,22 @@ wav 名 `0x4b47a0`、slot `0x56c804`、blob `0x56cfe4`）整体搬进 codecave �
 加一句语音三步：`assets/voice/<NAME>.wav` + `ORDER.txt` 一行 → `patch/th18/voice.js` 一条（带 `id`）
 → `make voice` → 代码里 `ce_play_voice(NAME, x)`。细则 [`assets/voice/README.md`](assets/voice/README.md)。
 
-日志应有：
+日志应有（启动时，与是否触发无关 —— **这一段就把扩表本身验掉了**）：
 
 ```
 snd: caves cfg=<addr> names=<addr> slots=<addr> blobs=<addr>
-snd: voice id 0x54 "TEST_VOICE" -> voice/TEST_VOICE.wav (352924 bytes, wav slot 72, vol 100 pan 0)
+snd: voice id 0x54 "ROYAL_FANFARE" -> voice/ROYAL_FANFARE.wav (324914 bytes, wav slot 72, +0 dB/100, pri 100)
 snd: OK 1 voices, 116 rows, I1/I2 hold
 ```
 
-进关卡按 C（反转牌 64）：**Tenshi 发动音与语音同帧一起响** —— 两条一起听见就证明「可叠加」成立。
-Alt-Tab 切出切回再按 C，语音仍在。退出游戏不崩。
+**听得到的验证在皇家同花顺**：商店里买齐五张黑桃（58–62）→ 第五张成交时触发演出，
+日志 `royal: show anm id ... + fanfare`。号角从演出第 0 帧起，与 script70 的时间线对齐：
+五个上行音跟着五张牌弹出（帧 0/10/20/30/40），**帧 60 金色横幅弹出时是 C 大和弦重击**
+（trophy 音效 `0x4f` 照旧叠在上面 —— 语音就是可叠加的 SE），收在宽和弦上随 170–194 帧的淡出一起消。
+Alt-Tab 切出切回再触发一次，号角仍在。退出游戏不崩。
 
-崩溃 / 异常优先怀疑（对应 AUDIT §Q）：
-**没有任何 `snd:` 行** → 断点没触发，查 `0x476410` 的 `expected` 与 cavesize；
-**卡在黑屏** → I2 被违反且自检没拦住，`0x4776f0` 在 `Sleep(10)` 死循环（Q3）；
-**玩家激光没声音** → 槽 20 指错（Q5）；`snd: FAIL R8` → `0x401139` 的字节界没改对；
-`snd: FAIL I1` → `patch_init` 的骨架循环没跑或跑错（Q2）。
-
-`TEST_VOICE` 是**合成的钢琴旋律**（`assets/voice/make_test_melody.py`，2.9 s，纯 stdlib 可复现）：
-上行动机 C5–E5–G5–C6 再**逆行**弹回来，落在 C 大三和弦——照反转牌的主题写的。
-它是我们自己的内容，所以**入库**，`git pull` 就有；`make voice` 会把它拷进 patch。
-真语音就位后换掉它即可（`ORDER.txt` 与 `voice.js` 各改一行）。
+⚠️ 买齐五张黑桃要几关，用 `_devstage`（关卡是空壳）+ `cards_dev.js` 的商店权重会快很多；
+**扩表本身不需要凑齐** —— 启动日志那三行就已经证明 116 行表、I1/I2、槽 20 都对了。
 
 通过后：MAP 第 11 段 🔧 → ✅；AUDIT §Q 顶部记一行「实跑通过」。
 

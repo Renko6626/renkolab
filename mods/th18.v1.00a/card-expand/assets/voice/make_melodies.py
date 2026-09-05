@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""make_test_melody.py —— 合成 TEST_VOICE.wav：一段钢琴音色的短旋律。
+"""make_melodies.py —— 合成 assets/voice/ 下的钢琴曲。
 
-音效表扩容（AUDIT §Q）的实跑素材。**纯 stdlib、完全可复现**，所以它是我们自己的内容，
-可以入库 —— 不像零售 wav 那样只能 gitignore 后靠 modkit 带过去。
+**纯 stdlib、完全可复现**，所以产物是我们自己的内容，可以入库 ——
+不像零售 wav 那样只能 gitignore 后靠 modkit 带过去。
 
-旋律照反转牌（id 64）的主题写：一个上行动机 C5–E5–G5–C6，然后**逆行**弹回来
-C6–G5–E5–C5，落在 C 大三和弦上。听起来就是「正着放一遍、倒着放一遍」。
+现有曲目（`MELODIES`）：
+
+| NAME | 用在哪 | 形状 |
+| --- | --- | --- |
+| `ROYAL_FANFARE` | 皇家同花顺（`cards/royal.c`）的演出，从第 0 帧起 | I–IV–V–I 号角，与 script70 的 194 帧时间线对齐 |
 
 **响度基准**（2026-09-05 实测零售 dat 的 71 个 se_*.wav，见 engine/_shared/th18-sound-table.md §9）：
 零售 wav 一律 peak 归一化（peak 中位 −0.06 dBFS），响度差异全压在 cfg 行的 dB 衰减上；
@@ -20,14 +23,13 @@ C6–G5–E5–C5，落在 C 大三和弦上。听起来就是「正着放一遍
   · 起音处叠 6 ms 的噪声瞬态当槌击声
   · peak 归一化到 −0.5 dBFS（照零售规矩）后 tanh 软限幅顶到目标 RMS，收尾 20 ms 淡出防 click
 
-跑：python3 assets/voice/make_test_melody.py   → 同目录 TEST_VOICE.wav
+跑：python3 assets/voice/make_melodies.py [NAME…]   → 同目录 <NAME>.wav（不给参数就全出）
 """
 import math
 import os
 import struct
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "TEST_VOICE.wav")
 
 RATE = 44100
 BITS = 16
@@ -50,33 +52,44 @@ def note(name, octave):
     return 440.0 * 2.0 ** (semis / 12.0 + (octave - 4))
 
 
+FPS = 60.0                         # 乐谱按游戏帧写，好和 ANM 时间线对齐
+
+
+def fr(f):
+    return f / FPS
+
+
+def chord(*specs):
+    return [note(n, o) for n, o in specs]
+
+
 # (起始秒, [频率…], 力度, 衰减时间常数秒)
-MOTIF = ["C", "E", "G", "C"]
-OCTS_UP = [5, 5, 5, 6]
-STEP = 0.155
-SUSTAIN = 0.62                     # 延音够长，音符之间不留空；但别太长，否则前一个音盖住后一个
+def build_royal():
+    """皇家同花顺的号角 —— 与 ability.anm script70 的 194 帧时间线对齐。
+
+        帧 0/10/20/30/40   五张黑桃逐张弹出   → 五个上行音 C4 E4 G4 C5 E5
+        帧 50              （承接）           → G5 短促带起
+        帧 60              金色横幅弹出 + trophy 音效 → **C 大和弦重击**（高潮）
+        帧 90 / 105        F → G              → 下属、属，把张力再拉一次
+        帧 125             收在宽 C 大和弦上   → 一直响到 170–194 帧的淡出
+    """
+    s = []
+    for f, (n, o) in zip((0, 10, 20, 30, 40),
+                         (("C", 4), ("E", 4), ("G", 4), ("C", 5), ("E", 5))):
+        s.append((fr(f), [note(n, o)], 0.80, 0.70))
+    s.append((fr(50), [note("G", 5)], 0.70, 0.45))
+    s.append((fr(60), chord(("C", 3), ("G", 3), ("C", 4), ("E", 4),
+                            ("G", 4), ("C", 5), ("E", 5), ("G", 5)), 0.95, 1.10))
+    s.append((fr(90), chord(("F", 3), ("C", 4), ("F", 4), ("A", 4), ("C", 5)), 0.70, 0.75))
+    s.append((fr(105), chord(("G", 3), ("D", 4), ("G", 4), ("B", 4), ("D", 5)), 0.78, 0.75))
+    s.append((fr(125), chord(("C", 2), ("C", 3), ("G", 3), ("C", 4), ("E", 4),
+                             ("G", 4), ("C", 5), ("E", 5)), 1.00, 1.55))
+    return s
 
 
-def build_score():
-    score = []
-    t = 0.0
-    # 低八度持续音：把能量铺在整段下面。它峰值不高但一直有，抬 RMS 不抬 peak。
-    score.append((0.0, [note("C", 3), note("C", 4)], 0.30, 1.9))
-    # 正行：C5 E5 G5 C6
-    for n, o in zip(MOTIF, OCTS_UP):
-        score.append((t, [note(n, o)], 0.85, SUSTAIN))
-        t += STEP
-    t += STEP * 0.35                                   # 中间一个小停顿，把「转向」听出来
-    score.append((t - STEP * 0.35, [note("G", 3)], 0.26, 1.4))   # 转向处补一个低音
-    # 逆行：C6 G5 E5 C5
-    for n, o in zip(reversed(MOTIF), reversed(OCTS_UP)):
-        score.append((t, [note(n, o)], 0.80, SUSTAIN))
-        t += STEP
-    # 收在 C 大三和弦上（加低八度根音），放长一点
-    score.append((t + STEP * 0.15,
-                  [note("C", 3), note("C", 4), note("C", 5), note("E", 5), note("G", 5)],
-                  0.95, 1.35))
-    return score
+MELODIES = {
+    "ROYAL_FANFARE": build_royal,
+}
 
 
 def piano_partial_gain(k):
@@ -86,8 +99,7 @@ def piano_partial_gain(k):
     return amp, decay_mult
 
 
-def render():
-    score = build_score()
+def render(score):
     tail = 1.6
     total = max(s[0] for s in score) + tail
     n = int(total * RATE)
@@ -204,9 +216,20 @@ def write_wav(path, samples):
         f.write(b"RIFF" + struct.pack("<I", len(body)) + body)
 
 
+def main(argv):
+    want = argv[1:] or sorted(MELODIES)
+    for name in want:
+        if name not in MELODIES:
+            raise SystemExit("没有这首：%s（有 %s）" % (name, ", ".join(sorted(MELODIES))))
+        print("%s：" % name)
+        samples = render(MELODIES[name]())
+        out = os.path.join(HERE, name + ".wav")
+        write_wav(out, samples)
+        print("  %s.wav：%d 采样 = %.2f s，%d Hz %d-bit %dch，%d 字节"
+              % (name, len(samples), len(samples) / RATE, RATE, BITS, CHANNELS,
+                 os.path.getsize(out)))
+
+
 if __name__ == "__main__":
-    s = render()
-    write_wav(OUT, s)
-    print("%s：%d 采样 = %.2f s，%d Hz %d-bit %dch，%d 字节"
-          % (os.path.basename(OUT), len(s), len(s) / RATE, RATE, BITS, CHANNELS,
-             os.path.getsize(OUT)))
+    import sys
+    main(sys.argv)

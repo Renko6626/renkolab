@@ -5,6 +5,7 @@
  * 初始携带（mode 1）不调 ctor，编成里带满五张不算（用户设定：只有买齐才算）。
  * ★ 但每关开始引擎会对卡组里每张卡再调一次 ctor（实跑：买齐后每关又触发一次，共 6 次）——用 ce_fresh_acquire 挡掉。
  *
+ * 演出音乐：ROYAL_FANFARE 从第 0 帧起（见 ctor 里的注释）。
  * 命 / bomb 照零售 CardLife / CardBomb 的 dtor：先把上限 +1（钳 7），再调引擎的加法（钳上限、放音效、起特效）。
  * 返回 0：黑桃是正常卡，要入卡组。 */
 #include "royal.h"
@@ -14,6 +15,12 @@ static const uint32_t SPADES[5] = { 58, 59, 60, 61, 62 };
 #define ROYAL_TROPHY_FRAME  60      /* 演出时间线：五张牌 0/10/20/30/40 帧逐张弹出，60 帧横幅 + trophy 音效，74 帧「+888 GOLD」，170–194 帧一起淡出 */
 static uint32_t s_fx_card;            /* 触发那张卡的 id：只由它的 on_tick_2 走倒计时（五张都挂了 tick，避免一帧减五次）*/
 static int      s_fx_countdown;       /* > 0 时每帧 -1，到 0 放 trophy 音效 */
+
+static float p_x(void)
+{
+    uint8_t *p = CE_PLAYER();
+    return p ? *(float *)(p + CE_PLAYER_X) : 0.0f;
+}
 
 int ce_royal_flush_ctor(ce_card_t *c)
 {
@@ -35,8 +42,14 @@ int ce_royal_flush_ctor(ce_card_t *c)
     /* 演出：ability.anm script70（assets/ability/scripts/70_royal_show.anm.txt）是父脚本，起五张牌 / 横幅 / 金币文字七个子脚本，层 20；
      * trophy 音效要在横幅弹出那一帧（60）放，C 里做不了延时，交给 ce_royal_tick 倒计时。加命 / 加 bomb 的音效引擎自己放。*/
     uint32_t fx = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_ROYAL_SHOW, 20);
+    /* 标志性号角（assets/voice/make_melodies.py 的 ROYAL_FANFARE，3.68 s = 221 帧）：
+     * 与 script70 的时间线对齐 —— 五个上行音落在五张牌弹出的帧 0/10/20/30/40，
+     * 帧 60 的 C 大和弦重击正好是金色横幅弹出那一下，收在宽和弦上随 170–194 帧的淡出一起消。
+     * 从演出第 0 帧起，所以放在这里而不是 ce_royal_tick 的倒计时里；
+     * 帧 60 的 trophy 音效照旧叠在上面（语音就是可叠加的 SE，AUDIT §Q）。 */
+    ce_play_voice(ROYAL_FANFARE, p_x());
     s_fx_card = self; s_fx_countdown = ROYAL_TROPHY_FRAME;
-    ce_log("royal: show anm id %08x", fx);
+    ce_log("royal: show anm id %08x + fanfare", fx);
     ce_log("royal: ROYAL FLUSH by card %u — money %d -> %d, lives %d (max %d), bombs %d (max %d)",
            self, m, CE_MONEY(), CE_CURRENT_LIVES(), CE_LIVES_MAX(), CE_CURRENT_BOMBS(), CE_MAX_BOMBS());
     return 0;
@@ -46,8 +59,7 @@ void ce_royal_tick(ce_card_t *c)
 {
     if (s_fx_countdown <= 0 || ce_card_id(c) != s_fx_card) return;
     if (--s_fx_countdown == 0) {
-        uint8_t *p = CE_PLAYER();
-        ce_play_sound(CE_SE_TROPHY, p ? *(float *)(p + CE_PLAYER_X) : 0.0f);
+        ce_play_sound(CE_SE_TROPHY, p_x());
         ce_log("royal: trophy sound");
     }
 }

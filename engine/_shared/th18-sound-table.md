@@ -264,6 +264,6 @@ cfg 行 `+8` 低 word 的 dB 衰减上；而那个字段只能衰减（§5.1）�
 | `VOICE_RMS_TARGET` | **−10.0 dBFS** | 卡牌语音与 `se_release` 同帧一起响：比它低 5 dB、比中位高 3 dB |
 
 一个只做 peak 归一化的钢琴旋律波峰因数能到 14 dB，RMS 只有 −17，**峰值已经顶满但听着仍轻**
-—— 这是实测踩到的坑（`assets/voice/make_test_melody.py` 用 tanh 软限幅把波峰因数压到 9.5 dB 解决）。
+—— 这是实测踩到的坑（`assets/voice/make_melodies.py` 用 tanh 软限幅把波峰因数压到 9.5 dB 解决）。
 
 复算：`build_voice.py` 每次 `make voice` 都会打印每条语音的 peak / rms，偏离基准 ±4 dB 就提醒。

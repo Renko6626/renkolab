@@ -16,7 +16,7 @@
 
 **卡图**：五张用标准英式牌面（Wikimedia Commons，Dmitry Fomin，CC0；`assets/cards/_src/english_pattern/`，`fit_card.py` 出图），sprite 118/119 … 126/127。
 
-🔧 **皇家同花顺**（`cards/royal.c`，五张共用 `.ctor`）：买到第五张黑桃时触发一次——金钱 +800、残机 +2（上限先 +1 钳 7，照 CardLife）、bomb +2（同法照 CardBomb）。判定：ctor 时其余四张已在 `owned[]` 且自己尚未 owned（新获得；每关开始的重调不算）。奖励金钱 888。演出（`ability.anm` script70 父脚本）：五张黑桃卡图每 10 帧一张在场地中央排开 → 60 帧 trophy 音效（0x4f）+ 金色「ROYAL FLUSH」横幅弹出 → 74 帧「+888 GOLD」→ 170 帧起一起淡出上浮、194 帧消失。AUDIT O26。
+🔧 **皇家同花顺**（`cards/royal.c`，五张共用 `.ctor`）：买到第五张黑桃时触发一次——金钱 +800、残机 +2（上限先 +1 钳 7，照 CardLife）、bomb +2（同法照 CardBomb）。判定：ctor 时其余四张已在 `owned[]` 且自己尚未 owned（新获得；每关开始的重调不算）。奖励金钱 888。演出（`ability.anm` script70 父脚本）：五张黑桃卡图每 10 帧一张在场地中央排开 → 60 帧 trophy 音效（0x4f）+ 金色「ROYAL FLUSH」横幅弹出（钢琴号角 `ROYAL_FANFARE` 从第 0 帧起铺整段，帧 60 正好是它的 C 大和弦重击） → 74 帧「+888 GOLD」→ 170 帧起一起淡出上浮、194 帧消失。AUDIT O26。
 
 ## 方片
 
