@@ -54,18 +54,16 @@
 
 | id | 名字 | 效果 | 实现（槽 / 事件） | 文件 | 状态 |
 | --- | --- | --- | --- | --- | --- |
-| 71 | 破损核心 | 装备：身边多一颗电球子机，每 2 秒朝**最近的敌人**（512 px 内）劈一道闪电，每发 80 伤害 | 第一张走**零售装备卡机制**的卡：`on_power_level_change` 生成子机、`on_tick_2` 计时 + 选目标 + 开火（详见下）。AUDIT §U | `broken_core.c` + `broken_core_core.c` | 🔧 |
+| 71 | 破损核心 | 装备：身边多一颗电球子机，每 2 秒朝**最近的敌人**（512 px 内）**瞬间**劈一道电弧，那一个敌人吃 80 伤害 | 第一张走**零售装备卡机制**的卡：`on_power_level_change` 生成子机、`on_tick_2` 计时 + 选目标 + 定点伤害源 + 电弧特效（详见下）。AUDIT §U | `broken_core.c` + `broken_core_core.c` | 🔧 |
 
-**破损核心（71）补充**：两个槽 —— `on_power_level_change` 里 `Player__allocate_option(card, 0x18, ability script88)`
-生成子机（指针存 `ce_state()`，不是零售的 `card+0x54`：我们的对象只有 `0x54` 字节）；`on_tick_2` 里计时、
-挑最近的敌人、把角度写 `player+0x479cc`、调 `Player__tick_shooters_for_ability_card(option, 0, 0, 0x17)`。
-`pl0X.sht` 的 `+0xe0` 偏移数组有 40 项、零售只用 23 项，我们占第 `0x17` 项——
-**纯追加**，前面一个字节不动（`assets/sht/append_shooterset.py`，构建后回读校验解析不变式）。
-一手见 [`engine/sht/th18/`](../../../engine/sht/th18/README.md)。**剩下 16 个空位 = 以后还能加 16 张子机卡。**
-子机与子弹的贴图都取自 `ability.anm`（引擎在开火期间把 `player+0x10` 换成它），所以不用碰四个 `pl0X.anm`。
-瞄准 = 写 `player+0x479cc` + shooter 的 `func_on_init = 5`（`CardAlice` 同款，出膛定向、不追踪）；
-贴图朝向由脚本的 `rotateAuto(1)` 交给引擎每帧跟弹的实时角度。卡图与场上贴图程序生成
-（`assets/ability/make_broken_core_art.py`，sprite 144/145）。伤害每帧受 `player+0x47984` 钳制（Sakuya 只有 60）。
+**破损核心（71）补充**：子机 = `Player__allocate_option(card, 0x18, ability script88)`（指针存 `ce_state()`，
+不是零售的 `card+0x54`：我们的对象只有 `0x54` 字节）。闪电 = **定点伤害源 + 特效**两件独立的事：
+`ce_damage_rect(目标坐标, 0, 寿命 2, 80, 24×24)` 钉在敌人身上（Remilia / 青眼同一个原语；一个伤害源对同一敌人
+只结算一次，所以正好 80），script89 电弧从电球拉到敌人（C 写 pos / rotation.z / scale.x = 距离 / 256）、
+script90 火花在命中点。瞄准角与距离是自己的确定性算术（不引 libm）。
+**不改任何游戏资源文件**——第一版曾追加 `pl0X.sht` 的 shooterset 让子机真开火，后来改掉：自机弹天生要飞过去，
+与「瞬发单体」相悖。那条链的研究（[`engine/sht/th18/`](../../../engine/sht/th18/README.md)）与工具
+（`assets/sht/`）留着给以后真需要「子机连射」的卡。卡图与场上贴图程序生成（`assets/ability/make_broken_core_art.py`，sprite 144/145）。
 
 ## 约定
 

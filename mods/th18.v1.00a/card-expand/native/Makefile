@@ -42,7 +42,7 @@ anm:
 ecl:
 	python3 ../assets/ecl/make_dev_ecl.py
 
-## sht    —— 往零售 pl00–03.sht 追加新卡子机的 shooterset → build/sht/；生成 sht_ids.h
+## sht    —— 往零售 pl00–03.sht 追加新卡子机的 shooterset → build/sht/；生成 sht_ids.h（APPEND 为空时不产出 .sht）
 sht:
 	python3 ../assets/sht/append_shooterset.py
 
@@ -88,7 +88,9 @@ TOOLCHAIN ?= $(HOME)/Tools/llvm-mingw-20260826-msvcrt-ubuntu-22.04-x86_64
 CC        := $(TOOLCHAIN)/bin/i686-w64-mingw32-gcc
 OBJDUMP   := $(TOOLCHAIN)/bin/i686-w64-mingw32-objdump
 DLL       := th18_card_expand.dll
-CFLAGS    := -O2 -Wall -Wextra -mfpmath=sse -msse2 -I.
+# -fno-math-errno：让 sqrtf 编成一条 sqrtss。不加的话它会带一条「负数就调 libm 设 errno」的退路，
+# 而 libm 的 float 返回值走 st0，我们这边接它就得用 fstp —— 直接顶掉下面 dllx87 的「零 x87」不变式。
+CFLAGS    := -O2 -Wall -Wextra -mfpmath=sse -msse2 -fno-math-errno -I.
 LDFLAGS   := -shared -static-libgcc -s -lkernel32 -Wl,--no-insert-timestamp
 
 ## dll    —— 编 DLL（依赖 gen 出的 sites_gen.h）
@@ -136,7 +138,9 @@ dist: anm sht ecl
 	cp $(DLL) $(DIST)/bin/ && cp ../patch/*.js $(DIST)/patch-step1/ && cp -r ../patch-test/. $(DIST)/patch-test/
 	$(MAKE) -s ROWS=255 gen files >/dev/null
 	cp -r ../patch/. $(DIST)/patch-step3/
-	cp build/abcard.anm build/ability.anm build/sht/pl0[0-3].sht $(DIST)/patch-step3/th18/ && python3 mkfiles.py $(DIST)/patch-step3 >/dev/null
+	cp build/abcard.anm build/ability.anm $(DIST)/patch-step3/th18/
+	for f in build/sht/pl0[0-3].sht; do [ -f "$$f" ] && cp "$$f" $(DIST)/patch-step3/th18/; done; true
+	python3 mkfiles.py $(DIST)/patch-step3 >/dev/null
 	cp ../patch-devstage/patch.js $(DIST)/patch-devstage/ && cp build/ecl/st0[1-6].ecl build/ecl/st0[1-6]bs.ecl $(DIST)/patch-devstage/th18/ && python3 mkfiles.py $(DIST)/patch-devstage >/dev/null
 	cp ../DIST-README.txt $(DIST)/README.txt
 	cd $(DIST) && rm -f th18_card_expand_bundle.zip && zip -qr th18_card_expand_bundle.zip bin patch-step1 patch-step3 patch-test patch-devstage README.txt

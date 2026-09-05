@@ -32,6 +32,13 @@ void bc_aim_reset(bc_aim_t *a);
 void bc_aim_consider(bc_aim_t *a, float ox, float oy, float ex, float ey);
 /* 有目标且在 BC_RANGE 内 → 写出角度（弧度，与引擎同向：0 = +x，−π/2 = 正上方）并返回 1 */
 int  bc_aim_angle(const bc_aim_t *a, float *out_angle);
+/* 到目标的距离（没目标时 0）。电弧的长度用它。**static inline** 的理由同 bc_atan2f：
+ * i386 ABI 返回 float 要走 st0，内联掉才守得住 make dllx87 的「零 x87」。
+ * `-fno-math-errno`（Makefile）让 __builtin_sqrtf 编成一条 sqrtss，不掉进 libm。*/
+static inline float bc_aim_dist(const bc_aim_t *a)
+{
+    return a->found ? __builtin_sqrtf(a->best_d2) : 0.0f;
+}
 
 /* atan2 近似（最大误差 < 2e-5 rad）。**故意定义在头里的 static inline**：i386 ABI 里返回 float 要走 st0
  * （`flds`），而本仓的 make dllx87 不许我们的目标文件出现任何 x87 指令。内联掉就没有那次返回。 */

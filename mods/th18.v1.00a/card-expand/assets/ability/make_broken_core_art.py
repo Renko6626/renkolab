@@ -4,14 +4,15 @@
     python3 make_broken_core_art.py
 
   broken_core/CORE.png   128×128  场上的电球子机（加色混合：亮 = 光）
-  broken_core/BOLT.png   128×64   子机发出的闪电弹，画成朝 +x（角度 0 = 右）；
-                                  C 在开火那帧把弹的 ANM VM 旋转设成瞄准角，于是它指向目标
+  broken_core/BOLT.png   256×64   电球 → 敌人之间那道弧。画成**朝 +x 铺满整幅**，C 在开火那帧
+                                  把 VM 的旋转设成瞄准角、scale.x 设成 距离/256，于是它正好连住两点
   _src/BROKEN_CORE_face.png 512×640  卡图画面的源图 → 再跑
       python3 ../fit_card.py BROKEN_CORE ability/broken_core/_src/BROKEN_CORE_face.png \
               --no-detect --trim 0 --margin 0 --bg '#05070f'
 
-为什么闪电画成朝 +x：引擎只在弹的 ANM 脚本置了 `0x200` 位时才自己写旋转，而且写的是 shooter 里那个
-**静态**角度（`PlayerBullet__create` `0x45e320`），对瞄准弹是错的。所以脚本不置那个位，旋转由 C 写。
+闪电是**瞬发的**，不是飞行物：伤害是一个小定点伤害源钉在目标上（`0x45dfa0`，24×24、寿命 2 帧），
+这张贴图只是特效——横向拉到「电球 → 敌人」那么长。所以它要**耐拉伸**：主干贯穿整幅、
+只在左端（电球那头）收一点，右端不淡出（那头顶在敌人身上）。
 """
 import math
 from pathlib import Path
@@ -110,20 +111,20 @@ def orb(size=128) -> Image.Image:
 
 # ---------------------------------------------------------------- 闪电弹
 
-def bolt(w=128, h=64) -> Image.Image:
+def bolt(w=256, h=64) -> Image.Image:
     rng = np.random.default_rng(SEED + 1)
-    spine = jagged(rng, 4, h / 2, w - 4, h / 2, 7, h * 0.20)
-    core = polyline_mask(h, w, spine, 1.7)
+    spine = jagged(rng, 0.0, h / 2, float(w), h / 2, 11, h * 0.22)   # 主干贯穿整幅（要耐横向拉伸）
+    core = polyline_mask(h, w, spine, 1.8)
     branches = np.zeros((h, w))
-    for i in (2, 4):                                             # 两条小分叉
+    for i in (2, 5, 8):                                          # 三条小分叉
         bx, by = spine[i]
         branches = np.maximum(branches, polyline_mask(
-            h, w, jagged(rng, bx, by, bx + rng.uniform(10, 20), by + rng.uniform(-16, 16), 3, 4.0), 1.2))
-    line = np.clip(core + branches * 0.7, 0.0, 1.0)
-    inten = np.clip(line + glow(line, 2.0) * 1.1 + glow(line, 6.0) * 0.75, 0.0, 1.5)
+            h, w, jagged(rng, bx, by, bx + rng.uniform(14, 30), by + rng.uniform(-18, 18), 3, 5.0), 1.2))
+    line = np.clip(core + branches * 0.65, 0.0, 1.0)
+    inten = np.clip(line + glow(line, 2.0) * 1.1 + glow(line, 7.0) * 0.8, 0.0, 1.5)
 
     x = np.mgrid[0:h, 0:w][1].astype(np.float64)
-    inten *= np.clip(np.minimum(x - 1.0, (w - 2.0) - x) / 10.0, 0.0, 1.0)   # 两端淡出
+    inten *= np.clip(x / 12.0, 0.0, 1.0)                          # 只在左端（电球那头）收一点
 
     hot = np.clip((inten - 0.5) / 0.5, 0.0, 1.0)
     rgb = np.stack([0.30 + 0.70 * hot,

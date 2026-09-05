@@ -14,7 +14,7 @@
 | 7 商店、10 JSON 数据 | 🔧 待实跑（AUDIT §N）|
 | 9 行为（SDK + 黑桃五张 + 强欲之壶 + 反转牌）| 🔧 待实跑（AUDIT §O）← **先做这个** |
 | 8 卡图 | 🔧 工具就位（[`assets/`](assets/README.md)）：黑桃五张占位图 sprite 118–127 已进 `_255/th18/abcard.anm`，待实跑 |
-| **15 破损核心（id 71）** | 🔧 **待实跑**（AUDIT §U）—— 第一张真装备卡：电球子机 + 追加进 `pl0X.sht` 的自定义弹幕 |
+| **15 破损核心（id 71）** | 🔧 **待实跑**（AUDIT §U）—— 第一张真装备卡：电球子机 + 瞬发电弧（定点伤害源）|
 | **14 腐化（id 70）** | 🔧 **待实跑**（AUDIT §T）—— 被动：放炸弹扣的是上限，一次给满七发、用完为止 |
 | **13 加倍（id 69）** | 🔧 **待实跑**（AUDIT §S）—— 被动：Miss 掉 2 命、敌人掉落 ×2 |
 | **12 黄昏（id 68）** | 🔧 **待实跑**（AUDIT §R）—— 被动：最后一颗炸弹用掉后自动再放一发 |
@@ -75,28 +75,26 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 通过后：MAP §5 与 AUDIT §P 顶部记「实跑通过」。想改次数就改常量（以后可挂 `cards.js`）；
 **关卡中间开店**（MSG opcode 36 或 DLL 直接置 `GameThread+0xb0 |= 0x20000`）技术上可行，但 Stage / Spellcard 不冻结，只该在对话里做——见 §3.5。
 
-## 1e. 破损核心（id 71，2026-09-05，待实跑）
+## 1f. 破损核心（id 71，2026-09-05，待实跑）
 
-**装备卡，本 mod 第一张走零售装备卡机制的卡**（不是自绘）：身边一颗电球子机，每 2 秒朝最近的敌人
-（512 px 内）劈一道闪电，每发 80 伤害。实现 `native/cards/broken_core.c` + `broken_core_core.c`；
-设计 `docs/superpowers/specs/2026-09-05-broken-core-design.md`；审计 AUDIT §U。
+**装备卡，本 mod 第一张走零售装备卡机制的卡**：身边一颗电球子机（`Player__allocate_option`，引擎管位置 /
+聚焦位移 / 进店收起），每 2 秒朝最近的敌人（512 px 内）**瞬间**劈一道电弧，那一个敌人吃 80 伤害
+（定点伤害源 `ce_damage_rect` 钉在目标上 + 电弧 / 火花两条特效 VM）。实现 `native/cards/broken_core.c` +
+`broken_core_core.c`；设计 `docs/superpowers/specs/2026-09-05-broken-core-design.md`；审计 AUDIT §U。
+**不改任何游戏资源文件**（只多 `ability.anm` 的两个 entry + 三个脚本）。
 
-**这一段顺带解决了 `engine/card/th18/OPEN-questions.md` §1**（装备卡的子机 shooter 数据存在哪）：
-就在四个 `pl0X.sht` 的 `+0xe0` 偏移数组里，40 项、零售用 23 项、**尾部 17 项是空的**。
-新开的 `engine/sht/th18/` 两篇是布局与字段图。我们占第 `0x17` 项，**还剩 16 个 = 以后 16 张子机卡**。
-
-**新增的分发件**：`th18/pl0[0-3].sht`（`_255` patch，纯追加、每次构建回读校验）。
-这是本 mod 第一次替换 `.anm` 之外的游戏资源 —— **实跑第一件事就是确认 thcrap 真的替换了它**（AUDIT U15）：
-若没被替换，第 `0x17` 项偏移是 0 → 会打出 shooterset 0 的**主炮弹**（不崩，但一眼看得出不对：
-出来的是自机的针 / 星，不是闪电）。
+**顺带解决了 `engine/card/th18/OPEN-questions.md` §1**（装备卡的子机 shooter 数据存在哪）：就在四个 `pl0X.sht`
+的 `+0xe0` 偏移数组里，40 项、零售用 23 项、尾部 17 项空着。新开的 `engine/sht/th18/` 两篇是布局与字段图；
+`assets/sht/append_shooterset.py` 能往空位追加 shooterset。**这张卡的第一版用过它**（子机真开火），后来改成
+定点伤害源——自机弹天生要飞过去，与「瞬发单体」相悖。工具留着（`APPEND` 为空 = 不产出），以后真要「子机连射」的卡再用。
 
 日志应有：`sdk: 71 bound (.on_power_level_change = …, .on_tick_2 = …, .on_load = …, .on_run_reset = …)`
 → 进关 `broken_core: option allocated (ptr …, anm id …)` → 有敌人时
-`broken_core: fire #N at frame …, orb (x, y), angle …`（只记前 3 发与每第 25 发）。
-体感：自机右侧一颗青白电球（慢转 + 亮度呼吸），每 2 秒朝最近的敌人劈一道会转向的闪电，
-命中掉血 + 电流噪声（`se_noise` `0x46`）；没有敌人时**攒着不发**，敌人一进射程立刻劈。
-进商店电球收起、出店回来；过关不消失（装备卡）。
-崩溃优先怀疑：`ce_allocate_option` 的压栈序（U1）、子机槽认领（U4）、`fire_rate` 若被改成 0（U6 除零）。
+`broken_core: fire #N at frame …, orb (x, y) -> target (x, y) dist … angle …`（只记前 3 发与每第 25 发）。
+体感：自机右侧一颗青白电球（慢转 + 亮度呼吸）；每 2 秒一道电弧**瞬间**连到最近的敌人、命中点一团火花 +
+电流噪声（`se_noise` `0x46`），敌人掉血（devstage 的 boss 血量 ÷100，看得很清楚）；没有敌人时**攒着不发**，
+敌人一进射程立刻劈。进商店电球收起、出店回来；过关不消失（装备卡）。
+崩溃优先怀疑：`ce_allocate_option` 的压栈序（U1）、子机槽认领（U3）。视觉怀疑：电弧方向 / 长度（U10、`anchor(1, 0)`）。
 
 ## 1c. 神之宣告（id 66，2026-09-04，待实跑）
 

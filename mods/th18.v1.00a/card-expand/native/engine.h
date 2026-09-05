@@ -76,6 +76,7 @@
 #define CE_FN_ANM_INTERRUPT_TREE   0x488be0   /* stdcall(id, n) ret 8：自取 ANM_MANAGER_PTR，找到 VM 写 +0x494 = n 并递归子树（Tenshi 到时长调 (id, 1)）*/
 #define CE_ANM_VM_POS              0x5f0      /* float3 实体坐标（Tenshi/Miko/Remilia 每帧写；engine/anm/th18/01-vm-instantiate.md）*/
 #define CE_ANM_VM_COLOR1           0x524      /* D3DCOLOR 0xAARRGGBB：Tenshi 0x40eb4c 无命中写 0xffffffff、0x40eb60 有命中写 0xff0080ff（= 蓝 (0,128,255)）*/
+#define CE_ANM_VM_ROTATION         0x3c       /* zFloat3 rx/ry/rz（zAnmVmPrefix；自机弹每帧更新 `0x45edb0` 写 +0x44 = rz = 弹的实时角度）*/
 #define CE_ANM_VM_SCALE            0x54       /* zFloat2 scale x/y：HUD 充能条 0x408a53 写 +0x58 = fill 比例（thpages drawRect：动态尺寸就改 scale）；ExpHP zAnmVmPrefix（AUDIT O29k）*/
 #define CE_FN_LASER_CANCEL_ALL     0x449090   /* (mode, unused) 两个栈参 ret 8，ecx 不用（函数自己读 LASER_MANAGER 0x4cf3f4）；ECL 消弹 case 紧跟 cancel_all 调 (1,0) / (0,0)，玩家死亡 0x45c3cc 调 (1, 垃圾)；对每条激光调 vtable+0x28(mode, 0)（AUDIT O28h）*/
 

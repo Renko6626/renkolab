@@ -46,20 +46,14 @@ TERMINATOR = b"\xff\xff\xff\xff"
 # 一项 = (NAME, [shooter, …])；索引按顺序从 N_RETAIL 起分配。字段图见
 # engine/sht/th18/02-shooter-record.md §1。这里只列非 0 字段，其余补 0。
 APPEND = [
-    ("BROKEN_CORE", [dict(
-        fire_rate=1,        # 「调用即开火」：节奏由 C 的计数器定（int8 装不下 120 帧）
-        start_delay=0,
-        damage=80,          # 每发；实际还要过 player+0x47984 的每帧上限（Sakuya 只有 60）
-        hit_w=40.0,         # → bullet+0xa0 → 伤害源矩形宽（XMM2）
-        hit_h=16.0,         # → bullet+0xa4 → 高（XMM3）
-        angle=-1.5707964,   # 兜底朝上；func_on_init=5 会用 player+0x479cc 覆写成瞄准角
-        speed=16.0,
-        opt_slot=0,         # ★ 0 = 用 tick_shooters 传进来的子机坐标（零售 13 组卡子机全是 0）
-        mode=0,
-        anm="CE_ANM_ABILITY_SCRIPT_BROKEN_CORE_BOLT",   # 从 anm_ids.h 取；装备卡子机的弹走 ability.anm
-        sfx=0x46,           # se_noise
-        func_on_init=5,     # 0x4612d0：用 player+0x479cc 覆写 bullet 角度（CardAlice 同款）
-    )]),
+    # 目前没有卡在用（2026-09-05）：破损核心（71）第一版走过这条路，后来改成「定点伤害源 + 电弧特效」
+    # ——它要的是瞬发单体，而自机弹天生要飞过去。工具与不变式留着给真需要「子机连射」的卡。
+    # 加一项长这样（字段图见 engine/sht/th18/02-shooter-record.md §1，只列非 0 字段）：
+    #   ("NAME", [dict(fire_rate=1, start_delay=0, damage=80, hit_w=24.0, hit_h=16.0,
+    #                  angle=-1.5707964, speed=16.0, opt_slot=0, mode=0,
+    #                  anm="CE_ANM_ABILITY_SCRIPT_<脚本>", sfx=0x46, func_on_init=5)]),
+    #   opt_slot 必须 0（用 tick_shooters 传进来的子机坐标）；fire_rate 1–127；anm 指 ability.anm 的脚本；
+    #   func_on_init=5 = 用 player+0x479cc 覆写弹角（瞄准）。
 ]
 
 
@@ -179,6 +173,14 @@ def main():
 
     anm_ids = read_anm_ids()
     sets = [(nm, b"".join(pack_shooter(s, anm_ids) for s in rows) + TERMINATOR) for nm, rows in APPEND]
+
+    if not sets:                                   # 没有要追加的：不产出（别发一份和零售一模一样的 .sht）
+        if not a.verify_only:
+            for name in FILES:
+                (OUT / name).unlink(missing_ok=True)
+            write_ids_h(sets)
+        print("  没有登记任何 shooterset：不产出 .sht（build/sht/ 已清空）")
+        return 0
 
     OUT.mkdir(parents=True, exist_ok=True)
     for name in FILES:

@@ -57,6 +57,7 @@ make dist         # 把 build/abcard.anm 放进 dist/patch-step3/th18/，files.j
 - 运行时 sprite 数上限**未验**（格式层无上限）；目前加到 135（9 张），C 阶段在 `AnmManager__preload_anm` 坐实。
 - `ecl/`：开发辅助（独立 patch `th18_card_expand_devstage`，启动器里单独勾）。`st01`–`st06.ecl.txt` 是入库的空壳关卡源（logo → 对话 → boss）；`make_dev_ecl.py` 编它们并现场把零售 boss 血量 ÷100、死时多掉 300 金。
 - `ability.anm`（场上特效）的追加在 [`ability/`](ability/README.md)：卡图副本 entry + 特效脚本，`make anm` 一起重建。`abmenu.anm` 不管。
-- `sht/`：**装备卡子机的弹幕**。`append_shooterset.py` 往四个零售 `pl0X.sht` 的偏移数组空位里追加一组 shooterset
-  （`make sht` → `native/build/sht/*.sht` + `native/sht_ids.h`），同样随 `_255` 整文件替换。
+- `sht/`：**装备卡子机的弹幕（连射）**。`append_shooterset.py` 往四个零售 `pl0X.sht` 的偏移数组空位里追加 shooterset
+  （`make sht` → `native/build/sht/*.sht` + `native/sht_ids.h`），随 `_255` 整文件替换。**当前 `APPEND` 为空 = 不产出**
+  （破损核心第一版用过，改成定点伤害源了）。
   格式与不变式见 [`engine/sht/th18/`](../../../../engine/sht/th18/README.md)，用法见 [`SDK.md`](../SDK.md) §12。

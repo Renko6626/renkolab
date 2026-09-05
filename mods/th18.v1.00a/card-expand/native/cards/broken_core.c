@@ -1,24 +1,30 @@
 /* 破损核心（id 71）—— 装备卡：身边多一颗电球子机，每 BC_PERIOD 帧朝最近的敌人劈一道闪电。
  *
- * 这是本 mod 第一张走**零售装备卡机制**的卡（不是自绘）：
- *   子机 = `Player__allocate_option` 的 zPlayerOption（引擎管位置 / 聚焦位移 / 开店收起），长相 = ability.anm script88；
- *   闪电 = 追加进四个 pl0X.sht 的第 `0x17` 组 shooterset 的自机弹（贴图 = ability.anm script89），
- *          走引擎自机弹管线（于是也吃黑桃 K 的 on_bullet_created 加成）。
- *
- * 与零售装备卡的三处不同：
+ * 子机走**零售装备卡机制**：`Player__allocate_option` 的 zPlayerOption（引擎管位置 / 聚焦位移 / 开店收起），
+ * 长相 = ability.anm script88。与零售装备卡的两处不同：
  *   ① 子机指针存 `ce_state()` 而不是 card+0x54 —— 我们的对象是基类 0x54 字节，+0x54 在对象外；
- *   ② 开火挂 `on_tick_2` 而不是 `on_tick_shooters` —— 后者只在按住射击键时广播（`0x45ea00`），
- *      这张卡该自己定时打。shooter 的 fire_rate = 1 ⇒「调用即开火」，周期由 C 的计数器定；
- *   ③ 瞄准：把角度写 `player+0x479cc`，shooter 的 func_on_init = 5 在建弹时用它覆写弹的角度（CardAlice 同款）。
+ *   ② 不用 SHT shooterset 开火（那条链只在按住射击键时广播、而且弹要飞过去）。
  *
- * 纯逻辑在 broken_core_core.c（主机单测）。引擎一手 engine/sht/th18/、engine/card/th18/03-hooks.md §5；
+ * 闪电 = **定点伤害源 + 电弧特效**，两件独立的事：
+ *   伤害：在目标坐标放一个 BC_HIT_W × BC_HIT_H 的矩形伤害源（`0x45dfa0`，Remilia / Tenshi / 青眼同款），
+ *         寿命 BC_HIT_LIFE 帧、BC_DMG 伤害。它只罩住目标那一点 ⇒ 单体；一个伤害源对同一敌人只结算一次
+ *         （`enm_compute_damage_sources` `0x45f0f0` 的 src+0x84 tag 守卫）⇒ 定量；走正常伤害管线
+ *         （每帧上限 player+0x47984、计分、命中反馈）。
+ *   特效：script89 电弧从电球拉到敌人（C 写 pos / rotation.z / scale.x），script90 火花在命中点。
+ *
+ * 纯逻辑在 broken_core_core.c（主机单测）。引擎一手 engine/card/th18/03-hooks.md §5、engine/player/th18/02-damage-sources.md；
  * 设计 docs/superpowers/specs/2026-09-05-broken-core-design.md；审计 AUDIT §U。 */
 #include "sdk.h"
-#include "sht_ids.h"
 #include "broken_core_core.h"
 
 #define BC_OPTION_OFFSET  0x18      /* 子机相对自机的横向偏移（非聚焦 / 聚焦同值）。零售：Marisa1 0x10、Alice 0x1c、Reimu1 0x30 */
 #define BC_RETRY_FRAMES   60        /* 没拿到子机时的重试间隔（槽满 / 还没进关）*/
+#define BC_DMG            80        /* 每道闪电；Sakuya 的每帧上限 60 会把它钳到 60（AUDIT U12）*/
+#define BC_HIT_W          24.0f     /* 钉在目标上的判定：只要罩住它的中心 */
+#define BC_HIT_H          24.0f
+#define BC_HIT_LIFE       2         /* 帧；同一敌人只结算一次（tag 守卫），2 帧是给结算留的余量 */
+#define BC_SE             0x46      /* se_noise：电流 */
+#define BC_BEAM_TEX_W     256.0f    /* 电弧贴图的宽（scale.x = 距离 / 它）*/
 
 typedef struct {
     uint8_t   *option;              /* zPlayerOption*；0 = 还没有 */
@@ -88,7 +94,8 @@ static int on_tick_2(ce_card_t *c)
     uint8_t *em = CE_ENEMY_MGR();
     uint8_t *o;
     bc_aim_t aim;
-    float ox, oy, angle;
+    float ox, oy, tx, ty, pz, angle;
+    uint32_t beam, spark;
 
     if (!s || !p) return 0;
     o = option_of(c, s);
@@ -108,13 +115,32 @@ static int on_tick_2(ce_card_t *c)
         if (!e || (*(uint32_t *)(e + CE_ENEMY_FLAGS) & CE_ENEMY_FLAG_NO_LOCK)) continue;
         bc_aim_consider(&aim, ox, oy, *(float *)(e + CE_ENEMY_POS_X), *(float *)(e + CE_ENEMY_POS_Y));
     }
-    if (!bc_aim_angle(&aim, &angle)) return 0;               /* 没目标：继续攒着 */
+    if (!bc_aim_angle(&aim, &angle)) return 0;               /* 没目标：继续攒着（蓄满状态保持）*/
+    tx = ox + aim.dx;
+    ty = oy + aim.dy;
+    pz = ((const float *)(p + CE_PLAYER_X))[2];
 
-    *(float *)(p + CE_PLAYER_AIM_ANGLE) = angle;             /* func_on_init = 5 会拿它覆写弹的角度 */
-    ce_tick_shooters_for_card(o, 0, 0, CE_SHT_SET_BROKEN_CORE);   /* fire_rate 1 + timer 0 ⇒ 必发 */
+    /* 伤害：一个小判定钉在目标上，原地结算 BC_HIT_LIFE 帧。angle 只影响判定框的朝向，给 0 就是轴对齐。 */
+    {
+        float center[3] = { tx, ty, pz };
+        ce_damage_rect(center, 0.0f, BC_HIT_LIFE, BC_DMG, BC_HIT_W, BC_HIT_H);
+    }
+
+    /* 特效：电弧从电球拉到敌人。贴图朝 +x 铺满 BC_BEAM_TEX_W，脚本里 anchor(1, 0) 左端对齐，
+     * 所以 pos = 电球、rotation.z = 瞄准角、scale.x = 距离 / 贴图宽；脚本不碰 scale / rotate。 */
+    beam = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BROKEN_CORE_BEAM, 13);
+    if (beam) {
+        ce_anm_set_pos(beam, ox, oy, pz);
+        ce_anm_set_rotation(beam, 0.0f, 0.0f, angle);
+        ce_anm_set_scale(beam, bc_aim_dist(&aim) * (1.0f / BC_BEAM_TEX_W), 1.0f);
+    }
+    spark = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BROKEN_CORE_SPARK, 13);
+    if (spark) ce_anm_set_pos(spark, tx, ty, pz);
+    ce_play_sound(BC_SE, ox);
     bc_did_fire(&s->st);
     if (s->st.shots <= 3 || s->st.shots % 25 == 0)
-        ce_log("broken_core: fire #%u at frame %u, orb (%.1f, %.1f), angle %.3f", s->st.shots, s->st.frames, ox, oy, angle);
+        ce_log("broken_core: fire #%u at frame %u, orb (%.1f, %.1f) -> target (%.1f, %.1f) dist %.1f angle %.3f",
+               s->st.shots, s->st.frames, ox, oy, tx, ty, bc_aim_dist(&aim), angle);
     return 0;
 }
 

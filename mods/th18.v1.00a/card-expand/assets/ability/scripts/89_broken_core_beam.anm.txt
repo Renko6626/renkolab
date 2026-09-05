@@ -1,0 +1,28 @@
+script script89 {
+    // 破损核心的闪电：从电球连到敌人的一条线段，**瞬发**，不是飞行物。
+    // 伤害不在这里，是 C 建的矩形伤害源（`0x45dfa0`，angle = 瞄准角 / w = 距离 / h = 粗细）。
+    // 这里只负责画：C 在起脚本后写 VM 的 pos（电球位置）、rotation.z（瞄准角）、scale.x（距离 / 256）。
+    // 所以脚本里**不许**碰 scale / rotate（会被插值器盖掉 C 写的值）；anchor(1, 0) = 左端对齐，
+    // 贴图的左端就钉在电球上，向右长到敌人身上。
+-1:
+    layer(13);
+    sprite(@BROKEN_CORE_BOLT);
+    anchor(1, 0);
+    type(1);
+    blendMode(1);
+    zWriteDisable(1);
+0:
+    alpha(255);
++2: // 2
+    alpha(144);
++2: // 4
+    alpha(255);
++2: // 6
+    alpha(176);
++2: // 8
+    alpha(255);
++2: // 10
+    alphaTime(8, 0, 0);
++8: // 18
+    delete();
+}

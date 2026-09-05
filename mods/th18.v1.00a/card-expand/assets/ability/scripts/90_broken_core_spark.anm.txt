@@ -1,0 +1,17 @@
+script script90 {
+    // 破损核心的命中火花：C 在闪电结算那帧起它、钉在目标坐标（纯特效，没有判定——伤害是 C 建的定点伤害源）。
+    // 贴图借电球那张（同一团电，缩小），8 帧放大淡出后自删。
+-1:
+    layer(13);
+    sprite(@BROKEN_CORE_ORB);
+    type(1);
+    blendMode(1);
+    zWriteDisable(1);
+    alpha(255);
+    scale(0.34f, 0.34f);
+0:
+    scaleTime(8, 4, 0.62f, 0.62f);
+    alphaTime(8, 0, 0);
++8: // 8
+    delete();
+}

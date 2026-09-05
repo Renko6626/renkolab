@@ -250,6 +250,14 @@ static inline int ce_anm_set_color(uint32_t id, uint32_t rgba)
     *(uint32_t *)(vm + CE_ANM_VM_COLOR1) = rgba;
     return 1;
 }
+static inline int ce_anm_set_rotation(uint32_t id, float rx, float ry, float rz)   /* 脚本里不能同时跑 rotate 插值（同 scale 的道理）*/
+{
+    uint8_t *vm = ce_anm_get_vm(id);
+    if (!vm) return 0;
+    float *r = (float *)(vm + CE_ANM_VM_ROTATION);
+    r[0] = rx; r[1] = ry; r[2] = rz;
+    return 1;
+}
 static inline int ce_anm_set_scale(uint32_t id, float sx, float sy)      /* 脚本里没有在跑的 scaleTime 时写入才不被插值器覆盖 */
 {
     uint8_t *vm = ce_anm_get_vm(id);
