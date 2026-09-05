@@ -159,5 +159,19 @@
     "weight": 2,
     "sprite_large": 138,
     "sprite_small": 139
+  },
+  "69": {
+    "name": "加倍",
+    "desc": [
+      "Miss 时损失 2 条残机，",
+      "但敌人掉落的道具全部翻倍。",
+      "桥牌・Double。"
+    ],
+    "internal_name": "DOUBLE",
+    "initial_unlocked": 1,
+    "price_tier": 7,
+    "weight": 2,
+    "sprite_large": 140,
+    "sprite_small": 141
   }
 }

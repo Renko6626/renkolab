@@ -1322,6 +1322,12 @@
       "expected": "ff0530cd4c00",
       "title": "行为 SDK → BP_ce_item_money：collect_money_item：inc [MONEY_TOTAL]（下一条 inc [MONEY]）；沿卡链表调 on_item_money(&bonus)，两个全局一起 += bonus"
     },
+    "ce_enemy_drop": {
+      "addr": "0x430510",
+      "cavesize": 6,
+      "expected": "558bec83ec20",
+      "title": "行为 SDK → BP_ce_enemy_drop：Enemy__drop_items_and_notify_cards 入口（thiscall，ecx = 敌人）：push ebp/mov ebp,esp/sub esp,0x20，无相对寻址。在引擎撒道具**之前**沿卡链表调 on_enemy_drop_pre(counts)，counts = 敌人 +0x04 起的 20 个 int32（type 1..0x13）"
+    },
     "ce_shop_bought": {
       "addr": "0x4183ea",
       "cavesize": 12,

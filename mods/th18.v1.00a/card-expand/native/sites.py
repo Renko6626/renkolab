@@ -700,6 +700,9 @@ SDK_SITES = [
      "collect_money_item：esi=道具身价，弹窗与计分之前；沿卡链表调 on_item_score(&esi)"),
     ("ce_item_money", 0x446d28, 6, "ff0530cd4c00",
      "collect_money_item：inc [MONEY_TOTAL]（下一条 inc [MONEY]）；沿卡链表调 on_item_money(&bonus)，两个全局一起 += bonus"),
+    ("ce_enemy_drop", 0x430510, 6, "558bec83ec20",
+     "Enemy__drop_items_and_notify_cards 入口（thiscall，ecx = 敌人）：push ebp/mov ebp,esp/sub esp,0x20，无相对寻址。"
+     "在引擎撒道具**之前**沿卡链表调 on_enemy_drop_pre(counts)，counts = 敌人 +0x04 起的 20 个 int32（type 1..0x13）"),
 ]
 
 
@@ -950,6 +953,7 @@ def emit_header(sites, unlock_reads, order_sites, menu_binhacks):
               "#define CE_BP_CARD_BIND_RVA   0x%06x" % (SDK_SITES[0][1] - 0x400000),
               "#define CE_BP_ITEM_SCORE_RVA  0x%06x" % (SDK_SITES[1][1] - 0x400000),
               "#define CE_BP_ITEM_MONEY_RVA  0x%06x" % (SDK_SITES[2][1] - 0x400000),
+              "#define CE_BP_ENEMY_DROP_RVA  0x%06x" % (SDK_SITES[3][1] - 0x400000),
               "#define CE_BP_SHOP_BOUGHT_RVA 0x%06x" % (SHOP_SITES[0][1] - 0x400000),
               "#define CE_BP_SHOP_REOPEN_RVA 0x%06x" % (SHOP_SITES[1][1] - 0x400000),
               "#define CE_TEST_DECK_SAVE_OFF 0x5f608   /* reset_cards：byte [eax+esi+0x5f608] 初始卡组一格 */",

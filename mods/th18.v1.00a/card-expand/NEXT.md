@@ -14,6 +14,7 @@
 | 7 商店、10 JSON 数据 | 🔧 待实跑（AUDIT §N）|
 | 9 行为（SDK + 黑桃五张 + 强欲之壶 + 反转牌）| 🔧 待实跑（AUDIT §O）← **先做这个** |
 | 8 卡图 | 🔧 工具就位（[`assets/`](assets/README.md)）：黑桃五张占位图 sprite 118–127 已进 `_255/th18/abcard.anm`，待实跑 |
+| **13 加倍（id 69）** | 🔧 **待实跑**（AUDIT §S）—— 被动：Miss 掉 2 命、敌人掉落 ×2 |
 | **12 黄昏（id 68）** | 🔧 **待实跑**（AUDIT §R）—— 被动：最后一颗炸弹用掉后自动再放一发 |
 | **11 音效表扩容 / 语音** | 🔧 **待实跑**（AUDIT §Q）—— 四张音效表搬进 codecave 加长到 116 行，32 个语音 id `0x54`–`0x73` |
 
@@ -143,6 +144,25 @@ dusk: last bomb spent -> chaining a second one (do_bomb -> 0)
 画面上炸弹**再放一次**，右上角炸弹数仍是 0。剩 2 颗以上时放炸弹**不该**有任何 `dusk:` 行。
 `-> -1` = 被 `do_bomb` 自己的守卫拦下；**一行都没有** = `+0x30` 没被清零（AUDIT R8 那条 🟡），
 那就得换成盯别的字段。
+
+## 1g. 加倍（id 69，2026-09-05，待实跑）
+
+桥牌的 Double：**Miss 损失 2 条残机，但敌人掉落的道具全部 ×2**。审计 [`AUDIT.md`](AUDIT.md) §S。
+
+- 掉 2 命挂 `on_death_after_deathbomb`（`+0x0c`）—— 在引擎自己扣命**之前**多扣 1，
+  它 `0x45d1a0` 之后两处判的都是 `js`（`< 0`），所以 game over 照常触发。挂 `+0x14` 会绕过判定
+- 掉落 ×2 走**新 SDK 事件** `on_enemy_drop_pre`：断点 `ce_enemy_drop` @ `0x430510` 入口
+  （thiscall，`ecx` = 敌人），在引擎撒之前把 `enemy+0x04` 起的 20 个掉落数翻倍。
+  撒的活还是引擎干，各 type 的角度 / 速度不用我们管
+
+`cards_dev.js` 起手卡组已带 69（换掉了 59）。打杂兵应看到掉落**明显翻倍**；Miss 一次残机少 **2**：
+
+```
+double: miss costs 2 lives (now N before the engine's own -1)
+```
+
+残机 1 时 Miss → 直接 game over（**不该**出现残机 −1 还能继续玩）。
+`sdk:` 那行要报 `ce_enemy_drop` 断点已应用，否则门会 `FAIL` 并还原。
 
 ## 2. 第二批（按优先级）
 

@@ -43,6 +43,7 @@ typedef struct {
     /* 虚表之外的事件（SDK §6，断点实现）*/
     void (*on_item_score)(ce_card_t *, int32_t *value);          /* 道具身价算完、显示与计分之前 */
     void (*on_item_money)(ce_card_t *, int32_t *bonus);          /* 金钱道具入账（MONEY += 1）之前：*bonus 是额外要加的钱，MONEY 与 MONEY_TOTAL 一起加 */
+    void (*on_enemy_drop_pre)(ce_card_t *, int32_t *counts);     /* 敌人撒道具**之前**：counts 是 CE_ENEMY_DROP_TYPES 个 int32，改它就改掉落数 */
     /* 主动卡（SDK §9）：active_recharge != 0 就是主动卡（C 键 / 充能 / HUD 由 SDK 与引擎处理）*/
     uint32_t active_recharge;                                    /* 充能帧数（×mgr+0xc58 倍率后装填）*/
     int  (*on_activate)(ce_card_t *);                            /* C 键发动：返回 0 = 瞬发（直接收尾），1 = 进入持续态，CE_ACTIVATE_REFUSED = 条件不满足（充能退回、不算发动）*/

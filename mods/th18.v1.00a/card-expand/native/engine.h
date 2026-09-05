@@ -24,6 +24,10 @@
 #define CE_ADDR_CURRENT_POWER      0x4ccd38   /* OM §7 */
 #define CE_ADDR_MAX_POWER          0x4ccd3c
 #define CE_ADDR_PLAYER_PTR         0x4cf410   /* zPlayer*（ExpHP statics；Nitori/Momoyo 都从这读）*/
+#define CE_ENEMY_DROP_COUNTS       0x04       /* 敌人对象里掉落数表的偏移：20 个 int32（type 1..0x13，(type-1)*4）。
+                                                 * Enemy__drop_items_and_notify_cards 0x430510 按它逐个 spawn，
+                                                 * 广播完 vtable+0x30 后 memset(+0x04, 0, 0x50)。AUDIT §S */
+#define CE_ENEMY_DROP_TYPES        20
 #define CE_ADDR_BOMB_MGR           0x4cf2b8   /* 炸弹管理器*；+0x30 = 「正在放炸弹」（do_bomb 置 1，Bomb__can_bomb_and_deathbomb_check 0x420420 查它）*/
 #define CE_BOMB_ACTIVE             0x30       /* 上面那个标志在对象里的偏移 */
 #define CE_ADDR_ABILITY_MGR_PTR    0x4cf298   /* zAbilityManager*（OM §4）*/

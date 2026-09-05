@@ -745,6 +745,59 @@ Alt-Tab 切出切回后仍能放（`0x45a4a0` 的重播循环）；
 右上角炸弹数仍是 0（第二发的扣数被钳住）。`-> -1` = 被守卫拦下（R6）；一行都没有 = R8。
 剩 2 颗以上时用炸弹**不该**有任何 `dusk:` 行。
 
+## S. 加倍（id 69）—— Miss 掉 2 命 + 敌人掉落 ×2
+
+桥牌的 Double：罚分加倍、奖励也加倍。**没有手写机器码**；一个新断点（放行原指令）+ 一个虚表槽。
+
+| # | claim | 结论 |
+| --- | --- | --- |
+| S1 | 掉 2 命必须挂 `+0x0c`，不能挂 `+0x14` | **CONFIRMED** —— 见下「S1 证据」 |
+| S2 | game over 判的是 `< 0`，不是精确 `== -1` | **CONFIRMED** —— 见下「S2 证据」 |
+| S3 | 残机不会被我们压成负数 | **CONFIRMED** —— 只在 `CURRENT_LIVES > 0` 时多扣；引擎那一下照常，`< 0` 就是它自己要的 game over |
+| S4 | `0x430510` 是 thiscall、`ecx` = 敌人，入口可挂断点 | **CONFIRMED** —— 见下「S4 证据」 |
+| S5 | 掉落数表在 `enemy+0x04`，20 个 int32 | **CONFIRMED** —— 见下「S5 证据」 |
+| S6 | 在撒**之前**改 counts，引擎会照单全收 | **CONFIRMED** —— 断点在函数入口（`sub esp,0x20` 之后什么都还没做），读表的第一处是 `0x43054a mov edi,[eax-0x50]` = `[enemy+0x04]`，在我们之后 |
+| S7 | 为什么不用 `+0x30` 槽 | **CONFIRMED** —— 见下「S7 证据」 |
+| S8 | 断点是全局的，效果却只在带卡时生效 | **CONFIRMED** —— 断点沿 AbilityManager 的卡链表派发 `on_enemy_drop_pre`，只有登记了这个槽的卡（只有 69）会被调到；不带这张卡时链表里没有它，counts 一个字节都不动 |
+| S9 | 道具池会不会被翻倍撑爆 | 🟡 **未验** —— 见下「S9」 |
+
+**S1 证据**：死亡序列（`engine/card/th18/03-hooks.md` §4）是
+`决死窗口耗尽 → for card: acc |= vtable[0x0c]` → `acc == 0` 才进
+`Player__commit_death_and_enter_state2` `0x45D090`（**扣命、判 game over**）→ 状态 2 第 3 帧
+才轮到 `vtable[0x14]`。所以只有 `+0x0c` 在引擎扣命**之前**。挂 `+0x14` 的话惩罚与判定都
+结束了，我们再扣一命就绕过了 game over，残机能停在 −1 而游戏继续。
+与 `CardTewi` 在 `+0x0c` 里只记账（`0x40A720` 存 MONEY）然后 `return 0` 是同一手法。
+
+**S2 证据**：`0x45d19b` 起
+`mov eax,[0x4ccd48] / sub eax,1 / mov [0x4ccd48],eax / **js** 0x45d1c7`（< 0 就跳过刷 HUD），
+随后 `0x45d1c7 test eax,eax / **js** 0x45d21c`（< 0 就跳过重置炸弹，直奔状态 2 的 game over 路径）。
+**两处都是 `js`（判符号位）**，所以 1 → 0 → −1 会正常触发 game over；若是精确 `== -1` 就会被跳过。
+
+**S4 证据**：`0x430510` 入口 `55 8b ec 83 ec 20`（`push ebp; mov ebp,esp; sub esp,0x20`）
+—— 6 字节、无相对寻址，与 `ce_item_money` 那批同款形状；`0x430518 mov [ebp-0x4],ecx`
+把 `this` 存下来，之后全程用它，**thiscall、`ecx` = 敌人**。
+
+**S5 证据**：`0x430539 lea eax,[ecx+0x54]` 存进 `[ebp-0xc]`，
+`0x43054a mov edi,[eax-0x50]` = `[enemy+0x04]` 取 type 1 的掉落数；
+广播后 `memset(&enemy+0x04, 0, 0x50)` = 0x50 字节 = **20 个 int32**（type 1..0x13）。
+`enemy+0x54` 是另一个字段（`0x43055b mov ecx,[eax]` 读它做部分击破的折算），**不在表内、不要碰**。
+
+**S7 证据**：`+0x30` 是**撒完之后**才广播，且广播完立刻 `memset(&enemy+0x04, 0, 0x50)` ——
+在那里改已经晚了，只能自己再调 `ItemManager__spawn_items` `0x446f40`
+（thiscall + **8 个栈参**、`ret 0x20`）。而零售仅有的两个调用方 `CardKaguya` `0x40D2E0`
+与 `CardYachie` `0x40D630` **都留了没填的参数槽**，8 个槽的语义推不全，ABI 风险不小。
+改 counts 让引擎自己撒，各 type 的角度 / 速度 / 位置一个都不用我们管。
+
+**S9**：翻倍后同一帧撒的道具数是零售的两倍，理论上可能顶到 ItemManager 的池上限。
+零售自己在 boss 击破时就会撒很多，池应该有余量；且撒不下时引擎自己会失败返回，不会崩。
+实跑时看大批敌人同时死的场面有没有掉落变少 / 卡顿。
+
+**实跑要看的**：`_test` 起手卡组已带 69。打杂兵 → 掉落**明显翻倍**（火力、点数、金钱都是）；
+Miss 一次 → 残机一次少 **2**，日志
+`double: miss costs 2 lives (now N before the engine's own -1)`；
+残机 1 时 Miss → 直接 game over（不该出现残机 −1 还能玩）。
+`sdk:` 那行应报 `ce_enemy_drop` 断点已应用，否则门会 `FAIL`。
+
 ## G. OPEN —— 还没解决的
 
 | # | 事项 | 说明 |
