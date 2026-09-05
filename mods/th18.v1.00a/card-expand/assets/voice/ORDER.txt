@@ -1,0 +1,3 @@
+# 一行一个 NAME，只追加。行号 k → 音效 id 0x54+k、wav 下标 72+k
+# TEST_VOICE 是本地链路验证用的零售 wav（不入库），跑通后换真语音
+TEST_VOICE

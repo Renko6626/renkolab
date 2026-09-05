@@ -2,7 +2,7 @@
 ROWS ?= 255
 PATCH := ../patch/th18.v1.00a.js
 
-.PHONY: all check gen verify files clean test-host anm anm-verify ecl snd-check
+.PHONY: all check gen verify files clean test-host anm anm-verify ecl snd-check voice
 
 all: gen verify test-host dll
 
@@ -21,6 +21,13 @@ check: anm-verify snd-check
 ## snd-check —— 音效表 51 处站点的扫描 + 完整性审计（只读，不产出）
 snd-check:
 	python3 tests/test_sound_sites.py
+	python3 tests/test_sound_emit.py
+	python3 tests/test_build_voice.py
+	python3 ../assets/build_voice.py --check
+
+## voice  —— 语音资源校验（含 voice.js ↔ ORDER.txt 对账）+ 拷进 patch/th18/voice/ + 生成 voice_ids.h
+voice:
+	python3 ../assets/build_voice.py
 
 ## anm    —— abcard.anm（../assets/cards/ 新卡图）+ ability.anm（../assets/ability/ 贴图副本 + 特效脚本）→ build/；生成 anm_ids.h
 anm:

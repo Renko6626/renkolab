@@ -145,14 +145,29 @@ static void load_voices(uint8_t *cfg, uint8_t **blobs, char **names)
     json_t *root = p_stack_game_json_resolve("voice.js", &sz);
     if (!root) { ce_log("snd: no voice.js in the patch stack (0 voices)"); return; }
 
-    int k = 0;
-    for (void *it = p_json_object_iter(root); it && k < CE_SND_NEW_N;
-         it = p_json_object_iter_next(root, it)) {
+    /* ★ 按条目里的 `id` 定位，不按迭代顺序：thcrap 会把栈里每个 patch 的 voice.js
+     * 深合并成一个对象，合并后的迭代顺序不由我们决定。id 由 assets/build_voice.py
+     * 在构建期与 ORDER.txt 的行号对账后写死在 JSON 里。 */
+    unsigned char taken[CE_SND_NEW_N];
+    memset(taken, 0, sizeof taken);
+
+    for (void *it = p_json_object_iter(root); it; it = p_json_object_iter_next(root, it)) {
         const char *key = p_json_object_iter_key(it);
+        if (!key) key = "?";
         json_t *obj = p_json_object_iter_value(it);
         json_t *jw = obj ? p_json_object_get(obj, "wav") : NULL;
+        json_t *ji = obj ? p_json_object_get(obj, "id") : NULL;
         const char *wav = jw ? p_json_string_value(jw) : NULL;
-        if (!wav) { ce_log("snd: skip \"%s\": no \"wav\" string", key ? key : "?"); continue; }
+        if (!wav || !ji) { ce_log("snd: skip \"%s\": needs both \"wav\" and \"id\"", key); continue; }
+
+        long long id = p_json_integer_value(ji);
+        if (id < CE_SND_FIRST_ID || id >= CE_SND_FIRST_ID + CE_SND_NEW_N) {
+            ce_log("snd: skip \"%s\": id %lld out of range 0x%02x..0x%02x",
+                   key, id, CE_SND_FIRST_ID, CE_SND_FIRST_ID + CE_SND_NEW_N - 1);
+            continue;
+        }
+        int k = (int)(id - CE_SND_FIRST_ID);
+        if (taken[k]) { ce_log("snd: skip \"%s\": id 0x%02llx already taken", key, id); continue; }
 
         char path[64];
         if (snprintf(path, sizeof path, "voice/%s.wav", wav) >= (int)sizeof path) {
@@ -180,10 +195,10 @@ static void load_voices(uint8_t *cfg, uint8_t **blobs, char **names)
         wr32(row, 0x4,  (uint32_t)(CE_SND_NAMES_N + k));
         wr32(row, 0x8,  ((uint32_t)(vol & 0xffff) << 16) | (uint32_t)(pan & 0xffff));
         wr32(row, 0x10, 1);
-        ce_log("snd: voice %d id 0x%02x \"%s\" -> %s (%u bytes, vol %lld pan %lld)",
-               k, CE_SND_FIRST_ID + k, key ? key : "?", path, (unsigned)bytes, vol, pan);
-        ++k;
+        taken[k] = 1;
         ++s_voice_count;
+        ce_log("snd: voice id 0x%02llx \"%s\" -> %s (%u bytes, wav slot %d, vol %lld pan %lld)",
+               id, key, path, (unsigned)bytes, CE_SND_NAMES_N + k, vol, pan);
     }
     p_json_decref_safe(root);
 }
