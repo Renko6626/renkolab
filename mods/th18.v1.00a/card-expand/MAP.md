@@ -1,7 +1,7 @@
 # MAP —— 为了加一张新卡，我们到底改了游戏的哪些东西
 
 > **版本**：TH18 v1.00a（`th18.exe`，imagebase `0x400000`）。本文裸地址默认属该版本；引用其他版本须写成 `th16:0x…`。
-> 这是**追溯表**：`patch/th18.v1.00a.js` 里 150 条 binhack、7 个断点、5 个 codecave，加上 DLL 在运行时写的
+> 这是**追溯表**：`patch/th18.v1.00a.js` 里 201 条 binhack、13 个断点、10 个 codecave，加上 DLL 在运行时写的
 > 立即数，每一条都能从这里找到「为什么改、谁生成的、在哪审计的」。改动只增不减，**每加一块就在这里补一行**。
 
 ## 0. 一张卡要经过的路，和每一段卡在哪
@@ -21,6 +21,7 @@
 | 8 | 卡图 | `abcard.anm` 的 sprite，行里 `+0x2c/+0x30` | 零售 118 个 sprite（= entry 号） | [`assets/`](assets/README.md)：两张 PNG + ORDER → `make anm` 重编 `abcard.anm`（118 起追加）→ 随 `_255` 整文件替换；JSON 填索引；DLL 不碰 | 🔧（工具就位，黑桃五张 118–127 待实跑）|
 | 9 | 行为 | 跳转表指向的构造器 + 虚表 | — | 跳转表不动：断点 `ce_card_bind`（`0x412cec`）把登记了行为的 id 的对象虚表换成 DLL 里的拷贝，槽是 C 写的 `thiscall` 桩（[`SDK.md`](SDK.md)）| 🔧 待实跑 |
 | 10 | 数据从哪来 | — | — | thcrap 栈里每个 patch 的 `th18/cards.js` 深合并 → 门里逐张校验、写 cave 行 + 文案 + 注册表（[`DATA.md`](DATA.md)）| 🔧 待实跑 |
+| 11 | 一句语音 | 音效表：cfg `0x4c9b80` 84 行 / wav 名 `0x4b47a0` 72 项 / slot `0x56c804` 84 × `0x18` / blob `0x56cfe4` 72 项 | 84 个 id（`0x00`–`0x53`），**一个空闲的都没有** | 四张表整体搬进 codecave 加长到 116 行，51 处站点改常量；`_patch_init` 从用户的 exe 拷零售内容 + 写新行骨架；DLL 在 `0x476410` 的门里填语音 blob（[`assets/voice/`](assets/voice/README.md)）| 🔧 待实跑 |
 
 第 1–6 段跑通的标志（✅ 2026-09-02）：用 `_test` 把 id 58 塞进空槽 → 开局分配到它 → 「获得」→ 重启仍解锁 → 图鉴里有它 → 编成里能选它。
 第 7 + 10 段的标志：`patch/th18/cards.js` 的黑桃五张在图鉴 / 编成 / 商店里出现、能买；名字 / 说明是 JSON 里的。
@@ -36,7 +37,7 @@
 | **thcrap 栈 JSON** | 数据由写卡的人给、可被别的 patch 叠加 | `stack_game_json_resolve` 深合并全栈的 `th18/cards.js`；DLL 只读、逐张校验、全有或全无 | `cards.c` ← `cards_def.c`（主机单测）|
 | **断点换虚表** | 新卡要有行为 | 对象由游戏 `new`，尾段断点把虚表指针换成 DLL 里的 21 槽拷贝；槽 = 编译器生成的 `thiscall` 桩 | `sdk.h` / `sdk.c` ← `sdk_core.c`（主机单测）；AUDIT §O |
 
-**没有一个字节手写机器码**（除 `_patch_init` 那段 `rep movsd` 拷表和测试钩子的 5 条指令）。
+**没有一个字节手写机器码**（除两个 `_patch_init` 里的 `rep movsd` 拷表 / 骨架循环，和测试钩子的 5 条指令）。
 
 ## 2. patch 里每一条的出处（按 binhack 名前缀）
 

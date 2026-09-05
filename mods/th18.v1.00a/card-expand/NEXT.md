@@ -14,6 +14,7 @@
 | 7 商店、10 JSON 数据 | 🔧 待实跑（AUDIT §N）|
 | 9 行为（SDK + 黑桃五张 + 强欲之壶 + 反转牌）| 🔧 待实跑（AUDIT §O）← **先做这个** |
 | 8 卡图 | 🔧 工具就位（[`assets/`](assets/README.md)）：黑桃五张占位图 sprite 118–127 已进 `_255/th18/abcard.anm`，待实跑 |
+| **11 音效表扩容 / 语音** | 🔧 **待实跑**（AUDIT §Q）—— 四张音效表搬进 codecave 加长到 116 行，32 个语音 id `0x54`–`0x73` |
 
 ## 0.5 先读什么
 
@@ -93,6 +94,42 @@ trace: card 59 on_tick_2 (+0x2c) first hit / card 62 on_tick_2 / card 61 on_bull
 决定一波实际伤害 ≈ 45 × min(100, cap)）→ `blue_eyes: died after …` 或过关 `blue_eyes: dismissed (stage start) …`；
 残机 0 → `blue_eyes: refused (no lives)`。崩溃优先怀疑：O29a/b 的栈参顺序与 XMM、O29c 的 thiscall、`interruptLabel(1)` 是否被 `stop()` 后的 VM 接住
 （不接就改成 `ce_anm_delete`）。视觉怀疑：光束是否朝上（子脚本各自 `rotate −90°`，若子 VM 还叠加父旋转也仍是 0 + −90°）、是否从龙头起（父 VM 钉在龙头，子 anchor 左端）；blendMode 9 白核是照魔理沙抄的——坐标假设见 spec §2.3。
+
+## 1e. 音效表扩容 / 语音（2026-09-05，待实跑）
+
+零售音效表是写死的 84 槽（`0x00`–`0x53`），**一个空闲 id 都没有**。四张表（cfg `0x4c9b80`、
+wav 名 `0x4b47a0`、slot `0x56c804`、blob `0x56cfe4`）整体搬进 codecave 加长到 116 行 / 104 个 wav 槽，
+腾出 **32 个自定义音效 id `0x54`–`0x73`**，第一批装角色语音。51 处 binhack 全是「只换常量」，
+唯一手写机器码是 `th18_snd_patch_init` 那 56 字节。引擎一手
+[`engine/_shared/th18-sound-table.md`](../../../engine/_shared/th18-sound-table.md)，
+设计 `docs/superpowers/specs/2026-09-05-voice-expand-design.md`，审计 [`AUDIT.md`](AUDIT.md) §Q。
+
+语音就是 SE：**可叠加、不做独占通道、不打断**，跟随游戏的 SE 音量。
+加一句语音三步：`assets/voice/<NAME>.wav` + `ORDER.txt` 一行 → `patch/th18/voice.js` 一条（带 `id`）
+→ `make voice` → 代码里 `ce_play_voice(NAME, x)`。细则 [`assets/voice/README.md`](assets/voice/README.md)。
+
+日志应有：
+
+```
+snd: caves cfg=<addr> names=<addr> slots=<addr> blobs=<addr>
+snd: voice id 0x54 "TEST_VOICE" -> voice/TEST_VOICE.wav (352924 bytes, wav slot 72, vol 100 pan 0)
+snd: OK 1 voices, 116 rows, I1/I2 hold
+```
+
+进关卡按 C（反转牌 64）：**Tenshi 发动音与语音同帧一起响** —— 两条一起听见就证明「可叠加」成立。
+Alt-Tab 切出切回再按 C，语音仍在。退出游戏不崩。
+
+崩溃 / 异常优先怀疑（对应 AUDIT §Q）：
+**没有任何 `snd:` 行** → 断点没触发，查 `0x476410` 的 `expected` 与 cavesize；
+**卡在黑屏** → I2 被违反且自检没拦住，`0x4776f0` 在 `Sleep(10)` 死循环（Q3）；
+**玩家激光没声音** → 槽 20 指错（Q5）；`snd: FAIL R8` → `0x401139` 的字节界没改对；
+`snd: FAIL I1` → `patch_init` 的骨架循环没跑或跑错（Q2）。
+
+⚠️ `assets/voice/TEST_VOICE.wav` 是本地验证用的**零售 wav，gitignored** —— Windows 那边要么
+自己从 `local/<版本>/dat/se_release.wav` 复制一份再跑 `make voice`，要么等 `make release`
+把它随 modkit 带过去。真语音就位后把它换掉。
+
+通过后：MAP 第 11 段 🔧 → ✅；AUDIT §Q 顶部记一行「实跑通过」。
 
 ## 2. 第二批（按优先级）
 

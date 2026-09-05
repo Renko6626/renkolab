@@ -290,6 +290,8 @@ card-expand/
 ├── AUDIT.md           # 对抗审计
 ├── native/
 │   ├── shape.py       ★ 查表骨架匹配器(权威站点来源)
+│   ├── sound_sites.py ★ 音效表扩容:52 处站点表 + 完整性审计
+│   ├── sound_emit.py  ★ 音效表扩容:codecave / patch_init / 51 处 binhack 发射器
 │   ├── x86imm.py      x86 常量定位器(完整性审计用)
 │   ├── sites.py       ★ 扫描 / 校验 / 生成 / 对账
 │   ├── mkfiles.py     刷新 patch/ 与 patch-test/ 的 files.js（递归）
@@ -308,14 +310,22 @@ card-expand/
 │   ├── sdk.c          ★ 断点 ce_card_bind / ce_item_score、门里守卫与对账
 │   ├── cards/         每张行为卡一个 .c(黑桃 s10 sj sq sk sa、pot 强欲之壶)
 │   ├── menu.c         战线 E 第二块:顺序表重排 + 图鉴条目数 + 站点核对
+│   ├── sound.h/.c     ★ 第 11 段:BP_ce_snd_gate 填语音 blob + 新行配置 + I1/I2 自检
+│   ├── voice_ids.h    生成物(gitignored):CE_VOICE_<NAME>,由 assets/build_voice.py 出
 │   ├── bp_trace.c     测试断点:记录 allocate_new_card(id, mode);新 id 顺手 mark_obtained
 │   ├── thcrap_bp.h    断点 ABI(与 mouse-control 同一份)
 │   ├── th18_card_expand.def
 │   └── Makefile
+├── assets/
+│   ├── cards/ ability/ ecl/   卡图 / 场上特效 / 开发关卡
+│   ├── build_voice.py         ★ 语音校验 + 索引(与 ORDER.txt 对账)
+│   └── voice/                 ★ ORDER.txt + <NAME>.wav(wav gitignored)
 ├── patch/
 │   ├── patch.js
 │   ├── files.js
 │   ├── th18/cards.js   ★ 本 mod 的卡池(黑桃五张,initial_unlocked)
+│   ├── th18/voice.js   ★ 语音登记(wav / id / volume / pan)
+│   ├── th18/voice/     语音 wav(gitignored;随 make release 进 modkit)
 │   └── th18.v1.00a.js  ★ 生成物,不要手改(仓库里是 ROWS=255 = step3)
 └── patch-test/         只在测试时叠上
     ├── patch.js        依赖 th18_card_expand

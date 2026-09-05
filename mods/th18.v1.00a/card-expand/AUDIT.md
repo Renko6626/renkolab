@@ -602,6 +602,83 @@ M < price 的火力补差价路径不动 MONEY（游戏随后清零）。**未�
 **实跑要看的**：日志 `shop: 2 visits per stage` → 过关 `shop: opened by msg (visit 1/2 …)` → 买 → `shop: bought (…)` →
 `shop: reopen (visit 2/2 …)` → 商品重抽且不含刚买的 → 买 → 正常进下一关；replay 回放同一局不出现 `reopen`。
 
+## Q. 音效表扩容（第 11 段）—— 四张表搬进 codecave + 32 个语音 id
+
+一手 [`engine/_shared/th18-sound-table.md`](../../../engine/_shared/th18-sound-table.md)；
+设计 [`docs/superpowers/specs/2026-09-05-voice-expand-design.md`](../../../docs/superpowers/specs/2026-09-05-voice-expand-design.md)。
+**51 处 binhack 全是「只换那 4（或 1）字节常量」**，opcode 一个不动；唯一手写的机器码是
+`th18_snd_patch_init` 那 56 字节（objdump 逐条核对，见 Q1）。站点表 `native/sound_sites.py`、
+发射 `native/sound_emit.py`、DLL `native/sound.c`、验收 `make snd-check`（301 条断言）。
+
+| # | claim | 结论 |
+| --- | --- | --- |
+| Q1 | `patch_init` 的 ABI 与时机正确 | **CONFIRMED** —— 见下「Q1 证据」 |
+| Q2 | **I1**：116 行的 `+0` 恰好是 `0..0x73` 的置换 | **CONFIRMED（静态）** —— 见下「Q2 / Q3：两条不变式」 |
+| Q3 | **I2**：每行 `+4` 指向的 blob 槽最终非 NULL | **CONFIRMED** —— 同上 |
+| Q4 | `0x4713d8` 的 blob 释放尾界刻意只扩基址不扩界 | **CONFIRMED（有意为之）** —— 见下「Q4 证据」 |
+| Q5 | `0x45ff38` 硬编码引用的槽 20 改写后仍指同一个音 | **CONFIRMED** —— 见下「Q5 证据」 |
+| Q6 | `0x4766ef` 的 cfg 尾界是「行 `+4`」游标，不是行首 | **CONFIRMED** —— 见下「Q6 证据」 |
+| Q7 | 51 处站点没有漏、没有误伤 | **CONFIRMED** —— 见下「Q7 证据」 |
+| Q8 | 两处计数界的宽度与新值 | **CONFIRMED** —— 见下「Q8 证据」 |
+| Q9 | `ce_snd_gate` 的落点与放行 | **CONFIRMED** —— `0x476410` 入口 `55 8b ec 6a ff`（5 字节、无相对寻址，与 `ce_gate` 的 `0x4637d0` 同款）；它就是 SoundManager 的初始化本身，断点返回 1 放行，不改控制流 |
+| Q10 | 全有或全无 | **CONFIRMED** —— 自检任一条不过就把 32 个新行退回骨架（`+4/+8/+0x10` 清零），零售 84 个音一字不动 |
+| Q11 | `voice.js` 的 id 不靠迭代顺序 | **CONFIRMED** —— 见下「Q11 证据」 |
+| Q12 | replay 决定性 | **CONFIRMED** —— `play_sound` 只碰队列与 buffer，不动任何 RNG、不改游戏状态；门只跑一次 |
+| Q13 | `+0xc` / `+0x10` 的语义 | 🟡 **未验** —— 见下「Q13」 |
+
+**Q1 证据**：`mod_call_type` 是 cdecl 一参、调用方清栈（`plugin.h:71`），所以结尾是裸 `ret` 不是 `ret 4`；
+`pushad`/`popad` 覆盖被调方须保留的 ebx/esi/ebp/edi；`cld` 显式保证 `rep movsd` 的 DF=0。
+时机：`patch_func_init` 在 `codecaves_apply` 末尾（`binhack.cpp:1724`），**早于** `binhacks_apply`
+（`runconfig.cpp:655-656`）——「先把表填好、再让改过的代码去读它」正落在这个缝里，
+与卡表的 `th18_card_table_patch_init` 同一条路，已现网验证。
+★ 版权红线：cfg 表内容与 wav 名字符串一律 `<Rx…>` 运行时从**用户自己那份 exe** 拷，patch 里零字节。
+
+**Q2 / Q3：两条不变式**。零售 84 行直读 exe 验过 `+0` 是 `0..0x53` 的置换；新行由 patch_init 的骨架
+循环写 `84+k`，`+4 = 0`（指零售 wav 0 `se_plst00`）——**没被登记的新 id 只是重复一个零售音**。
+违反 I1 的后果是**跑飞不是崩**：循环 1 的扫描 `0x476460`（`CMP [EAX],EDX / ADD EAX,0x14 / JNZ`）没有上界。
+违反 I2 的后果是**挂死**：`0x4776f0` 遇 NULL blob 进 `0x477768` 的 `Sleep(10)` 等待循环，
+只有 `[0x5704a4] == 2` 才脱身。`ce_snd_gate` 逐行断言两者，不过就还原。
+I2 只对 `>= 72` 的下标断言 —— 零售 `0..71` 由预加载线程异步填，门里可能还没好，那个等待循环正是为它们写的。
+
+**Q4 证据**：语音 blob 的字节来自 thcrap 的 `stack_game_file_resolve`（thcrap 的堆），
+而 WinMain 的释放循环 `0x4713c7` 用的是游戏的 `0x491a3f`（free）。**跨堆释放必崩。**
+所以 `0x4713d8` 的尾界停在零售 72（`<codecave:th18_snd_blobs+120>`）：引擎只回收自己那 72 个，
+我们的 32 个谁都不释放。此刻进程正在退出，代价到此为止 —— 用一个有界的泄漏换掉一整类崩溃。
+
+**Q5 证据**：槽 20 = id `0x14` `se_lazer02`（`+0xc = 1`，两个循环音之一，玩家常驻激光音）。
+binhack 换成 `<codecave:th18_snd_slots+1e0>`（`20 × 0x18`），`test_sound_emit.py` 钉住这个偏移，
+`ce_snd_gate` 再断言该槽的 cfg 行 `+4 == 0x26`。**错了不崩，只是玩家激光没声音** ——
+这批里最容易漏检的一处，所以给了独立断言。
+
+**Q6 证据**：循环 2 的 `ESI` 从 `0x4c9b84`（`CFG_BASE + 4`）起、步长 `0x14`，
+所以零售尾界 `0x4ca214 = base + 4 + 84*0x14`（注意 `base + 84*0x14 = 0x4ca210` 是另一个全局）。
+**计划稿一度写成 `base + 116*0x14`，差 4 字节会少建一行**；`test_sound_sites.py` 用零售立即数反推验证这条算术。
+
+**Q7 证据**：用 `x86imm._decode` 从**已知指令起点正向解码**，不用 `classify` 的回溯 ——
+`b8 80 9b 4c 00`（`mov eax,imm32`）会被前一条的尾字节 `ff` 接成 `ff /7`，两种读法都自洽而 tier 判错。
+完整性审计扫四段零售地址区间，26 处未覆盖的同值引用**逐个用 Ghidra 操作数级引用交叉验证过真身**：
+`0x4ca210` 是输入状态全局（`TEST dword [0x4ca210],0x80103`）、`0x4ca214` 是另一个普通全局、
+`0x56d104` 是 SoundManager `+0x2388` 的字段、`0x4b48c0` 是 ANM 的另一张表、
+`0x56cee8` 是字节级假阳性（Ghidra 操作数级引用一条都没有）。
+
+**Q8 证据**：`0x401139` 是 imm32（`81 fa e0 07 00 00`）→ `0xae0 = 116 × 0x18`；
+`0x476472` 是 **imm8**（`83 fa 54`）→ `0x74 = 116`，仍塞得下（≤ `0x7f`，且 `JL` 看的是有符号）。
+`0x4767d8`（预加载 wav 数 `0x48`）**刻意不改** —— 预加载线程仍只从 dat 读零售 72 个，
+改了它会让引擎去 dat 里找不存在的语音文件；扫描器每次校验它没变。
+
+**Q11 证据**：thcrap 把栈里每个 patch 的 `voice.js` **深合并**成一个对象，合并后的迭代顺序不由我们决定。
+所以 id 显式写在 JSON 里，DLL 按 id 定位 cfg 行并查重；`assets/build_voice.py` 在构建期与
+`ORDER.txt` 的行号对账，不一致直接 FAIL（同 `assets/README.md` 对 `cards.js` / ORDER 的既有做法）。
+
+**Q13**：`+0xc == 1` 只有 id `0x14`（`se_lazer02`）与 `0x37`（`se_ch03`）两个持续音，推测是循环标志；
+`+0x10 == 0` 的六个是 `0x00` `0x01` `0x07` `0x08` `0x09` `0x0a`（全是菜单音）。
+新行取 `+0xc = 0`、`+0x10 = 1`（跟游戏内 SE 一致）。**猜错的后果是语音表现异常，不是崩。**
+
+**实跑要看的**：`snd: caves …` → `snd: voice id 0x54 …` → `snd: OK 1 voices, 116 rows, I1/I2 hold`；
+关卡里按 C，Tenshi 发动音与语音**同帧一起响**（可叠加）；Alt-Tab 切出切回后仍能放（`0x45a4a0` 的重播循环）；
+退出游戏不崩。**没有任何 `snd:` 行** = 断点没触发；**卡在黑屏** = I2 被违反且自检没拦住；
+**玩家激光没声音** = Q5。
+
 ## G. OPEN —— 还没解决的
 
 | # | 事项 | 说明 |
