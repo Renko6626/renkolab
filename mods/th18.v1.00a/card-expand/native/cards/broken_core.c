@@ -127,12 +127,15 @@ static int on_tick_2(ce_card_t *c)
     }
 
     /* 特效：电弧从电球拉到敌人。贴图朝 +x 铺满 BC_BEAM_TEX_W，脚本里 anchor(1, 0) 左端对齐，
-     * 所以 pos = 电球、rotation.z = 瞄准角、scale.x = 距离 / 贴图宽；脚本不碰 scale / rotate。 */
+     * 所以 pos = 电球、rotation.z = 瞄准角、scale.x = 距离 / 贴图宽。第 0 帧的 scale 由这里写，
+     * 之后脚本每帧 scale(%F0, 随机 %F1) 抖动 —— %F0 也在这里给。脚本不碰 rotate。 */
     beam = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BROKEN_CORE_BEAM, 13);
     if (beam) {
+        float sx = bc_aim_dist(&aim) * (1.0f / BC_BEAM_TEX_W);
         ce_anm_set_pos(beam, ox, oy, pz);
         ce_anm_set_rotation(beam, 0.0f, 0.0f, angle);
-        ce_anm_set_scale(beam, bc_aim_dist(&aim) * (1.0f / BC_BEAM_TEX_W), 1.0f);
+        ce_anm_set_scale(beam, sx, 1.0f);
+        ce_anm_set_fvar(beam, 0, sx);
     }
     spark = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BROKEN_CORE_SPARK, 13);
     if (spark) ce_anm_set_pos(spark, tx, ty, pz);

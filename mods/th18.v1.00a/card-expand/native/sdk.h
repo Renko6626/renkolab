@@ -250,6 +250,13 @@ static inline int ce_anm_set_color(uint32_t id, uint32_t rgba)
     *(uint32_t *)(vm + CE_ANM_VM_COLOR1) = rgba;
     return 1;
 }
+static inline int ce_anm_set_fvar(uint32_t id, unsigned i, float v)   /* 脚本变量 %F0–%F3：给脚本传参（破损核心电弧的长度）*/
+{
+    uint8_t *vm = ce_anm_get_vm(id);
+    if (!vm || i > 3) return 0;
+    ((float *)(vm + CE_ANM_VM_FVARS))[i] = v;
+    return 1;
+}
 static inline int ce_anm_set_rotation(uint32_t id, float rx, float ry, float rz)   /* 脚本里不能同时跑 rotate 插值（同 scale 的道理）*/
 {
     uint8_t *vm = ce_anm_get_vm(id);
