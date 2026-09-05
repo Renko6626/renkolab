@@ -112,14 +112,14 @@ wav 名 `0x4b47a0`、slot `0x56c804`、blob `0x56cfe4`）整体搬进 codecave �
 
 ```
 snd: caves cfg=<addr> names=<addr> slots=<addr> blobs=<addr>
-snd: voice id 0x54 "ROYAL_FANFARE" -> voice/ROYAL_FANFARE.wav (324914 bytes, wav slot 72, +0 dB/100, pri 100)
+snd: voice id 0x54 "ROYAL_RAGTIME" -> voice/ROYAL_RAGTIME.wav (405762 bytes, wav slot 72, +0 dB/100, pri 100)
 snd: OK 1 voices, 116 rows, I1/I2 hold
 ```
 
 **听得到的验证在皇家同花顺**：商店里买齐五张黑桃（58–62）→ 第五张成交时触发演出，
-日志 `royal: show anm id ... + fanfare`。号角从演出第 0 帧起，与 script70 的时间线对齐：
-五个上行音跟着五张牌弹出（帧 0/10/20/30/40），**帧 60 金色横幅弹出时是 C 大和弦重击**
-（trophy 音效 `0x4f` 照旧叠在上面 —— 语音就是可叠加的 SE），收在宽和弦上随 170–194 帧的淡出一起消。
+日志 `royal: show anm id ... + ragtime`。拉格泰姆从演出第 0 帧起，与 script70 的时间线对齐：
+小节 1 底下走五张牌弹出（帧 0/10/20/30/40），**帧 60 金色横幅弹出正好是小节 2 的强拍**
+（trophy 音效 `0x4f` 照旧叠在上面 —— 语音就是可叠加的 SE），帧 180 收在 C 上落进 170–194 的淡出里。
 Alt-Tab 切出切回再触发一次，号角仍在。退出游戏不崩。
 
 ⚠️ 买齐五张黑桃要几关，用 `_devstage`（关卡是空壳）+ `cards_dev.js` 的商店权重会快很多；
