@@ -12,7 +12,8 @@
 **装备卡**：带着它就在自机旁边多一颗电球子机；电球每 2 秒朝**最近的一个敌人**瞬间劈一道电弧，
 那个敌人吃一次 80 伤害。纯正面效果，「破损」只体现在外观与文案上。
 
-用户已定（2026-09-05）：**追踪最近敌人** / **无负面代价** / **贴图程序生成** / **瞬发、单体、电弧只是特效**。
+用户已定（2026-09-05）：**追踪最近敌人** / **无负面代价** / **瞬发、单体、电弧只是特效** /
+美术：**卡图与电球用户原创**（青色裂核白底放大居中；黄绿球），**电弧程序生成**（黄白闪电链）。
 
 ## 1. 两件独立的事：子机怎么来、伤害怎么给
 
@@ -68,7 +69,8 @@
 - 特效：`ability.anm` entry `BROKEN_CORE_ORB`（128×128）/ `BROKEN_CORE_BOLT`（256×64，朝 +x 铺满、耐拉伸）；
   script88 子机常驻（照零售 script2 骨架：`interruptLabel(2)` 出场 / `(3)` 收起 / `(1)` 销毁）、
   script89 电弧（`anchor(1, 0)`，C 写 pos / rotation.z / scale.x = 距离 / 256，脚本不碰 scale / rotate）、
-  script90 命中火花。全部程序生成（`assets/ability/make_broken_core_art.py`，固定种子）。
+  script90 命中火花。电球与卡图是用户原创（`cards/_src/BROKEN_CORE.png`、`ability/broken_core/_src/LightningOrb.png`），
+  电弧程序生成；都过 `assets/ability/make_broken_core_art.py`（固定种子）。
 - 新 SDK 包装：`ce_allocate_option`（压栈序照 `0x40aae0` 复刻，AUDIT U1）、`ce_anm_set_rotation`（`vm+0x3c`）。
 
 ## 4. 风险 / 审计点

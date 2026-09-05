@@ -11,9 +11,9 @@
 | 脚本 | `scripts/NN_name.anm.txt`，`NN` 从 68 起连续 | 一个文件一个 `script scriptNN { … }`；正文用 `@NAME` 引用上面的 sprite |
 
 `make_blue_eyes_art.py`：青眼白龙的场上贴图——从 `blue_eyes/_src/` 的黑底俯视图抠底出 256×256 `DRAGON.png`（泛洪掩码 + 边缘亮度斜坡）。光束照魔理沙 Master Spark（`pl01.anm` script22–28）：父脚本 79 起白核 80（blendMode 9）+ 四层彩 81–84（additive、±2.8° 摆动）+ 每 8 帧一颗沿光束飞的彩光 85；**父不转、子各自 `rotate −90°`、彩光直接沿 −y 飞**——不押注子 VM 是否继承父旋转。
-`make_broken_core_art.py`：破损核心的两张图 —— `CORE.png`（128×128 电球子机）与 `BOLT.png`（128×64 闪电弹，
-画成朝 +x，脚本里 `rotateAuto(1)` 交给引擎每帧跟着弹的实时角度转），外加卡图画面的源图；全部程序生成
-（固定种子，重跑逐字节一致）。弹幕数据在 [`../sht/`](../sht/append_shooterset.py)。
+`make_broken_core_art.py`：破损核心的三张图 —— `CORE.png`（128×128 电球子机，用户原创 `broken_core/_src/LightningOrb.png`
+放大居中）、`BOLT.png`（256×64 黄白闪电链，程序生成、耐横向拉伸：C 把它拉到「电球 → 敌人」那么长）、
+卡图画面源图（用户原创 `cards/_src/BROKEN_CORE.png` 铺白底放大居中 → 再过 `fit_card.py`）。
 
 `gen_banner.py "ROYAL FLUSH"`：金色金属光泽 + 黑描边的大字横幅（512×128，`banner/`），皇家同花顺的亮字用它。
 

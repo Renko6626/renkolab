@@ -63,7 +63,7 @@
 script90 火花在命中点。瞄准角与距离是自己的确定性算术（不引 libm）。
 **不改任何游戏资源文件**——第一版曾追加 `pl0X.sht` 的 shooterset 让子机真开火，后来改掉：自机弹天生要飞过去，
 与「瞬发单体」相悖。那条链的研究（[`engine/sht/th18/`](../../../engine/sht/th18/README.md)）与工具
-（`assets/sht/`）留着给以后真需要「子机连射」的卡。卡图与场上贴图程序生成（`assets/ability/make_broken_core_art.py`，sprite 144/145）。
+（`assets/sht/`）留着给以后真需要「子机连射」的卡。卡图（青色裂核，白底放大居中）与场上电球（黄绿球）是用户原创，电弧（黄白闪电链）程序生成——都过 `assets/ability/make_broken_core_art.py`；卡图 sprite 144/145。
 
 ## 约定
 
