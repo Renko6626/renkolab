@@ -48,8 +48,9 @@ static int check_sites(uint8_t *base, uint32_t *order)
 }
 
 /* 顺序表重排。零售表 [56] 必须是 56（NULL），否则这不是我们认识的表。
- * 新卡不再一股脑排在零售之后，而是按类别（表行 +0x0c）插进零售同类别区段的末尾（ce_build_order，主机单测）：
- * 装备卡跟着 REIMU_OP…MAGATAMA 那一段、被动跟着 MAGATAMA2、主动跟着 RICEBALL。类别从已填好的表里读（门里此时表已装载）。*/
+ * 新卡不再一股脑排在零售之后，而是按类别（表行 +0x0c）插进零售同类别**最长连续段**的末尾（ce_build_order，主机单测）：
+ * 资源跟着 MOKOU、装备卡跟着 MAGATAMA、被动跟着 MUKADE（而不是掉队在最后的 MAGATAMA2）、主动跟着 RICEBALL。
+ * 类别从已填好的表里读（门里此时表已装载）。类别字段在引擎里唯一的消费者是 0x416940（≠ 4 才显示说明面板），不碰玩法。*/
 typedef uint8_t *(__attribute__((fastcall)) *menu_table_get_t)(uint32_t id);
 static uint32_t card_category(uint32_t id)
 {

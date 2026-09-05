@@ -79,8 +79,8 @@ script90 火花在命中点。瞄准角与距离是自己的确定性算术（�
 ## 约定
 
 - **即时卡**（买了就生效、不进卡组）：`ctor` 或 `dtor` 施加效果后 `return 1`（零售 EXTEND / 六文钱同款，`02-lifecycle.md` §3）。
-  这种卡 `deck_visible: 0`（编成里不列，初始携带不调 ctor 会变成死卡）、`repeatable: 1`（可再刷出）。
+  这种卡 `deck_visible: 0`（编成里不列，初始携带不调 ctor 会变成死卡）、`repeatable: 1`（可再刷出）、`category: 3`（图鉴里和 EXTEND / PENDULUM 那批资源卡放一起）。
 - 「随机」一律走游戏自己的 RNG 或确定性计数，不引入自己的随机源（replay）。
 - 主动卡：`category: 0`，`active_recharge` 给帧数（零售瞬发卡 20–60 s），`on_activate` 返回 0 瞬发 / 1 持续。
-- `category` 决定图鉴 / 编成里排在哪一段：0 主动（RICEBALL 之后）、1 子机装备（MAGATAMA 之后）、2 被动（MAGATAMA2 之后）。
+- `category` 决定图鉴 / 编成里排在哪一段（同类别最长连续段之后）：0 主动（RICEBALL 之后）、1 子机装备（MAGATAMA 之后）、2 被动（MUKADE 之后）、3 资源 / 即时购买卡（MOKOU 之后；强欲之壶、方片 2 填 3）。
 - 文案不能含 ASCII `%`，用 `％`。

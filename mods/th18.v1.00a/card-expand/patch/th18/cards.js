@@ -73,6 +73,7 @@
       "致敬・游戏王。"
     ],
     "internal_name": "POT_OF_GREED",
+    "category": 3,
     "initial_unlocked": 1,
     "deck_visible": 0,
     "repeatable": 1,
@@ -105,6 +106,7 @@
       "德州扑克・方片。"
     ],
     "internal_name": "DIAMOND_2",
+    "category": 3,
     "initial_unlocked": 1,
     "deck_visible": 0,
     "repeatable": 1,

@@ -161,21 +161,25 @@ static void test_weight_override(void)
 
 static void test_build_order(void)
 {
-    /* 零售缩影：3 资源、1 子机、2 被动、0 主动 分块；新卡 100(被动) 101(子机) 102(主动) 103(类别 9 不存在) 104(子机) */
-    const uint32_t retail[]     = { 1, 2, 8, 9, 21, 22, 41, 42 };
-    const uint32_t retail_cat[] = { 3, 3, 1, 1, 2,  2,  0,  0 };
+    /* 零售缩影（含两张掉队的 c2：块首 BLANK、块尾 MAGATAMA2）：新卡 100(被动) 101(子机) 102(主动) 103(类别 9 不存在) 104(子机) */
+    const uint32_t retail[]     = { 0, 1, 2, 8, 9, 21, 22, 23, 41, 42, 55 };
+    const uint32_t retail_cat[] = { 2, 3, 3, 1, 1, 2,  2,  2,  0,  0,  2 };
     const uint32_t new_ids[]    = { 100, 101, 102, 103, 104 };
     const uint32_t new_cat[]    = { 2,   1,   0,   9,   1 };
-    uint32_t out[16];
-    unsigned vis = ce_build_order(out, 16, retail, retail_cat, 8, new_ids, new_cat, 5, 56, 57);
-    const uint32_t want[16] = { 1, 2, 8, 9, 101, 104, 21, 22, 100, 41, 42, 102, 103, 56, 57, 57 };
-    CHECK(vis == 13);
-    for (unsigned i = 0; i < 16; ++i) CHECK(out[i] == want[i]);
+    uint32_t out[20];
+    unsigned vis = ce_build_order(out, 20, retail, retail_cat, 11, new_ids, new_cat, 5, 56, 57);
+    const uint32_t want[20] = { 0, 1, 2, 8, 9, 101, 104, 21, 22, 23, 100, 41, 42, 102, 55, 103, 56, 57, 57, 57 };
+    CHECK(vis == 16);
+    for (unsigned i = 0; i < 20; ++i) CHECK(out[i] == want[i]);
     /* 没有新卡：零售原序 + NULL + BACK */
-    vis = ce_build_order(out, 16, retail, retail_cat, 8, NULL, NULL, 0, 56, 57);
-    CHECK(vis == 8 && out[8] == 56 && out[9] == 57);
+    vis = ce_build_order(out, 20, retail, retail_cat, 11, NULL, NULL, 0, 56, 57);
+    CHECK(vis == 11 && out[11] == 56 && out[12] == 57);
     /* 放不下：返回 0 */
-    CHECK(ce_build_order(out, 13, retail, retail_cat, 8, new_ids, new_cat, 5, 56, 57) == 0);
+    CHECK(ce_build_order(out, 16, retail, retail_cat, 11, new_ids, new_cat, 5, 56, 57) == 0);
+    /* 同长两段：取第一段 */
+    const uint32_t r2[] = { 5, 5, 9, 5, 5 }, c2[] = { 2, 2, 0, 2, 2 }, n2[] = { 100 }, nc2[] = { 2 };
+    vis = ce_build_order(out, 8, r2, c2, 5, n2, nc2, 1, 56, 57);
+    CHECK(vis == 6 && out[2] == 100 && out[3] == 9);
 }
 
 int main(void)

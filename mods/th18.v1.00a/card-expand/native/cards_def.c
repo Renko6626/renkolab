@@ -143,16 +143,29 @@ unsigned ce_build_order(uint32_t *out, unsigned cap,
 {
     unsigned n = 0;
     if (nretail + nnew + 1 > cap) return 0;
+    /* 每张零售卡：它所在的那段同类别连续区有多长、是不是该类别最长的一段、它是不是那段的最后一张 */
     for (unsigned i = 0; i < nretail; ++i) {
         out[n++] = retail[i];
-        int last_of_cat = 1;                                   /* i 是不是该类别在零售表里的最后一张 */
-        for (unsigned j = i + 1; j < nretail; ++j)
-            if (retail_cat[j] == retail_cat[i]) { last_of_cat = 0; break; }
-        if (!last_of_cat) continue;
+        uint32_t c = retail_cat[i];
+        if (i + 1 < nretail && retail_cat[i + 1] == c) continue;      /* 不是这一段的末尾 */
+        unsigned start = i;
+        while (start > 0 && retail_cat[start - 1] == c) --start;
+        unsigned run = i - start + 1;
+        int longest = 1;                                              /* 这一段是不是该类别最长的（同长取第一段）*/
+        unsigned j = 0;
+        while (j < nretail) {
+            if (retail_cat[j] != c) { ++j; continue; }
+            unsigned k = j;
+            while (k + 1 < nretail && retail_cat[k + 1] == c) ++k;
+            unsigned len = k - j + 1;
+            if (len > run || (len == run && j < start)) { longest = 0; break; }
+            j = k + 1;
+        }
+        if (!longest) continue;
         for (unsigned k = 0; k < nnew; ++k)
-            if (new_cat[k] == retail_cat[i]) out[n++] = new_ids[k];
+            if (new_cat[k] == c) out[n++] = new_ids[k];
     }
-    for (unsigned k = 0; k < nnew; ++k) {                      /* 类别在零售表里不存在的：排最后 */
+    for (unsigned k = 0; k < nnew; ++k) {                              /* 类别在零售表里不存在的：排最后 */
         int seen = 0;
         for (unsigned i = 0; i < nretail; ++i) if (retail_cat[i] == new_cat[k]) { seen = 1; break; }
         if (!seen) out[n++] = new_ids[k];
