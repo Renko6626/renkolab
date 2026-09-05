@@ -217,3 +217,19 @@ static const ce_unlock_t CE_UNLOCK[] = {
     { 0x018e15, 7, 2, 1, { 0x8a, 0x80 }, { 0x90, 0 } },
 };
 #define CE_NUNLOCK (sizeof(CE_UNLOCK)/sizeof(CE_UNLOCK[0]))
+
+/* ---- 音效表扩容（sound_sites.py）---- */
+#define CE_SND_CFG_ROWS    84      /* 零售 84 行 */
+#define CE_SND_NEW_N       32      /* 新 id 0x54..0x73 */
+#define CE_SND_ROWS_TOTAL  116
+#define CE_SND_CFG_ROW     0x14
+#define CE_SND_SLOT_SIZE   0x18
+#define CE_SND_NAMES_N     72      /* 零售 wav 名 / blob 槽数 */
+#define CE_SND_NAMES_TOTAL 104
+#define CE_SND_FIRST_ID    0x54
+#define CE_SND_LAZER2_SLOT 20     /* 0x45ff38 硬编码引用的槽；wav 下标应为 0x26 */
+#define CE_SND_LAZER2_WAV  0x26
+#define CE_SND_CAVE_CFG    "codecave:th18_snd_cfg"
+#define CE_SND_CAVE_NAMES  "codecave:th18_snd_names"
+#define CE_SND_CAVE_SLOTS  "codecave:th18_snd_slots"
+#define CE_SND_CAVE_BLOBS  "codecave:th18_snd_blobs"

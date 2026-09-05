@@ -23,6 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from shape import find_all, find_walks, ShapeError             # noqa: E402
 from x86imm import classify, UnknownEncoding, Ambiguous       # noqa: E402
+import sound_sites as SND                                            # noqa: E402
 from sound_emit import (emit_sound_codecaves, emit_sound_binhacks,   # noqa: E402
                         emit_sound_breakpoints, verify_sound_binhack)
 
@@ -982,6 +983,25 @@ def emit_header(sites, unlock_reads, order_sites, menu_binhacks):
                      % (va - 0x400000, d["len"], len(pre), len(post), pre[0], pre[1],
                         ", ".join("0x%02x" % b for b in post) + (", 0" * (2 - len(post)))))
     lines += ["};", "#define CE_NUNLOCK (sizeof(CE_UNLOCK)/sizeof(CE_UNLOCK[0]))", ""]
+    lines += [
+        "/* ---- 音效表扩容（sound_sites.py）---- */",
+        "#define CE_SND_CFG_ROWS    %d      /* 零售 84 行 */" % SND.CFG_ROWS,
+        "#define CE_SND_NEW_N       %d      /* 新 id 0x%02x..0x%02x */"
+        % (SND.NEW_N, SND.FIRST_ID, SND.FIRST_ID + SND.NEW_N - 1),
+        "#define CE_SND_ROWS_TOTAL  %d" % SND.CFG_ROWS_N,
+        "#define CE_SND_CFG_ROW     0x%x" % SND.CFG_ROW,
+        "#define CE_SND_SLOT_SIZE   0x%x" % SND.SLOT_SIZE,
+        "#define CE_SND_NAMES_N     %d      /* 零售 wav 名 / blob 槽数 */" % SND.NAMES_N,
+        "#define CE_SND_NAMES_TOTAL %d" % SND.NAMES_N_N,
+        "#define CE_SND_FIRST_ID    0x%02x" % SND.FIRST_ID,
+        "#define CE_SND_LAZER2_SLOT 20     /* 0x45ff38 硬编码引用的槽；wav 下标应为 0x26 */",
+        "#define CE_SND_LAZER2_WAV  0x26",
+        '#define CE_SND_CAVE_CFG    "codecave:%s"' % SND.CAVE_CFG,
+        '#define CE_SND_CAVE_NAMES  "codecave:%s"' % SND.CAVE_NAMES,
+        '#define CE_SND_CAVE_SLOTS  "codecave:%s"' % SND.CAVE_SLOTS,
+        '#define CE_SND_CAVE_BLOBS  "codecave:%s"' % SND.CAVE_BLOBS,
+        "",
+    ]
     return "\n".join(lines)
 
 

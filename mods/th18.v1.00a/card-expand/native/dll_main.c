@@ -146,3 +146,15 @@ int __cdecl BP_ce_gate(x86_reg_t *regs, void *bp_info)
     }
     return BP_EXEC_ORIGINAL;
 }
+
+/* 音效表扩容的门：0x476410 = SoundManager::init 入口。
+ * 语音 blob 必须在引擎建 buffer 之前就位 —— 这里正好在循环 1 / 循环 2 之前。
+ * 与 ce_gate 分开是因为两者时点不同：ce_gate 在 ScoreFile__load，音效初始化比它早。 */
+#include "sound.h"
+int __cdecl BP_ce_snd_gate(x86_reg_t *regs, void *bp_info)
+{
+    (void)regs; (void)bp_info;
+    static int done;
+    if (!done) { done = 1; ce_sound_init(); }
+    return BP_EXEC_ORIGINAL;
+}

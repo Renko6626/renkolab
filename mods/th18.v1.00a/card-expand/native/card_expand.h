@@ -11,6 +11,7 @@
  *   bp_trace.c    测试用断点：记录每次 allocate_new_card(id, mode)，新 id 顺手 mark_obtained（只在 patch-test 进栈时挂）
  *   shop_core.c   商店走两遍的状态机（纯逻辑，主机单测）
  *   shop.c        商店走两遍：成交断点 + GameThread 重开断点（AUDIT §P）
+ *   sound.c       音效表扩容：SoundManager::init 门里填语音 blob + 新行配置 + I1/I2 自检（AUDIT §Q）
  *   （后续）       数据激活门、新卡注册 …
  */
 #pragma once

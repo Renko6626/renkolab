@@ -15,3 +15,4 @@ EXPORTS
 	BP_ce_item_money	@13
 	BP_ce_shop_bought	@14
 	BP_ce_shop_reopen	@15
+	BP_ce_snd_gate		@16
