@@ -46,7 +46,7 @@
 
 | id | 名字 | 效果 | 实现（槽 / 事件） | 文件 | 状态 |
 | --- | --- | --- | --- | --- | --- |
-| 72 | 炎魔之王拉格纳罗斯 | 主动（C 键）：消耗 2.00 火力召唤**不跟随自机**的炎魔；800 点生命替玩家挡子弹；每 8 秒滑到随机落点，到位后向场上**随机一个**敌人投火球（飞行物，落地爆炸 400）；生命归零死亡，过关消失。火力 < 3.00 拒绝。充能 10 s | `on_activate` 照 Tsukasa 三步（门槛 → `spend_power` → `repopulate`）；`on_active_tick` 挡弹 + 状态机 `fl_step` + 火球位姿 + 落地 8 帧 `ce_damage_rect`；随机走 `ce_rand()`（详见下）。AUDIT §V | `firelord.c` + `firelord_core.c` | 🔧 |
+| 72 | 炎魔之王拉格纳罗斯 | 主动（C 键）：消耗 2.00 火力召唤**不跟随自机**的炎魔；800 点生命替玩家挡子弹；每 8 秒滑到弹幕区下 1/3 的随机落点，到位后向场上**随机一个**敌人投火球（飞行物，落地爆炸 400）；生命归零死亡，过关消失。火力 < 3.00 拒绝。充能 10 s | `on_activate` 照 Tsukasa 三步（门槛 → `spend_power` → `repopulate`）；`on_active_tick` 挡弹 + 状态机 `fl_step` + 火球位姿 + 落地 8 帧 `ce_damage_rect`；随机走 `ce_rand()`（详见下）。AUDIT §V | `firelord.c` + `firelord_core.c` | 🔧 |
 | 70 | 腐化 | 被动：拿到时炸弹上限补满 7；此后**放炸弹消耗的是上限而不是当前数**，且过关不回复 —— 一次给满七发，用一发少一发 | `ctor`（`ce_fresh_acquire` 门控）顶满上限；新 SDK 事件 `on_bomb_spent`（断点 `ce_bomb_spent` @ `0x4203bc`，consume_bomb 刚返回）还原当前数、扣上限；`on_stage_start` 抵消引擎的 `min(3, 上限)` 补给。AUDIT §T | `corruption.c` | 🔧 |
 | 69 | 加倍 | 被动：Miss 损失 **2** 条残机；敌人掉落的道具全部 **×2** | 掉命挂 `on_death_after_deathbomb`（引擎扣命**之前**多扣 1，`return 0` 不救命）；掉落走新 SDK 事件 `on_enemy_drop_pre`（断点 `ce_enemy_drop` @ `0x430510` 入口，撒之前把敌人 `+0x04` 起的 20 个掉落数翻倍）。AUDIT §S | `double.c` | 🔧 |
 | 68 | 黄昏 | 被动：用掉**最后一颗**炸弹时，那一发结束后自动再放一发 | `on_tick_2` 盯炸弹管理器 `[0x4cf2b8]+0x30` 的两个边沿：0→1 时若 `CURRENT_BOMBS == 0` 就武装，1→0 时调引擎自己的 `do_bomb()` `0x420360`。不开断点、不碰炸弹计数（`0x4574d0` 自带钳 0）。AUDIT §R | `dusk.c` | 🔧 |
@@ -56,7 +56,7 @@
 火球 = **飞行物 + 落地 8 个定点伤害源**：直线飞向开火时记下的敌人坐标（8 px/帧，非追踪），到点起爆炸特效、放 `0x2c`，之后
 连续 8 帧每帧一个 64×64、50 伤害的 `ce_damage_rect`——一个源对同一敌人只结算一次、50 不超四个自机的每帧上限，所以恰好 400。
 随机（落点 / 目标）走游戏自己的 `Rng__rand_dword(&REPLAY_SAFE_RNG)` `0x402740` / `0x4cf288`。血条复用青眼的 script86 / 87。
-美术：卡图用户立绘（`fit_card.py --fill`，sprite 146/147）；本体用户正面像抠白底 256×256（`ability/make_firelord_art.py`，script91 缩放 0.5）；
+美术：卡图用户立绘（`fit_card.py --fill`，sprite 146/147）；本体用户正面像抠白底 256×256（`ability/make_firelord_art.py`，script91 缩放 0.25 ≈ 64 px 高、挡弹半径 28）；待命上下呼吸浮动 ±4 px（`fl_bob_dy`），移动 60 帧 quintic easing、落点限弹幕区下 1/3；
 火球 / 拖尾 / 爆炸贴图程序生成（同脚本，script92–94）。语音 `FIRELORD_SUMMON`（id `0x55`）/ `FIRELORD_ATTACK`（`0x56`）：用户 ogg 经 `voice/convert_voice.py` 转 wav。
 设计 `docs/superpowers/specs/2026-09-06-firelord-design.md`。
 

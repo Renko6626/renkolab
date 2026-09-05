@@ -13,9 +13,9 @@ static int fails;
 static void test_summon(void)
 {
     fl_state_t s;
-    fl_summon(&s, 0.0f, 300.0f, 0.5f);
+    fl_summon(&s, 0.0f, 400.0f, 0.5f);
     CHECK(s.hp == FL_HP, "hp=%d", s.hp);
-    CHECK(s.x == 0.0f && s.y == 300.0f + FL_SUMMON_DY && s.z == 0.5f, "pos (%.1f, %.1f)", s.x, s.y);
+    CHECK(s.x == 0.0f && s.y == 400.0f + FL_SUMMON_DY && s.z == 0.5f, "pos (%.1f, %.1f)", s.x, s.y);
     fl_summon(&s, -300.0f, 20.0f, 0.0f);                 /* 自机贴边 / 贴顶：召唤点钳进范围 */
     CHECK(s.x == FL_X_MIN && s.y == FL_Y_MIN, "clamp (%.1f, %.1f)", s.x, s.y);
     CHECK(!s.ball_active && s.move_left == 0 && s.blast_left == 0, "state not clean");
@@ -41,7 +41,7 @@ static void test_spot_range(void)
 static void test_period_and_move(void)
 {
     fl_state_t s;
-    fl_summon(&s, 0.0f, 300.0f, 0.0f);
+    fl_summon(&s, 0.0f, 400.0f, 0.0f);
     fl_step_t st;
     for (int i = 1; i < FL_PERIOD; i++) {
         st = fl_step(&s, 0);
@@ -75,8 +75,8 @@ static void test_period_and_move(void)
 static void test_fireball(void)
 {
     fl_state_t s;
-    fl_summon(&s, 0.0f, 200.0f, 0.0f);                  /* 本体在 (0, 104) */
-    fl_launch(&s, 0.0f, 104.0f + 80.0f);                /* 正下方 80 px → 10 帧 + 1 */
+    fl_summon(&s, 0.0f, 400.0f, 0.0f);                  /* 本体在 (0, 336) */
+    fl_launch(&s, 0.0f, 336.0f + 80.0f);                /* 正下方 80 px → 10 帧 + 1 */
     CHECK(s.ball_active && s.shots == 1, "launch");
     CHECK(s.ball_left == 11, "ball_left=%u", s.ball_left);
     CHECK(fabsf(s.bang - 1.5707964f) < 1e-3f, "朝下 = +π/2，得 %.4f", s.bang);
@@ -84,7 +84,7 @@ static void test_fireball(void)
     for (int i = 1; i <= 40; i++) {
         fl_step_t st = fl_step(&s, 0);
         if (st.trail) trails++;
-        if (st.ball_arrived) { arrived = i; CHECK(fabsf(s.bx) < 1e-4f && fabsf(s.by - 184.0f) < 1e-3f, "落点 (%.3f, %.3f)", s.bx, s.by); }
+        if (st.ball_arrived) { arrived = i; CHECK(fabsf(s.bx) < 1e-4f && fabsf(s.by - 416.0f) < 1e-3f, "落点 (%.3f, %.3f)", s.bx, s.by); }
         if (st.blast_dmg) { CHECK(st.blast_dmg == FL_BLAST_DMG, "dmg=%d", st.blast_dmg); dmg_frames++; }
         if (i < 11) CHECK(s.ball_active, "帧 %d 火球提前没了", i);
     }
@@ -93,8 +93,8 @@ static void test_fireball(void)
     CHECK(trails == 5, "拖尾 %d（10 帧飞行、每 2 帧一个）", trails);
     CHECK(!s.ball_active && s.blast_left == 0, "结束后状态没清");
     /* 爆炸从到点那帧的**下一帧**开始（到点帧 blast_left 刚置上、本帧不结算） */
-    fl_summon(&s, 0.0f, 200.0f, 0.0f);
-    fl_launch(&s, 100.0f, 104.0f);                      /* 正右方：角度 0 */
+    fl_summon(&s, 0.0f, 400.0f, 0.0f);
+    fl_launch(&s, 100.0f, 336.0f);                      /* 正右方：角度 0 */
     CHECK(fabsf(s.bang) < 1e-3f, "朝右 = 0，得 %.4f", s.bang);
     fl_step_t st = fl_step(&s, 0);
     CHECK(!st.ball_arrived && !st.blast_dmg, "第 1 帧不该到");
@@ -105,10 +105,34 @@ static void test_fireball(void)
     CHECK(st.ball_arrived, "原地投第 1 帧就到");
 }
 
+static void test_bob(void)
+{
+    fl_state_t s;
+    fl_summon(&s, 0.0f, 400.0f, 0.0f);
+    float prev = fl_bob_dy(&s), lo = prev, hi = prev, maxstep = 0.0f;
+    CHECK(prev == -FL_BOB_AMP, "第 0 帧该在最低点，得 %.3f", prev);
+    for (int i = 1; i <= 3 * FL_BOB_PERIOD; i++) {
+        fl_step(&s, 0);
+        float b = fl_bob_dy(&s);
+        CHECK(b >= -FL_BOB_AMP - 1e-4f && b <= FL_BOB_AMP + 1e-4f, "帧 %d 越幅 %.3f", i, b);
+        float d = fabsf(b - prev);
+        if (d > maxstep) maxstep = d;
+        if (b < lo) lo = b;
+        if (b > hi) hi = b;
+        prev = b;
+    }
+    CHECK(fabsf(lo + FL_BOB_AMP) < 1e-3f && fabsf(hi - FL_BOB_AMP) < 1e-3f, "幅度 [%.3f, %.3f]", lo, hi);
+    CHECK(maxstep < 2.0f * FL_BOB_AMP * 1.5f / (FL_BOB_PERIOD / 2) + 1e-3f, "最大单帧位移 %.3f 过大（不平滑）", maxstep);
+    /* 周期：整周期后回到起点 */
+    fl_summon(&s, 0.0f, 400.0f, 0.0f);
+    for (int i = 0; i < FL_BOB_PERIOD; i++) fl_step(&s, 0);
+    CHECK(fabsf(fl_bob_dy(&s) + FL_BOB_AMP) < 1e-4f, "一个周期后不在起点：%.3f", fl_bob_dy(&s));
+}
+
 static void test_hp(void)
 {
     fl_state_t s;
-    fl_summon(&s, 0.0f, 300.0f, 0.0f);
+    fl_summon(&s, 0.0f, 400.0f, 0.0f);
     fl_step_t st = fl_step(&s, 300);
     CHECK(s.hp == FL_HP - 300 && s.blocked == 300 && !st.died, "hp=%d", s.hp);
     st = fl_step(&s, FL_HP);                            /* 一帧挡了超过剩余（引擎按 max_count = hp 会截断，这里测下限）*/
@@ -123,6 +147,7 @@ int main(void)
     test_spot_range();
     test_period_and_move();
     test_fireball();
+    test_bob();
     test_hp();
     if (fails) { printf("%d FAIL\n", fails); return 1; }
     printf("test_firelord_core: OK\n");

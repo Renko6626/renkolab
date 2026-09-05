@@ -8,22 +8,24 @@
 #define FL_POWER_COST     200      /* 2.00 火力 */
 #define FL_POWER_GATE     300      /* 门槛 3.00：引擎 spend_power 永远保留 1.00，成本 + 一档才扣得实（零售 Tsukasa 同款：成本 1 档、门槛 2 档）*/
 #define FL_RECHARGE       600      /* 10 s，与青眼同 */
-#define FL_RADIUS         56.0f    /* 挡弹半径：本体约 128 px 高、翼展约 115 */
+#define FL_RADIUS         28.0f    /* 挡弹半径：本体约 64 px 高（2026-09-06 用户：体积与半径都减半）*/
 #define FL_PERIOD         480      /* 帧：每 8 s 一个周期（移动 → 到位开火）*/
-#define FL_MOVE_FRAMES    40       /* 一次移动滑 40 帧（平滑 smoothstep）*/
-#define FL_SUMMON_DY      (-96.0f) /* 召唤在自机上方 */
-#define FL_X_MIN          (-160.0f) /* 随机落点范围：弹幕区上半（实体坐标：x 居中、y 从顶边起算）*/
+#define FL_MOVE_FRAMES    60       /* 一次移动滑 60 帧（quintic ease-in-out：起步慢、中段快、落定慢）*/
+#define FL_SUMMON_DY      (-64.0f) /* 召唤在自机上方（再钳进落点范围）*/
+#define FL_X_MIN          (-160.0f) /* 随机落点范围：弹幕区**下 1/3**（实体坐标：x 居中、y 从顶边起算，区高 448 ⇒ 下 1/3 从 299 起）*/
 #define FL_X_MAX          160.0f
-#define FL_Y_MIN          64.0f
-#define FL_Y_MAX          240.0f
+#define FL_Y_MIN          300.0f
+#define FL_Y_MAX          410.0f    /* 离底边留 38 px：本体半高 32 + 血条 */
+#define FL_BOB_PERIOD     96        /* 帧：待命时上下呼吸浮动一个来回 */
+#define FL_BOB_AMP        4.0f      /* px：浮动半幅（本体 64 px 高）*/
 #define FL_BALL_SPEED     8.0f     /* px / 帧：满场 ~600 px 也在 75 帧内到，远小于 480 的周期 ⇒ 场上最多一颗 */
 #define FL_BLAST_FRAMES   8        /* 爆炸持续帧：每帧一个新伤害源（一个源对同一敌人只结算一次）*/
 #define FL_BLAST_DMG      50       /* 每帧；8 × 50 = 400。50 ≤ 四个自机的每帧上限最小值（Sakuya 60）⇒ 不被钳 */
 #define FL_BLAST_W        64.0f
 #define FL_BLAST_H        64.0f
 #define FL_TRAIL_EVERY    2        /* 飞行中每 2 帧留一个拖尾 */
-#define FL_BAR_DY         76.0f    /* 血条中心相对本体中心的 y（本体下端约 +64）*/
-#define FL_BAR_W          56.0f
+#define FL_BAR_DY         40.0f    /* 血条中心相对本体中心的 y（本体下端约 +32）*/
+#define FL_BAR_W          40.0f
 #define FL_BAR_H          4.0f
 
 typedef struct {
@@ -64,3 +66,15 @@ void      fl_begin_move(fl_state_t *s, uint32_t rnd);                   /* 用�
 void      fl_launch(fl_state_t *s, float tx, float ty);                 /* 朝 (tx, ty) 投火球：直线、FL_BALL_SPEED、到点即爆 */
 void      fl_spot_from_rand(uint32_t rnd, float *x, float *y);          /* 低 16 位 → x、高 16 位 → y，均匀落在范围内 */
 uint32_t  fl_pick_index(uint32_t rnd, uint32_t n);                      /* n > 0：rnd % n */
+
+/* 呼吸浮动：画面 y = s->y + 它（判定 / 血条一起跟）。三角相位 → smoothstep 折成来回 = 一条 C¹ 连续的近似正弦，不引 libm。
+ * frames = 0（召唤那帧）在最低点 −AMP，之后先上浮。**static inline 的理由同 bc_atan2f**：i386 ABI 返回 float 走 st0（flds），
+ * 内联掉才守得住 make dllx87 的「零 x87」。*/
+static inline float fl_bob_dy(const fl_state_t *s)
+{
+    uint32_t ph = s->frames % FL_BOB_PERIOD;
+    float t = (float)ph / ((float)FL_BOB_PERIOD * 0.5f);   /* [0, 2) */
+    if (t > 1.0f) t = 2.0f - t;                            /* 三角波 */
+    float k = t * t * (3.0f - 2.0f * t);                   /* smoothstep：两端速度为 0 */
+    return (k * 2.0f - 1.0f) * FL_BOB_AMP;                 /* [−AMP, +AMP] */
+}

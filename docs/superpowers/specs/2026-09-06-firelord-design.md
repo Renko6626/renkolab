@@ -21,9 +21,9 @@
 | | 青眼白龙（67） | 炎魔之王（72） |
 | --- | --- | --- |
 | 代价 | 1 残机 | **2.00 火力**（门槛 3.00，§2.1）|
-| 位置 | 跟随自机上方 80 px | **不跟随**：每 480 帧抽一个随机落点，40 帧 smoothstep 滑过去 |
+| 位置 | 跟随自机上方 80 px | **不跟随**：每 480 帧在弹幕区**下 1/3** 抽一个随机落点，60 帧 quintic ease-in-out 滑过去；待命时上下呼吸浮动（±4 px、96 帧）|
 | 攻击 | 每 5 s 向上一道 45 帧光束（矩形伤害源每帧一个）| 到位那帧向**随机一个**敌人投火球：直线飞向开火时记下的坐标（8 px/帧），落地连续 8 帧、每帧一个 64×64 伤害源 × 50 |
-| 生命 / 挡弹 | 1500 / 半径 48 | 800 / 半径 56 |
+| 生命 / 挡弹 | 1500 / 半径 48 | 800 / 半径 28（本体约 64 px 高；2026-09-06 用户：体积与半径减半）|
 | 随机 | 无 | 游戏 `REPLAY_SAFE_RNG`（落点 + 目标）|
 | 语音 | 无 | 召唤 `FIRELORD_SUMMON`（叠在 `0x4d` 上）、投球 `FIRELORD_ATTACK` |
 
@@ -44,8 +44,11 @@
 
 ### 2.2 移动
 
-召唤在自机上方 96 px（钳进落点范围）。每 480 帧 `fl_step` 报 `need_move` → C 取一个 `ce_rand()` 喂 `fl_begin_move`：
-低 16 位 → x ∈ [−160, 160)、高 16 位 → y ∈ [64, 240)（弹幕区上半，实体坐标）。40 帧 smoothstep 插值，到位那帧报 `fire`。
+召唤在自机上方 64 px（钳进落点范围）。每 480 帧 `fl_step` 报 `need_move` → C 取一个 `ce_rand()` 喂 `fl_begin_move`：
+低 16 位 → x ∈ [−160, 160)、高 16 位 → y ∈ [300, 410)（弹幕区**下 1/3**，区高 448；离底边留 38 px 给本体半高 + 血条。实体坐标，y 从顶边起算）。
+60 帧 quintic ease-in-out（smootherstep 6t⁵ − 15t⁴ + 10t³）插值，到位那帧报 `fire`。
+**呼吸浮动**（2026-09-06 用户）：画面 y = 逻辑 y + `fl_bob_dy`（三角相位过 smoothstep 折成来回，±4 px、96 帧一个来回，不引 libm、`static inline` 守零 x87）；
+挡弹判定与血条跟着画面位置走，移动中也叠加。
 
 ### 2.3 火球
 
@@ -60,8 +63,8 @@
 
 ### 2.4 生命 / 挡弹 / 血条 / 收尾
 
-与青眼同一原语：`ce_cancel_radius(pos, 56, hp, 0)` 每帧，挡一发 −1，挡到那帧本体染橙 `0xffff8040`。血条复用 script86 / 87（drawRect 根 VM，
-C 写 pos / scale / color），满宽 56、>50％ 橙 / >20％ 黄 / 红。归零 → `interruptLabel(1)` 放大淡出、`0x29`、`on_active_tick` 返回 0 开始充能。
+与青眼同一原语：`ce_cancel_radius(pos, 28, hp, 0)` 每帧（pos 含呼吸浮动），挡一发 −1，挡到那帧本体染橙 `0xffff8040`。血条复用 script86 / 87（drawRect 根 VM，
+C 写 pos / scale / color），满宽 40、>50％ 橙 / >20％ 黄 / 红。归零 → `interruptLabel(1)` 放大淡出、`0x29`、`on_active_tick` 返回 0 开始充能。
 过关 / 局末删 VM。本体 VM 被引擎收掉（O29h）→ 结束。
 
 ## 3. 数值
@@ -70,8 +73,8 @@ C 写 pos / scale / color），满宽 56、>50％ 橙 / >20％ 黄 / 红。归�
 | --- | --- |
 | id / `internal_name` / `category` / `price_tier` / `weight` | 72 / `FIRELORD` / 0（主动）/ 14（500）/ 2 |
 | 成本 / 门槛 / 充能 | 200 / 300 / 600 帧 |
-| HP / 挡弹半径 | 800 / 56 |
-| 周期 / 滑动 / 落点范围 | 480 帧 / 40 帧 / x [−160, 160) × y [64, 240) |
+| HP / 挡弹半径 | 800 / 28 |
+| 周期 / 滑动 / 落点范围 / 呼吸 | 480 帧 / 60 帧 quintic / x [−160, 160) × y [300, 410) / ±4 px、96 帧 |
 | 火球速度 / 爆炸 | 8 px/帧 / 8 帧 × 50 × 64×64（名义 400）|
 | 音效 | 召唤 `0x4d` + 语音 `0x55`；投球语音 `0x56`；爆炸 `0x2c`；死亡 `0x29` |
 
@@ -80,7 +83,7 @@ C 写 pos / scale / color），满宽 56、>50％ 橙 / >20％ 黄 / 红。归�
 | 资源 | 来源 / 处理 | 在哪 |
 | --- | --- | --- |
 | 卡图 sprite 146/147 | 用户提供立绘 500×654 → `fit_card.py FIRELORD … --no-detect --trim 0 --margin 0 --fill`（横向拉 4％ 到 4:5，套零售框）| `cards/FIRELORD_*.png` |
-| 本体 `FIRELORD_BODY`（entry21 / sprite123）| 用户提供正面像 1189×1323 白底 → `make_firelord_art.py` 抠白底（四角泛洪 + 边缘斜坡）→ 256×256；script91 缩放 0.5 | `ability/firelord/RAGNAROS.png` |
+| 本体 `FIRELORD_BODY`（entry21 / sprite123）| 用户提供正面像 1189×1323 白底 → `make_firelord_art.py` 抠白底（四角泛洪 + 边缘斜坡）→ 256×256；script91 缩放 0.25（约 64 px 高）| `ability/firelord/RAGNAROS.png` |
 | 火球 `FIRELORD_FIREBALL`（sprite124）| 程序生成 64×64：白芯 → 黄 → 橙 → 红，边缘按角度噪声抖出火舌（固定种子）| `FIREBALL.png` |
 | 爆炸 `FIRELORD_BLAST`（sprite125）| 程序生成 128×128：内圈闪光 + 外圈光环 | `BLAST.png` |
 

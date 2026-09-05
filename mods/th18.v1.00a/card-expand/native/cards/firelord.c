@@ -23,7 +23,7 @@
 static void bar_update(fl_state_t *s)
 {
     float ratio = s->hp > 0 ? (float)s->hp / (float)FL_HP : 0.0f;
-    float w = FL_BAR_W * ratio, y = s->y + FL_BAR_DY;
+    float w = FL_BAR_W * ratio, y = s->y + fl_bob_dy(s) + FL_BAR_DY;   /* 血条跟着呼吸浮动 */
     ce_anm_set_pos(s->bar_bg_id, s->x, y, s->z);
     ce_anm_set_scale(s->bar_bg_id, FL_BAR_W + 4.0f, FL_BAR_H + 4.0f);
     ce_anm_set_pos(s->bar_id, s->x - (FL_BAR_W - w) * 0.5f, y, s->z);
@@ -100,7 +100,7 @@ static int on_activate(ce_card_t *c)
     fl_summon(s, pp[0], pp[1], pp[2]);
     s->anm_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_BODY, 13);
     if (!s->anm_id) return refuse("body anm failed");
-    ce_anm_set_pos(s->anm_id, s->x, s->y, s->z);
+    ce_anm_set_pos(s->anm_id, s->x, s->y + fl_bob_dy(s), s->z);
     s->bar_bg_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR_BG, 13);
     s->bar_id    = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR, 13);
     bar_update(s);
@@ -128,12 +128,12 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
         return 0;
     }
     float pz = ((const float *)(p + CE_PLAYER_X))[2];
-    float pos[3] = { s->x, s->y, s->z };
+    float pos[3] = { s->x, s->y + fl_bob_dy(s), s->z };      /* 判定跟画面：呼吸浮动一起算 */
     int blocked = s->hp > 0 ? ce_cancel_radius(pos, FL_RADIUS, s->hp, 0) : 0;
     ce_anm_set_color(s->anm_id, blocked ? FL_COLOR_HIT : FL_COLOR_IDLE);
 
     fl_step_t st = fl_step(s, blocked);
-    ce_anm_set_pos(s->anm_id, s->x, s->y, s->z);
+    ce_anm_set_pos(s->anm_id, s->x, s->y + fl_bob_dy(s), s->z);   /* 逻辑位置 (x, y) + 呼吸浮动 */
     bar_update(s);
 
     if (st.need_move) {

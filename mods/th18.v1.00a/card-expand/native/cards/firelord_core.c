@@ -54,10 +54,10 @@ fl_step_t fl_step(fl_state_t *s, int blocked)
     if (blocked > 0) { s->hp -= blocked; s->blocked += (uint32_t)blocked; }
     s->frames++;
 
-    /* 移动：smoothstep 插值，到位那帧开火 */
+    /* 移动：quintic ease-in-out（smootherstep 6t⁵ − 15t⁴ + 10t³）插值，到位那帧开火 */
     if (s->move_left > 0) {
         float t = 1.0f - (float)(s->move_left - 1) / (float)FL_MOVE_FRAMES;   /* 最后一帧 t = 1 */
-        float k = t * t * (3.0f - 2.0f * t);
+        float k = t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);
         s->x = s->sx + (s->tx - s->sx) * k;
         s->y = s->sy + (s->ty - s->sy) * k;
         s->move_left--;
@@ -83,3 +83,4 @@ fl_step_t fl_step(fl_state_t *s, int blocked)
     r.died = s->hp <= 0;
     return r;
 }
+

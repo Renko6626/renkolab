@@ -923,6 +923,7 @@ Tenshi 要石是同一个原语，只是尺寸小、寿命短。
 | V10 | 复用青眼 script86 / 87 做血条 | **CONFIRMED** —— 两个脚本是 `drawRect(1,1)` 根 VM，没有任何卡专属的东西；pos / scale / color 全由 C 每帧写（O29k）。两张卡各起自己的一对 VM，互不干扰 |
 | V11 | 敌人链表遍历 | **CONFIRMED** —— 与 U7 同一套（`+0x18c` 链表、`+0x635c & 0xc000021`、`+0x1270/+0x1274`），两遍都在同一个 `on_active_tick` 里、不缓存 enemy 指针 |
 | V12 | replay 安全的算术 | **CONFIRMED** —— 随机只来自游戏 RNG；smoothstep / 位移 / `bc_atan2f` / `sqrtss` 全是确定性 SSE；`make dllx87` = 0 |
+| V16 | 呼吸浮动 `fl_bob_dy` 不引 x87 | **CONFIRMED** —— 头里的 `static inline`（bc_atan2f 同理：i386 返回 float 走 st0）；`make dllx87` = 0。判定 / 血条 / 画面三者用同一个浮动值，不会「看着挡住了实际没挡」|
 | V13 | 私有状态放得下 | **CONFIRMED** —— `sizeof(fl_state_t)` = 112 ≤ `CE_STATE_BYTES − CE_STATE_RESERVED` = 240 |
 | V14 | 语音登记与响度 | **CONFIRMED** —— ORDER 第 1、2 行 → id `0x55` / `0x56`（`make voice` 与 `voice.js` 对账）；转换后 RMS −10.7 / −11.2，在 −10 ± 4 dB 带内；攻击语音 4.3 s < 8 s 周期，不自叠 |
 | V15 | HUD 火力显示不用手动刷 | **CONFIRMED** —— Tsukasa / 商店 / 死亡三处扣火力都没调任何 HUD 刷新函数（对比残机 / 炸弹行要调 `0x441f10` / `0x4420e0`）；火力条每帧读 `CURRENT_POWER` |
