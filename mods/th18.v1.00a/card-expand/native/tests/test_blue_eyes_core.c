@@ -51,8 +51,29 @@ static void test_wave_timing(void)
     CHECK(r.wave_start == 1 && s.waves == 2 && s.frames == 2 * BE_WAVE_PERIOD);   /* 第 600 帧第二波 */
 }
 
+static void test_bob(void)
+{
+    be_state_t s;
+    be_summon(&s, 0.0f, 400.0f, 0.0f);
+    float prev = be_bob_dy(&s), lo = prev, hi = prev, maxstep = 0.0f;
+    CHECK(prev == -BE_BOB_AMP);                          /* 第 0 帧在最低点 */
+    for (int i = 1; i <= 3 * BE_BOB_PERIOD; i++) {
+        be_step(&s, 0);
+        float b = be_bob_dy(&s);
+        CHECK(b >= -BE_BOB_AMP - 1e-4f && b <= BE_BOB_AMP + 1e-4f);
+        float d = fabsf(b - prev);
+        if (d > maxstep) maxstep = d;
+        if (b < lo) lo = b;
+        if (b > hi) hi = b;
+        prev = b;
+    }
+    CHECK(fabsf(lo + BE_BOB_AMP) < 1e-3f && fabsf(hi - BE_BOB_AMP) < 1e-3f);   /* 幅度到顶到底 */
+    CHECK(maxstep < 2.0f * BE_BOB_AMP * 1.5f / (BE_BOB_PERIOD / 2) + 1e-3f);   /* 单帧位移平滑 */
+}
+
 int main(void)
 {
+    test_bob();
     test_summon_and_follow();
     test_hp_and_death();
     test_wave_timing();

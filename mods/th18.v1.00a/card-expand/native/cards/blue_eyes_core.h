@@ -17,6 +17,8 @@
 #define BE_BAR_DY         66.0f    /* 血条中心相对龙中心的 y（龙尾尖约 +58）*/
 #define BE_BAR_W          56.0f    /* 血条填充满宽（底槽各多 2 px）*/
 #define BE_BAR_H          4.0f
+#define BE_BOB_PERIOD     96       /* 帧：呼吸浮动一个来回（2026-09-06 用户：与炎魔之王同款）*/
+#define BE_BOB_AMP        5.0f     /* px：浮动半幅（龙约 115 px 高）*/
 
 typedef struct {
     int32_t  hp;
@@ -36,3 +38,14 @@ typedef struct { int wave_start; int beam_dmg; int died; } be_step_t;
 void      be_summon(be_state_t *s, float px, float py, float pz);   /* 清零、hp = BE_HP、坐标 = (px, py + BE_SUMMON_DY, pz) */
 void      be_follow(be_state_t *s, float px, float py, float pz);   /* 目标 (px, py + BE_FOLLOW_DY, pz)，lerp BE_FOLLOW_LERP */
 be_step_t be_step(be_state_t *s, int blocked);                       /* 每帧：扣血、计帧、发波状态机 */
+
+/* 呼吸浮动：画面 y = s->y + 它（挡弹判定 / 光束起点 / 血条一起跟）。三角相位过 smoothstep 折成来回 = C¹ 连续的近似正弦，
+ * 不引 libm。frames = 0 在最低点。static inline：i386 返回 float 走 st0，内联掉才守得住 make dllx87 的零 x87（炎魔之王同款）。*/
+static inline float be_bob_dy(const be_state_t *s)
+{
+    uint32_t ph = s->frames % BE_BOB_PERIOD;
+    float t = (float)ph / ((float)BE_BOB_PERIOD * 0.5f);
+    if (t > 1.0f) t = 2.0f - t;
+    float k = t * t * (3.0f - 2.0f * t);
+    return (k * 2.0f - 1.0f) * BE_BOB_AMP;
+}

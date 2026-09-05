@@ -23,7 +23,7 @@
 static void bar_update(be_state_t *s)
 {
     float ratio = s->hp > 0 ? (float)s->hp / (float)BE_HP : 0.0f;
-    float w = BE_BAR_W * ratio, y = s->y + BE_BAR_DY;
+    float w = BE_BAR_W * ratio, y = s->y + be_bob_dy(s) + BE_BAR_DY;   /* 血条跟着呼吸浮动 */
     ce_anm_set_pos(s->bar_bg_id, s->x, y, s->z);
     ce_anm_set_scale(s->bar_bg_id, BE_BAR_W + 4.0f, BE_BAR_H + 4.0f);
     ce_anm_set_pos(s->bar_id, s->x - (BE_BAR_W - w) * 0.5f, y, s->z);
@@ -73,7 +73,7 @@ static int on_activate(ce_card_t *c)
     be_summon(s, pp[0], pp[1], pp[2]);
     s->anm_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_DRAGON, 13);
     if (!s->anm_id) return refuse("dragon anm failed");
-    ce_anm_set_pos(s->anm_id, s->x, s->y, s->z);
+    ce_anm_set_pos(s->anm_id, s->x, s->y + be_bob_dy(s), s->z);
     s->bar_bg_id = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR_BG, 13);
     s->bar_id    = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_BLUE_EYES_BAR, 13);
     bar_update(s);
@@ -98,9 +98,10 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
     }
     const float *pp = (const float *)(p + CE_PLAYER_X);
     be_follow(s, pp[0], pp[1], pp[2]);
-    ce_anm_set_pos(s->anm_id, s->x, s->y, s->z);
+    float bob = be_bob_dy(s);                              /* 呼吸浮动：画面 / 判定 / 光束起点 / 血条共用同一个值 */
+    ce_anm_set_pos(s->anm_id, s->x, s->y + bob, s->z);
 
-    float pos[3] = { s->x, s->y, s->z };
+    float pos[3] = { s->x, s->y + bob, s->z };
     int blocked = s->hp > 0 ? ce_cancel_radius(pos, BE_RADIUS, s->hp, 0) : 0;
     ce_anm_set_color(s->anm_id, blocked ? BE_COLOR_HIT : BE_COLOR_IDLE);
 
@@ -111,7 +112,7 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
         ce_play_sound(BE_SE_BEAM, s->x);
         ce_log("blue_eyes: wave %u start at frame %u (hp %d, cap %d)", s->waves, s->frames, s->hp, *(int32_t *)(p + CE_PLAYER_DAMAGE_CAP));
     }
-    float mouth_y = s->y + BE_MOUTH_DY;                    /* 龙头 y */
+    float mouth_y = s->y + bob + BE_MOUTH_DY;              /* 龙头 y（含浮动）*/
     if (st.beam_dmg && mouth_y > 0.0f) {                   /* 光束：从龙头到区域顶边（y = 0）的矩形 */
         float center[3] = { s->x, mouth_y * 0.5f, s->z };
         ce_damage_rect(center, 0.0f, 2, st.beam_dmg, BE_BEAM_WIDTH, mouth_y);
