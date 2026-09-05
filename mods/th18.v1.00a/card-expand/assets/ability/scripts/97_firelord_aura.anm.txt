@@ -1,0 +1,28 @@
+script script97 {
+    // 拉格纳罗斯常态的身体火焰：C 每帧起 FL_AURA 颗、钉在本体坐标（含呼吸浮动）；每颗在这里用 ANM 自己的随机（UI RNG 流）
+    // 抽一个身体范围内的起点（本体约 57 × 64 px），然后向上飘 30 px、从黄白缩小淡成橙红——火是往上烧的。27 帧与火球粒子同寿。
+-1:
+    layer(13);
+    sprite(@FIRELORD_FIREBALL);
+    type(1);
+    blendMode(1);
+    zWriteDisable(1);
+0:
+    fsetMul(%F0, %RANDF, 44.0f);
+    fadd(%F0, -22.0f);
+    fsetMul(%F1, %RANDF, 48.0f);
+    fadd(%F1, -20.0f);
+    fsetMul(%F2, %RANDF, 0.14f);
+    fadd(%F2, 0.2f);
+    pos(%F0, %F1, 0.0f);
+    color(255, 235, 190);
+    alpha(200);
+    scale(%F2, %F2);
+    fadd(%F1, -30.0f);
+    posTime(27, 0, %F0, %F1, 0.0f);
+    scaleTime(27, 0, 0.04f, 0.04f);
+    colorTime(27, 0, 255, 110, 30);
+    alphaTime(27, 0, 0);
++27: // 27
+    delete();
+}

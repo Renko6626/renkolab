@@ -135,6 +135,10 @@ static int on_active_tick(ce_card_t *c, uint32_t elapsed)
     fl_step_t st = fl_step(s, blocked);
     ce_anm_set_pos(s->anm_id, s->x, s->y + fl_bob_dy(s), s->z);   /* 逻辑位置 (x, y) + 呼吸浮动 */
     bar_update(s);
+    for (int i = 0; i < FL_AURA; i++) {                    /* 常态身体火焰：脚本自己在身体范围内抽起点、向上飘（UI RNG，不动 replay 流）*/
+        uint32_t q = ce_anm_spawn(CE_ABILITY_ANM(), CE_ANM_ABILITY_SCRIPT_FIRELORD_AURA, 13);
+        if (q) ce_anm_set_pos(q, s->x, s->y + fl_bob_dy(s), s->z);
+    }
 
     if (st.need_move) {
         fl_begin_move(s, ce_rand());

@@ -1,5 +1,5 @@
 script script96 {
-    // 落地火星：C 在爆炸那帧起 FL_BURST 颗、钉在落点；各自随机方向飞出 ±56 px（先快后慢），22 帧从黄白缩小淡成暗红。
+    // 落地火星：C 在爆炸那帧起 FL_BURST 颗、钉在落点；各自随机方向飞出 ±60 px（先快后慢），33 帧从黄白缩小淡成暗红（2026-09-06 用户：尺寸略大、时长 +50％）。
 -1:
     layer(13);
     sprite(@FIRELORD_FIREBALL);
@@ -7,20 +7,20 @@ script script96 {
     blendMode(1);
     zWriteDisable(1);
 0:
-    fsetMul(%F0, %RANDF, 112.0f);
-    fadd(%F0, -56.0f);
-    fsetMul(%F1, %RANDF, 112.0f);
-    fadd(%F1, -56.0f);
-    fsetMul(%F2, %RANDF, 0.2f);
-    fadd(%F2, 0.3f);
+    fsetMul(%F0, %RANDF, 120.0f);
+    fadd(%F0, -60.0f);
+    fsetMul(%F1, %RANDF, 120.0f);
+    fadd(%F1, -60.0f);
+    fsetMul(%F2, %RANDF, 0.25f);
+    fadd(%F2, 0.4f);
     color(255, 240, 180);
     alpha(255);
     scale(%F2, %F2);
-    posTime(22, 5, %F0, %F1, 0.0f);
-    scaleTime(22, 0, 0.05f, 0.05f);
-    colorTime(22, 0, 200, 50, 20);
-+6: // 6
-    alphaTime(16, 0, 0);
-+16: // 22
+    posTime(33, 5, %F0, %F1, 0.0f);
+    scaleTime(33, 0, 0.06f, 0.06f);
+    colorTime(33, 0, 200, 50, 20);
++9: // 9
+    alphaTime(24, 0, 0);
++24: // 33
     delete();
 }

@@ -25,6 +25,7 @@
 #define FL_BLAST_H        96.0f
 #define FL_PARTICLES      2        /* 飞行中每帧撒几颗橙白粒子（script95，各自随机飘散）*/
 #define FL_BURST          10       /* 落地那帧撒几颗火星（script96）*/
+#define FL_AURA           2        /* 常态：本体每帧撒几颗身体火焰（script97，与火球粒子同量）*/
 #define FL_SHAKE_TIME     14       /* 震屏帧数（ECL setScreenShake 同款机制；零售 boss 死亡量级更大）*/
 #define FL_SHAKE_START    5        /* 起始强度（相机像素偏移）*/
 #define FL_SHAKE_END      0

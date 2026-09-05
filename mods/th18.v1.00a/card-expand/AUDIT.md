@@ -924,7 +924,7 @@ Tenshi 要石是同一个原语，只是尺寸小、寿命短。
 | V11 | 敌人链表遍历 | **CONFIRMED** —— 与 U7 同一套（`+0x18c` 链表、`+0x635c & 0xc000021`、`+0x1270/+0x1274`），两遍都在同一个 `on_active_tick` 里、不缓存 enemy 指针 |
 | V12 | replay 安全的算术 | **CONFIRMED** —— 随机只来自游戏 RNG；smoothstep / 位移 / `bc_atan2f` / `sqrtss` 全是确定性 SSE；`make dllx87` = 0 |
 | V17 | 震屏工厂 `0x476060` 的调用约定 | **CONFIRMED** —— 见下「V17 证据」：fastcall(ecx = type, edx = time; start, end, 0, 0x5b) `ret 0x10`；type 1 的 on_tick 用 UI RNG，不进 replay 流 |
-| V18 | 粒子 / 火星脚本里的 `%RANDF` 不进 replay 流 | **CONFIRMED** —— ANM 的随机读 `0x4cf280`（`FUN_00405d70` / `FUN_00407590` 等 AnmVm 代码的 xref 都在那个实例上），与商店 / UI 同流，不是 `REPLAY_SAFE_RNG`。每帧最多 2 + 10 颗、各活 18 / 22 帧，同时在场 ≤ 50 个 VM |
+| V18 | 粒子 / 火星脚本里的 `%RANDF` 不进 replay 流 | **CONFIRMED** —— ANM 的随机读 `0x4cf280`（`FUN_00405d70` / `FUN_00407590` 等 AnmVm 代码的 xref 都在那个实例上），与商店 / UI 同流，不是 `REPLAY_SAFE_RNG`。飞行粒子 / 身体火焰各每帧 2 颗、活 27 帧，火星 10 颗活 33 帧 ⇒ 同时在场 ≤ 2×27 + 2×27 + 10 ≈ 120 个一次性 VM（弹幕池是 2000 张，量级远低）|
 | V16 | 呼吸浮动 `fl_bob_dy` 不引 x87 | **CONFIRMED** —— 头里的 `static inline`（bc_atan2f 同理：i386 返回 float 走 st0）；`make dllx87` = 0。判定 / 血条 / 画面三者用同一个浮动值，不会「看着挡住了实际没挡」|
 | V13 | 私有状态放得下 | **CONFIRMED** —— `sizeof(fl_state_t)` = 112 ≤ `CE_STATE_BYTES − CE_STATE_RESERVED` = 240 |
 | V14 | 语音登记与响度 | **CONFIRMED** —— ORDER 第 1、2 行 → id `0x55` / `0x56`（`make voice` 与 `voice.js` 对账）；转换后 RMS −10.7 / −11.2，在 −10 ± 4 dB 带内；攻击语音 4.3 s < 8 s 周期，不自叠 |

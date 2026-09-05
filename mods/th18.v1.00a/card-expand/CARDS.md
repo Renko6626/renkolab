@@ -56,7 +56,7 @@
 火球 = **飞行物 + 落地 12 个定点伤害源**：直线飞向开火时记下的敌人坐标（4 px/帧，非追踪；飞行中每帧 2 颗橙白粒子 script95），到点起爆炸光环 + 10 颗火星（script96）+ 小震屏（`ce_screen_shake(14, 5, 0)`，ECL setScreenShake 同一工厂 `0x476060`）、放 `0x2c`，之后
 连续 12 帧每帧一个 96×96、50 伤害的 `ce_damage_rect`——一个源对同一敌人只结算一次、50 不超四个自机的每帧上限，所以恰好 600。
 随机（落点 / 目标）走游戏自己的 `Rng__rand_dword(&REPLAY_SAFE_RNG)` `0x402740` / `0x4cf288`。血条复用青眼的 script86 / 87。
-美术：卡图用户立绘（`fit_card.py --fill`，sprite 146/147）；本体用户正面像抠白底 256×256（`ability/make_firelord_art.py`，script91 缩放 0.25 ≈ 64 px 高、挡弹半径 28）；待命上下呼吸浮动 ±4 px（`fl_bob_dy`），移动 60 帧 quintic easing、落点限弹幕区下 1/3；
+美术：卡图用户立绘（`fit_card.py --fill`，sprite 146/147）；本体用户正面像抠白底 256×256（`ability/make_firelord_art.py`，script91 缩放 0.25 ≈ 64 px 高、挡弹半径 28）；待命上下呼吸浮动 ±4 px（`fl_bob_dy`）+ 每帧 2 颗身体火焰粒子（script97，往上飘），移动 60 帧 quintic easing、落点限弹幕区下 1/3；
 火球 / 拖尾 / 爆炸贴图程序生成（同脚本，script92–94）。语音 `FIRELORD_SUMMON`（id `0x55`）/ `FIRELORD_ATTACK`（`0x56`）：用户 ogg 经 `voice/convert_voice.py` 转 wav。
 设计 `docs/superpowers/specs/2026-09-06-firelord-design.md`。
 
